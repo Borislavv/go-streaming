@@ -1,13 +1,14 @@
 package video
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/model"
+	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
 	"io"
 	"log"
 	"os"
 )
 
-const ChunkSize = 1024 * 1024
+// ChunkSize is 2.5MB
+const ChunkSize = 1024 * 1024 * 2.5
 
 type ManagerService struct {
 }
@@ -16,10 +17,10 @@ func NewVideoManagerService() *ManagerService {
 	return &ManagerService{}
 }
 
-func (m *ManagerService) Read() chan *model.Chunk {
+func (m *ManagerService) Read() chan *stream.Chunk {
 	log.Println("video manager: reading started")
 
-	chunksCh := make(chan *model.Chunk) // 10mb chunks buffer, each chunk by 1mb
+	chunksCh := make(chan *stream.Chunk, 100) // 250mb chunks buffer, each chunk by 2.5mb
 
 	go func() {
 		defer close(chunksCh)
@@ -32,7 +33,7 @@ func (m *ManagerService) Read() chan *model.Chunk {
 		defer file.Close()
 
 		for {
-			chunk := &model.Chunk{Data: make([]byte, ChunkSize)}
+			chunk := &stream.Chunk{Data: make([]byte, ChunkSize)}
 
 			chunk.Len, err = file.Read(chunk.Data)
 			if err != nil {

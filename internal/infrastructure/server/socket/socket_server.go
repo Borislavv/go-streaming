@@ -59,11 +59,13 @@ func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err = conn.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
 
 	log.Printf("socket server: accpted a new connection [%s]", conn.RemoteAddr())
 
-	if err = s.streamer.StartStreaming(conn); err != nil {
-		log.Fatalln(err)
-	}
+	s.streamer.Stream(conn)
 }

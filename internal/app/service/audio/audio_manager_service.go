@@ -1,4 +1,4 @@
-package music
+package audio
 
 type ManagerService interface {
 }

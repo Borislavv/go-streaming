@@ -2,41 +2,65 @@ package stream
 
 import (
 	"github.com/Borislavv/video-streaming/internal/app/service"
+	"github.com/Borislavv/video-streaming/internal/domain/model/video"
 	"github.com/gorilla/websocket"
 	"log"
+	"sync"
 )
 
+const VideoPath = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/resource/tmp/video/example_video.mp4"
+
 type StreamingService struct {
-	manager service.Manager
+	reader service.Reader
 }
 
-func NewStreamingService(manager service.Manager) *StreamingService {
+func NewStreamingService(
+	reader service.Reader,
+) *StreamingService {
 	return &StreamingService{
-		manager: manager,
+		reader: reader,
 	}
 }
 
-func (s *StreamingService) StartStreaming(conn *websocket.Conn) error {
-	defer conn.Close()
-
+func (s *StreamingService) Stream(conn *websocket.Conn) {
 	log.Println("streaming service: started")
 
-	chunkCh := s.manager.Read()
+	wg := &sync.WaitGroup{}
+	errCh := make(chan error)
 
-	for chunk := range chunkCh {
-		if chunk.Err != nil {
-			return chunk.Err
-		}
+	wg.Add(1)
+	go s.handleStreamErrs(wg, errCh)
 
-		err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data)
-		if err != nil {
-			return err
-		}
+	wg.Add(1)
+	go s.handleStream(wg, conn, errCh)
 
-		log.Printf("streaming service: wrote message to websocket")
-	}
+	wg.Wait()
 
 	log.Println("streaming service: stopped")
+}
 
-	return nil
+func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn, errCh chan error) {
+	defer wg.Done()
+	defer close(errCh)
+
+	for chunk := range s.reader.Read(video.New(VideoPath)) {
+		if chunk.Err != nil {
+			errCh <- chunk.Err
+			continue
+		}
+
+		if err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data); err != nil {
+			errCh <- err
+			continue
+		}
+
+		log.Printf("streaming service: wrote %d bytes to websocket\n", chunk.Len)
+	}
+}
+
+func (s *StreamingService) handleStreamErrs(wg *sync.WaitGroup, errCh chan error) {
+	defer wg.Done()
+	for err := range errCh {
+		log.Println(err)
+	}
 }
