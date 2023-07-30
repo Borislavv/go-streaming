@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"time"
 )
 
 // ChunkSize is 2.5MB
@@ -72,8 +71,6 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 			log.Printf("[reader]: read %d bytes", chunk.Len)
 			chunksCh <- chunk
 		}
-
-		time.Sleep(time.Second * 1)
 	}
 }
 

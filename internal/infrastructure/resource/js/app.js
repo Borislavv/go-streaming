@@ -49,6 +49,7 @@ socket.onopen = (event) => {
 
 socket.onclose = (event) => {
     console.log('WebSocket connection closed');
+    closeMediaResource()
 };
 
 socket.onerror = (event) => {
@@ -59,9 +60,7 @@ socket.onmessage = (event) => {
     const data = event.data;
     if (data instanceof ArrayBuffer) {
         console.log("Chunk received");
-
         chunks.push(data)
-
         addNextChunk()
     }
 };
@@ -85,5 +84,33 @@ function addNextChunk() {
 }
 
 async function awaiting() {
-    while(!mediaSourceReady || buffer.updating || chunks.length === 0) {}
+    while(!mediaSourceReady || buffer.updating || chunks.length === 0) {
+        console.log("awaiting...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
+        await new Promise(r => setTimeout(r, 250));
+    }
+}
+
+function closeMediaResource() {
+    awaitingClose()
+        .then(
+            function () {
+                try {
+                    mediaSource.endOfStream()
+                    console.log("Stream is successfully closed.")
+                } catch (error) {
+                    console.error("Stream closing failed!")
+                }
+            }
+        ).catch(
+        function (e) {
+            console.error("unable to awaiting closing", e)
+        }
+    )
+}
+
+async function awaitingClose() {
+    while(buffer.updating || chunks.length > 0) {
+        console.log("awaiting closing...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
+        await new Promise(r => setTimeout(r, 250));
+    }
 }
