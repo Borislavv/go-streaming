@@ -1,57 +1,123 @@
 const videoPlayer = document.getElementById('videoPlayer');
-const socket = new WebSocket('ws://127.0.0.1:9988/ws'); // Замените на реальный адрес вашего сокет-сервера
+const playButton = document.getElementById('playButton');
+const socket = new WebSocket('ws://127.0.0.1:9988/'); // Replace with the actual address of your WebSocket server
 
 socket.binaryType = 'arraybuffer';
 
-const chunks = []; // Массив для хранения полученных частей видео
+let mediaSource = new MediaSource();
+let buffer;
+let chunks = [];
+let isPlaying = false;
+let mediaSourceReady = false;
+videoPlayer.src = URL.createObjectURL(mediaSource);
+
+// MediaSource events further
+
+mediaSource.addEventListener('sourceopen', function () {
+    console.log("MediaSource sourceopen event is open!");
+
+    try {
+        const codec = 'video/mp4; codecs="avc1.42E01E"';
+
+        if (MediaSource.isTypeSupported(codec)) {
+            console.log("Type of codec is supported!");
+            buffer = mediaSource.addSourceBuffer(codec);
+        } else {
+            console.log("Type of codec is NOT supported!");
+        }
+
+        console.log("Source buffer added:", buffer);
+    } catch (e) {
+        console.error("Error adding source buffer:", e);
+    }
+
+    buffer.addEventListener('error', function (e) {
+        console.error('Buffer error', e)
+    });
+
+    buffer.addEventListener('updateend', function () {
+        addNextChunk();
+    });
+
+    buffer.addEventListener('ended', function () {
+        addNextChunk();
+    });
+
+    mediaSourceReady = true;
+}, false);
+
+mediaSource.addEventListener('sourceclose', function (e) {
+    console.log("MediaSource sourceopen event is closed!", e)
+});
+
+// Socket events further
 
 socket.onopen = (event) => {
     console.log('WebSocket connection opened');
+};
+
+socket.onclose = (event) => {
+    console.log('WebSocket connection closed');
+};
+
+socket.onerror = (event) => {
+    console.error('WebSocket error: ', event);
 };
 
 socket.onmessage = (event) => {
     const data = event.data;
     if (data instanceof ArrayBuffer) {
         console.log("Chunk received");
-        // Добавляем полученную часть видео в массив
-        chunks.push(data);
+
+        chunks.push(data)
+
+        addNextChunk()
     }
 };
 
-socket.onclose = (event) => {
-    console.log('WebSocket connection closed: ' + event.reason +', '+ event.code +', '+ event.type +', '+ event.eventPhase);
-};
+function addNextChunk() {
+    if (chunks.length > 0) {
 
-socket.onerror = (event) => {
-    console.error('WebSocket error:', event);
-};
+        awaiting()
+            .then(
+                function () {
+                    buffer.appendBuffer(chunks.shift())
+                }
+            ).catch(
+            function (e) {
+                console.error("unable to awaiting", e)
+            }
+        )
 
-function playVideo() {
-    if (chunks.length === 0) {
-        console.log("No video chunks received");
-        return;
+        // while ((chunk = chunks.shift()) !== 'undefined') {
+        //     awaiting()
+        //         .then(
+        //             function () {
+        //                 buffer.appendBuffer(chunk)
+        //             }
+        //         ).catch(
+        //             function (e) {
+        //                 console.error("unable to awaiting", e)
+        //             }
+        //     )
+        // }
+
+        // try {
+        //     console.log("Chunks length: ", chunks.length)
+        //     buffer.appendBuffer(chunk)
+        //     console.log("Chunk successfully added to buffer", buffer)
+        // } catch (error) {
+        //     console.error("Chunk adding to buffer filed", error)
+        // }
     }
-
-    // Склеиваем все части видео в один ArrayBuffer
-    const fullVideoBuffer = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0));
-    let offset = 0;
-    chunks.forEach(chunk => {
-        fullVideoBuffer.set(new Uint8Array(chunk), offset);
-        offset += chunk.byteLength;
-    });
-
-    const videoBlob = new Blob([fullVideoBuffer], { type: 'video/mp4' }); // Предполагается, что данные в формате MP4
-    const videoURL = URL.createObjectURL(videoBlob);
-    videoPlayer.src = videoURL;
-
-    // Воспроизводим видео только после действия пользователя (например, клика)
-    videoPlayer.addEventListener("click", function() {
-        console.log("Video playback started on click");
-        videoPlayer.play();
-    });
 }
 
-// Воспроизведение видео начинается после клика по видеоплееру
-videoPlayer.addEventListener("click", function() {
-    playVideo();
+videoPlayer.addEventListener('timeupdate', function () {
+    if (videoPlayer.readyState >= 2) {
+        addNextChunk()
+    }
 });
+
+async function awaiting() {
+    while(!mediaSourceReady || buffer.updating || chunks.length === 0) {}
+}

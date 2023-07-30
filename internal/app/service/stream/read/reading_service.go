@@ -1,48 +1,50 @@
 package read
 
 import (
+	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/model"
 	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
+	"github.com/nareix/joy4/av"
+	"github.com/nareix/joy4/av/avutil"
+	"github.com/nareix/joy4/format"
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 // ChunkSize is 2.5MB
-const ChunkSize = 1024 * 1024 * 2.5
+const ChunkSize = 1024 * 1024 * 1
 
 type ReadingService struct {
+	errCh chan error
 }
 
-func NewReadingService() *ReadingService {
-	return &ReadingService{}
+func NewReadingService(errCh chan error) *ReadingService {
+	return &ReadingService{errCh: errCh}
 }
 
 func (r *ReadingService) Read(resource model.Resource) chan *stream.Chunk {
 	log.Println("[reader]: reading started")
 
 	chunksCh := make(chan *stream.Chunk, 10)
-	errCh := make(chan error)
-
-	go r.handleReadErrs(errCh)
-	go r.handleRead(resource, chunksCh, errCh)
+	go r.handleRead(resource, chunksCh)
 
 	return chunksCh
 }
 
-func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stream.Chunk, errCh chan error) {
+func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stream.Chunk) {
 	defer log.Println("[reader]: reading stopped")
-	defer close(errCh)
 	defer close(chunksCh)
 
 	file, err := os.Open(resource.GetPath())
 	if err != nil {
-		errCh <- err
+		r.errCh <- err
 		return
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
-			errCh <- err
+			r.errCh <- err
 			return
 		}
 	}()
@@ -56,7 +58,7 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 				log.Println("[reader]: file was successfully read")
 				break
 			}
-			errCh <- err
+			r.errCh <- err
 			return
 		}
 
@@ -64,11 +66,39 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 			log.Printf("[reader]: read %d bytes", chunk.Len)
 			chunksCh <- chunk
 		}
+
+		time.Sleep(time.Second * 3)
 	}
 }
 
-func (r *ReadingService) handleReadErrs(errCh chan error) {
-	for err := range errCh {
-		log.Println(err)
+func DetermineCodecs(resource model.Resource) {
+	// Инициализируем библиотеку joy4
+	format.RegisterAll()
+
+	// Открываем медиафайл
+	f, err := avutil.Open(resource.GetPath())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	// Получаем первый видео поток из медиафайла
+	videoStreams, err := f.Streams()
+	if err != nil {
+		log.Fatal("Не удалось получить потоки из файла")
+	}
+
+	// Отбираем только видео потоки
+	var videoStreamsData []av.CodecData
+	for _, streamm := range videoStreams {
+		if streamm.Type().IsVideo() {
+			videoStreamsData = append(videoStreamsData, streamm)
+		}
+	}
+
+	// Выводим информацию о формате и кодеке видео для всех видео потоков
+	for _, videoStream := range videoStreamsData {
+		fmt.Printf("Формат видео: %s\n", videoStream.Type())
+		fmt.Printf("Кодек видео: %s\n", videoStream.Type().String())
 	}
 }

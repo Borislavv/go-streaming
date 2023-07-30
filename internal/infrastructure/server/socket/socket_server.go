@@ -1,11 +1,14 @@
 package socket
 
 import (
+	"context"
 	"github.com/Borislavv/video-streaming/internal/app/service"
 	"github.com/gorilla/websocket"
 	"log"
 	"net"
 	"net/http"
+	"sync"
+	"time"
 )
 
 const (
@@ -20,32 +23,55 @@ type Server struct {
 	network string
 
 	streamer service.Streamer
+
+	errCh chan error
 }
 
-func NewSocketServer(streamer service.Streamer) *Server {
+func NewSocketServer(streamer service.Streamer, errCh chan error) *Server {
 	return &Server{
 		host:     HOST,
 		port:     PORT,
 		network:  NETW,
 		streamer: streamer,
+		errCh:    errCh,
 	}
 }
 
-func (s *Server) Listen() error {
-	log.Println("socket server: started")
-	defer log.Println("socket server: stopped")
+func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
 
 	addr, err := net.ResolveTCPAddr(s.network, net.JoinHostPort(s.host, s.port))
 	if err != nil {
-		return err
+		s.errCh <- err
+		return
 	}
 
-	http.HandleFunc("/ws", s.handleConnection)
-	if err = http.ListenAndServe(addr.String(), nil); err != nil {
-		return err
+	server := &http.Server{
+		Addr:    addr.String(),
+		Handler: http.HandlerFunc(s.handleConnection),
 	}
 
-	return nil
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer log.Println("[server]: stopped")
+		if lsErr := server.ListenAndServe(); lsErr != nil && lsErr != http.ErrServerClosed {
+			s.errCh <- lsErr
+			return
+		}
+	}()
+
+	log.Println("[server]: running...")
+	<-ctx.Done()
+	log.Println("[server]: shutting down...")
+
+	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	if sdErr := server.Shutdown(serverCtx); sdErr != nil && sdErr != context.Canceled {
+		s.errCh <- sdErr
+		return
+	}
 }
 
 func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
@@ -57,15 +83,17 @@ func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatalln(err)
+		s.errCh <- err
+		return
 	}
 	defer func() {
 		if err = conn.Close(); err != nil {
-			log.Fatalln(err)
+			s.errCh <- err
+			return
 		}
 	}()
 
-	log.Printf("socket server: accpted a new connection [%s]", conn.RemoteAddr())
+	log.Printf("[server]: accpted a new websocket connection [%s]", conn.RemoteAddr())
 
 	s.streamer.Stream(conn)
 }
