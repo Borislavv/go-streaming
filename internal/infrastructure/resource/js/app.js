@@ -7,7 +7,6 @@ socket.binaryType = 'arraybuffer';
 let mediaSource = new MediaSource();
 let buffer;
 let chunks = [];
-let isPlaying = false;
 let mediaSourceReady = false;
 videoPlayer.src = URL.createObjectURL(mediaSource);
 
@@ -33,14 +32,6 @@ mediaSource.addEventListener('sourceopen', function () {
 
     buffer.addEventListener('error', function (e) {
         console.error('Buffer error', e)
-    });
-
-    buffer.addEventListener('updateend', function () {
-        addNextChunk();
-    });
-
-    buffer.addEventListener('ended', function () {
-        addNextChunk();
     });
 
     mediaSourceReady = true;
@@ -76,47 +67,22 @@ socket.onmessage = (event) => {
 };
 
 function addNextChunk() {
-    if (chunks.length > 0) {
-
-        awaiting()
-            .then(
-                function () {
+    awaiting()
+        .then(
+            function () {
+                try {
                     buffer.appendBuffer(chunks.shift())
+                    console.log("Chunk successfully added to buffer", buffer)
+                } catch (error) {
+                    console.error("Chunk adding to buffer filed", error)
                 }
-            ).catch(
-            function (e) {
-                console.error("unable to awaiting", e)
             }
-        )
-
-        // while ((chunk = chunks.shift()) !== 'undefined') {
-        //     awaiting()
-        //         .then(
-        //             function () {
-        //                 buffer.appendBuffer(chunk)
-        //             }
-        //         ).catch(
-        //             function (e) {
-        //                 console.error("unable to awaiting", e)
-        //             }
-        //     )
-        // }
-
-        // try {
-        //     console.log("Chunks length: ", chunks.length)
-        //     buffer.appendBuffer(chunk)
-        //     console.log("Chunk successfully added to buffer", buffer)
-        // } catch (error) {
-        //     console.error("Chunk adding to buffer filed", error)
-        // }
-    }
+        ).catch(
+        function (e) {
+            console.error("unable to awaiting", e)
+        }
+    )
 }
-
-videoPlayer.addEventListener('timeupdate', function () {
-    if (videoPlayer.readyState >= 2) {
-        addNextChunk()
-    }
-});
 
 async function awaiting() {
     while(!mediaSourceReady || buffer.updating || chunks.length === 0) {}

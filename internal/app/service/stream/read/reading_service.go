@@ -62,15 +62,22 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 			return
 		}
 
+		if chunk.Len < ChunkSize {
+			lastChunk := make([]byte, chunk.Len)
+			lastChunk = chunk.Data[:chunk.Len]
+			chunk.Data = lastChunk
+		}
+
 		if chunk.Len > 0 {
 			log.Printf("[reader]: read %d bytes", chunk.Len)
 			chunksCh <- chunk
 		}
 
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 1)
 	}
 }
 
+// todo must be complete as separated module
 func DetermineCodecs(resource model.Resource) {
 	// Инициализируем библиотеку joy4
 	format.RegisterAll()
