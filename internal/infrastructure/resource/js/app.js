@@ -13,19 +13,19 @@ videoPlayer.src = URL.createObjectURL(mediaSource);
 // MediaSource events further
 
 mediaSource.addEventListener('sourceopen', function () {
-    console.log("MediaSource sourceopen event is open!");
+    console.log("MediaSource sourceopen event is open");
 
     try {
         const codec = 'video/mp4; codecs="avc1.42E01E"';
 
         if (MediaSource.isTypeSupported(codec)) {
-            console.log("Type of codec is supported!");
+            console.log("Type of codec is supported");
             buffer = mediaSource.addSourceBuffer(codec);
         } else {
-            console.log("Type of codec is NOT supported!");
+            console.log("Type of codec is NOT supported");
         }
 
-        console.log("Source buffer added:", buffer);
+        console.log("Source buffer added");
     } catch (e) {
         console.error("Error adding source buffer:", e);
     }
@@ -38,7 +38,7 @@ mediaSource.addEventListener('sourceopen', function () {
 }, false);
 
 mediaSource.addEventListener('sourceclose', function (e) {
-    console.log("MediaSource sourceopen event is closed!", e)
+    console.log("MediaSource sourceopen event is closed", e)
 });
 
 // Socket events further
@@ -71,7 +71,7 @@ function addNextChunk() {
             function () {
                 try {
                     buffer.appendBuffer(chunks.shift())
-                    console.log("Chunk successfully added to buffer", buffer)
+                    console.log("Chunk successfully added to buffer")
                 } catch (error) {
                     console.error("Chunk adding to buffer filed", error)
                 }
@@ -96,9 +96,9 @@ function closeMediaResource() {
             function () {
                 try {
                     mediaSource.endOfStream()
-                    console.log("Stream is successfully closed.")
+                    console.log("Stream is successfully closed")
                 } catch (error) {
-                    console.error("Stream closing failed!")
+                    console.error("Stream closing failed")
                 }
             }
         ).catch(

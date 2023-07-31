@@ -37,6 +37,7 @@ func NewSocketServer(streamer service.Streamer, errCh chan error) *Server {
 	}
 }
 
+// Listen is method which running a websocket server
 func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -74,6 +75,7 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
+// handleConnection is method which handle each websocket connection
 func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {

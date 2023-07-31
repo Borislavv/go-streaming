@@ -1,5 +1,10 @@
 package server
 
+import (
+	"context"
+	"sync"
+)
+
 type Server interface {
-	Listen() error
+	Listen(ctx context.Context, wg *sync.WaitGroup)
 }

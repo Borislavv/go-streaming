@@ -1,5 +1,10 @@
 package http
 
+import (
+	"context"
+	"sync"
+)
+
 const (
 	HOST = "127.0.0.1"
 	PORT = "8080"
@@ -20,6 +25,6 @@ func NewHttpServer() *Server {
 	}
 }
 
-func (s *Server) Listen() error {
+func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 
 }

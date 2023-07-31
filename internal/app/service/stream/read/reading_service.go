@@ -13,7 +13,7 @@ import (
 )
 
 // ChunkSize is 2.5MB
-const ChunkSize = 1024 * 1024 * 1
+const ChunkSize = 1024 * 1024 * 2.5
 
 type ReadingService struct {
 	errCh chan error
