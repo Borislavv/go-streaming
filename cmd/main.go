@@ -2,12 +2,11 @@ package main
 
 import (
 	"github.com/Borislavv/video-streaming/cmd/api/resource"
-	"github.com/Borislavv/video-streaming/cmd/api/stream"
 )
 
 func main() {
 	// Run streaming service (websocket server)
-	stream.NewApiService().Run()
+	//stream.NewApiService().Run()
 
 	// Run resource handler service (http server)
 	resource.NewApiService().Run()

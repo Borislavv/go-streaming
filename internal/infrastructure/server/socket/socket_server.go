@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	HOST = "127.0.0.1"
-	PORT = "9988"
-	NETW = "tcp"
+	Host = "127.0.0.1"
+	Port = "9988"
+	Netw = "tcp"
 )
 
 type Server struct {
@@ -29,9 +29,9 @@ type Server struct {
 
 func NewSocketServer(streamer service.Streamer, errCh chan error) *Server {
 	return &Server{
-		host:     HOST,
-		port:     PORT,
-		network:  NETW,
+		host:     Host,
+		port:     Port,
+		network:  Netw,
 		streamer: streamer,
 		errCh:    errCh,
 	}
