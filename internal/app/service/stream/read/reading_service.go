@@ -1,12 +1,8 @@
 package read
 
 import (
-	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/model"
 	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
-	"github.com/nareix/joy4/av"
-	"github.com/nareix/joy4/av/avutil"
-	"github.com/nareix/joy4/format"
 	"io"
 	"log"
 	"os"
@@ -71,38 +67,5 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 			log.Printf("[reader]: read %d bytes", chunk.Len)
 			chunksCh <- chunk
 		}
-	}
-}
-
-// todo must be complete as separated module
-func DetermineCodecs(resource model.Resource) {
-	// Инициализируем библиотеку joy4
-	format.RegisterAll()
-
-	// Открываем медиафайл
-	f, err := avutil.Open(resource.GetPath())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	// Получаем первый видео поток из медиафайла
-	videoStreams, err := f.Streams()
-	if err != nil {
-		log.Fatal("Не удалось получить потоки из файла")
-	}
-
-	// Отбираем только видео потоки
-	var videoStreamsData []av.CodecData
-	for _, streamm := range videoStreams {
-		if streamm.Type().IsVideo() {
-			videoStreamsData = append(videoStreamsData, streamm)
-		}
-	}
-
-	// Выводим информацию о формате и кодеке видео для всех видео потоков
-	for _, videoStream := range videoStreamsData {
-		fmt.Printf("Формат видео: %s\n", videoStream.Type())
-		fmt.Printf("Кодек видео: %s\n", videoStream.Type().String())
 	}
 }
