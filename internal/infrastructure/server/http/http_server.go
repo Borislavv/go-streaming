@@ -2,7 +2,7 @@ package http
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/video"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/gorilla/mux"
 	"log"
 	"net"
@@ -19,18 +19,20 @@ const (
 )
 
 type Server struct {
-	host    string
-	port    string
-	network string
-	errCh   chan error
+	host        string
+	port        string
+	network     string
+	errCh       chan error
+	controllers []controller.Controller
 }
 
-func NewHttpServer(errCh chan error) *Server {
+func NewHttpServer(controllers []controller.Controller, errCh chan error) *Server {
 	return &Server{
-		host:    Host,
-		port:    Port,
-		network: Netw,
-		errCh:   errCh,
+		host:        Host,
+		port:        Port,
+		network:     Netw,
+		errCh:       errCh,
+		controllers: controllers,
 	}
 }
 
@@ -41,13 +43,7 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 		return
 	}
 
-	router := s.addRoutes()
-
-	router.PathPrefix(ApiV1)
-
-	//http.Handle(ApiV1, router)
-
-	if err = http.ListenAndServe(addr.String(), router); err != nil {
+	if err = http.ListenAndServe(addr.String(), s.addRoutes()); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -55,25 +51,13 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 func (s *Server) addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
-	// Video
-	router.
-		HandleFunc(video.CreatePath, video.Create).
-		Methods(http.MethodPost)
+	routerV1 := router.
+		PathPrefix(ApiV1).
+		Subrouter()
 
-	router.
-		HandleFunc(video.GetPath, video.Get).
-		Methods(http.MethodGet)
-
-	router.
-		HandleFunc(video.ListPath, video.List).
-		Methods(http.MethodGet)
-
-	router.
-		HandleFunc(video.UpdatePath, video.Update).
-		Methods(http.MethodPatch)
-
-	// Audio
-	// todo not implemented yet
+	for _, c := range s.controllers {
+		c.AddRoute(routerV1)
+	}
 
 	return router
 }
