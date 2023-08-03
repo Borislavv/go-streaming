@@ -2,6 +2,9 @@ package resource
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/audio"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"sync"
 )
@@ -19,6 +22,19 @@ func (r *ResourcesApiService) Run() {
 	wg := &sync.WaitGroup{}
 	errCh := make(chan error)
 
-	server := http.NewHttpServer(errCh)
-	server.Listen(ctx, wg)
+	http.NewHttpServer(
+		[]controller.Controller{
+			video.NewCreateController(),
+			video.NewDeleteVideoController(),
+			video.NewGetVideoController(),
+			video.NewListVideoController(),
+			video.NewUpdateVideoController(),
+			audio.NewCreateController(),
+			audio.NewDeleteVideoController(),
+			audio.NewGetVideoController(),
+			audio.NewListVideoController(),
+			audio.NewUpdateVideoController(),
+		},
+		errCh,
+	).Listen(ctx, wg)
 }
