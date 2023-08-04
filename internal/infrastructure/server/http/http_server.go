@@ -54,7 +54,7 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	go func() {
 		defer wg.Done()
 		defer log.Println("[http server]: stopped")
-		if err = server.ListenAndServe(); err != nil {
+		if err = server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.errCh <- err
 			return
 		}
