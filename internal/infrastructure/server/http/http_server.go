@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 )
 
 const (
@@ -37,14 +38,38 @@ func NewHttpServer(controllers []controller.Controller, errCh chan error) *Serve
 }
 
 func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
 	addr, err := net.ResolveTCPAddr(s.network, net.JoinHostPort(s.host, s.port))
 	if err != nil {
 		s.errCh <- err
 		return
 	}
 
-	if err = http.ListenAndServe(addr.String(), s.addRoutes()); err != nil {
-		log.Fatalln(err)
+	server := http.Server{
+		Addr:    addr.String(),
+		Handler: s.addRoutes(),
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer log.Println("[http server]: stopped")
+		if err = server.ListenAndServe(); err != nil {
+			s.errCh <- err
+			return
+		}
+	}()
+
+	log.Println("[http server]: running...")
+	<-ctx.Done()
+	log.Println("[http server]: shutting down...")
+
+	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	if shErr := server.Shutdown(serverCtx); shErr != nil && shErr != context.Canceled {
+		s.errCh <- shErr
+		return
 	}
 }
 

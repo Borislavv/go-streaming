@@ -55,16 +55,16 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		defer log.Println("[server]: stopped")
+		defer log.Println("[socket server]: stopped")
 		if lsErr := server.ListenAndServe(); lsErr != nil && lsErr != http.ErrServerClosed {
 			s.errCh <- lsErr
 			return
 		}
 	}()
 
-	log.Println("[server]: running...")
+	log.Println("[socket server]: running...")
 	<-ctx.Done()
-	log.Println("[server]: shutting down...")
+	log.Println("[socket server]: shutting down...")
 
 	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
@@ -95,7 +95,7 @@ func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	log.Printf("[server]: accpted a new websocket connection [%s]", conn.RemoteAddr())
+	log.Printf("[socket server]: accpted a new websocket connection [%s]", conn.RemoteAddr())
 
 	s.streamer.Stream(conn)
 }

@@ -85,7 +85,7 @@ function addNextChunk() {
 
 async function awaiting() {
     while(!mediaSourceReady || buffer.updating || chunks.length === 0) {
-        console.log("awaiting...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
+        console.log("Awaiting...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
         await new Promise(r => setTimeout(r, 250));
     }
 }
@@ -110,7 +110,7 @@ function closeMediaResource() {
 
 async function awaitingClose() {
     while(buffer.updating || chunks.length > 0) {
-        console.log("awaiting closing...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
+        console.log("Awaiting closing...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
         await new Promise(r => setTimeout(r, 250));
     }
 }

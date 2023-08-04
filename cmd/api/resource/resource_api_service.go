@@ -53,9 +53,6 @@ func (r *ResourcesApiService) Run() {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
 	<-stopCh
-
-	cancel()
-
 }
 
 // handleErrors is method which logging occurred errors
