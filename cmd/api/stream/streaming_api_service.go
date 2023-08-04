@@ -20,7 +20,8 @@ func NewApiService() *StreamingApiService {
 }
 
 // Run is method which running the streaming part of app
-func (s *StreamingApiService) Run() {
+func (s *StreamingApiService) Run(mWg *sync.WaitGroup) {
+	defer mWg.Done()
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 

@@ -21,7 +21,8 @@ func NewApiService() *ResourcesApiService {
 }
 
 // Run is method which running the REST API part of app
-func (r *ResourcesApiService) Run() {
+func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
+	defer mWg.Done()
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
