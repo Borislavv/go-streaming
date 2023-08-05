@@ -22,7 +22,7 @@ func NewReadingService(errCh chan error) *ReadingService {
 func (r *ReadingService) Read(resource model.Resource) chan *stream.Chunk {
 	log.Println("[reader]: reading started")
 
-	chunksCh := make(chan *stream.Chunk, 10)
+	chunksCh := make(chan *stream.Chunk, 1)
 	go r.handleRead(resource, chunksCh)
 
 	return chunksCh
@@ -57,15 +57,23 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 			return
 		}
 
-		if chunk.Len < ChunkSize {
-			lastChunk := make([]byte, chunk.Len)
-			lastChunk = chunk.Data[:chunk.Len]
-			chunk.Data = lastChunk
-		}
+		r.sendChunk(chunk, chunksCh)
+	}
+}
 
-		if chunk.Len > 0 {
-			log.Printf("[reader]: read %d bytes", chunk.Len)
-			chunksCh <- chunk
-		}
+func (r *ReadingService) sendChunk(chunk *stream.Chunk, chunksCh chan *stream.Chunk) {
+	if chunk.Len == 0 {
+		return
+	}
+
+	if chunk.Len < ChunkSize {
+		lastChunk := make([]byte, chunk.Len)
+		lastChunk = chunk.Data[:chunk.Len]
+		chunk.Data = lastChunk
+	}
+
+	if chunk.Len > 0 {
+		log.Printf("[reader]: read %d bytes", chunk.Len)
+		chunksCh <- chunk
 	}
 }
