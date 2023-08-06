@@ -14,7 +14,7 @@ func main() {
 	// Run streaming service (websocket server)
 	go stream.NewApiService().Run(wg)
 
-	// Run resource handler service (http server)
+	// Run static handler service (http server)
 	go resource.NewApiService().Run(wg)
 
 	log.Println("[application]: is running")

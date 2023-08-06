@@ -13,9 +13,9 @@ import (
 	"sync"
 )
 
-const VideoPath = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/resource/tmp/video/example_video_new.mp4"
-const Video2Path = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/resource/tmp/video/example_video_2_new.mp4"
-const Video3Path = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/resource/tmp/video/example_video_3_new.mp4"
+const VideoPath = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/static/tmp/video/example_video_new.mp4"
+const Video2Path = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/static/tmp/video/example_video_2_new.mp4"
+const Video3Path = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/static/tmp/video/example_video_3_new.mp4"
 
 type Action string
 
@@ -75,17 +75,8 @@ func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn
 	}
 
 	for action := range actionCh {
-
-		log.Printf("####ACTION### RECEIVED %s\n", action)
-
 		if action == Next {
-
-			log.Printf("####ACTION### RECEIVED ACTION IS %s\n", action)
-
 			l := len(videos)
-
-			log.Printf("####ACTION### RECEIVED ACTION IS %s AND LEN IS %d\n", action, l)
-
 			if l >= 1 {
 				v := videos[0]
 				if l == 1 {

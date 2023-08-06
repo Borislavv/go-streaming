@@ -16,24 +16,35 @@ const (
 	Port = "8000"
 	Netw = "tcp"
 
-	ApiV1 = "/api/v1"
+	RestApiV1   = "/api/v1"
+	RenderApiV1 = ""
+	StaticApiV1 = ""
 )
 
 type Server struct {
-	host        string
-	port        string
-	network     string
-	errCh       chan error
-	controllers []controller.Controller
+	host              string
+	port              string
+	network           string
+	errCh             chan error
+	restControllers   []controller.Controller
+	renderControllers []controller.Controller
+	staticControllers []controller.Controller
 }
 
-func NewHttpServer(controllers []controller.Controller, errCh chan error) *Server {
+func NewHttpServer(
+	restControllers []controller.Controller,
+	renderControllers []controller.Controller,
+	staticControllers []controller.Controller,
+	errCh chan error,
+) *Server {
 	return &Server{
-		host:        Host,
-		port:        Port,
-		network:     Netw,
-		errCh:       errCh,
-		controllers: controllers,
+		host:              Host,
+		port:              Port,
+		network:           Netw,
+		errCh:             errCh,
+		restControllers:   restControllers,
+		renderControllers: renderControllers,
+		staticControllers: staticControllers,
 	}
 }
 
@@ -76,12 +87,31 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 func (s *Server) addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
-	routerV1 := router.
-		PathPrefix(ApiV1).
+	// RestAPI controllers
+	restRouterV1 := router.
+		PathPrefix(RestApiV1).
 		Subrouter()
 
-	for _, c := range s.controllers {
-		c.AddRoute(routerV1)
+	for _, c := range s.restControllers {
+		c.AddRoute(restRouterV1)
+	}
+
+	// Native templates rendering controllers
+	renderRouterV1 := router.
+		PathPrefix(RenderApiV1).
+		Subrouter()
+
+	for _, c := range s.renderControllers {
+		c.AddRoute(renderRouterV1)
+	}
+
+	// Static files serving controllers
+	staticRouterV1 := router.
+		PathPrefix(StaticApiV1).
+		Subrouter()
+
+	for _, c := range s.staticControllers {
+		c.AddRoute(staticRouterV1)
 	}
 
 	return router

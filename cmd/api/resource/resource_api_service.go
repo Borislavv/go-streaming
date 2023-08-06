@@ -3,8 +3,10 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/audio"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/video"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"log"
 	"os"
@@ -43,6 +45,12 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 			audio.NewGetVideoController(),
 			audio.NewListVideoController(),
 			audio.NewUpdateVideoController(),
+		},
+		[]controller.Controller{
+			render.NewIndexController(),
+		},
+		[]controller.Controller{
+			static.NewResourceController(),
 		},
 		errCh,
 	).Listen(ctx, wg)
