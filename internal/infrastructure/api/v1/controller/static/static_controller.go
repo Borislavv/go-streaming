@@ -30,8 +30,6 @@ func (i *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
 		path = strings.ReplaceAll(path, ResourcesPrefix, "")
 	}
 
-	log.Printf("[http server]: serving static at %s", dir+path)
-
 	http.ServeFile(w, r, dir+path)
 }
 

@@ -110,8 +110,6 @@ func (s *StreamingService) stream(video *video.Video, conn *websocket.Conn) {
 		return
 	}
 
-	log.Println("Sent new start msg: " + startMsg)
-
 	for chunk := range s.reader.Read(video) {
 		if chunk.Err != nil {
 			s.errCh <- chunk.Err
@@ -136,7 +134,7 @@ func (s *StreamingService) handleBufferSize(decrBuffCapCh <-chan struct{}) {
 	defer log.Println("handleBufferSize: exit")
 
 	for range decrBuffCapCh {
-		log.Println("----buffer must be decreased-----")
+		log.Println("Decreased buffer capacity")
 	}
 }
 
@@ -161,15 +159,12 @@ func (s *StreamingService) handleMessages(
 		if t == websocket.TextMessage {
 			action := Action(b)
 
-			log.Printf("####ACTION### %s\n", action)
-
 			if action == DecreaseBufferCap {
 				decrBuffCapCh <- struct{}{}
 				continue
 			}
 			if action == Start || action == Pause || action == Stop || action == Next {
 				actionsCh <- action
-				log.Printf("####ACTION### SEND %s\n", action)
 				continue
 			}
 			s.errCh <- errors.New(fmt.Sprintf("found unknown action: %s", action))
