@@ -1,10 +1,11 @@
 package read
 
 import (
+	"fmt"
+	"github.com/Borislavv/video-streaming/internal/app/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/model"
 	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
 	"io"
-	"log"
 	"os"
 )
 
@@ -12,15 +13,15 @@ import (
 const ChunkSize = 1024 * 1024 * 2.5
 
 type ReadingService struct {
-	errCh chan error
+	logger logger.Logger
 }
 
-func NewReadingService(errCh chan error) *ReadingService {
-	return &ReadingService{errCh: errCh}
+func NewReadingService(logger logger.Logger) *ReadingService {
+	return &ReadingService{logger: logger}
 }
 
 func (r *ReadingService) Read(resource model.Resource) chan *stream.Chunk {
-	log.Println("[reader]: reading started")
+	r.logger.Info("[reader]: reading started")
 
 	chunksCh := make(chan *stream.Chunk, 1)
 	go r.handleRead(resource, chunksCh)
@@ -29,17 +30,17 @@ func (r *ReadingService) Read(resource model.Resource) chan *stream.Chunk {
 }
 
 func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stream.Chunk) {
-	defer log.Println("[reader]: reading stopped")
+	defer r.logger.Info("[reader]: reading stopped")
 	defer close(chunksCh)
 
 	file, err := os.Open(resource.GetPath())
 	if err != nil {
-		r.errCh <- err
+		r.logger.Error(err)
 		return
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
-			r.errCh <- err
+			r.logger.Error(err)
 			return
 		}
 	}()
@@ -50,10 +51,10 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 		chunk.Len, err = file.Read(chunk.Data)
 		if err != nil {
 			if err == io.EOF {
-				log.Println("[reader]: file was successfully read")
+				r.logger.Info("[reader]: file was successfully read")
 				break
 			}
-			r.errCh <- err
+			r.logger.Error(err)
 			return
 		}
 
@@ -73,7 +74,7 @@ func (r *ReadingService) sendChunk(chunk *stream.Chunk, chunksCh chan *stream.Ch
 	}
 
 	if chunk.Len > 0 {
-		log.Printf("[reader]: read %d bytes", chunk.Len)
+		r.logger.Info(fmt.Sprintf("[reader]: read %d bytes", chunk.Len))
 		chunksCh <- chunk
 	}
 }

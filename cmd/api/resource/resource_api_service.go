@@ -7,8 +7,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/cli"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -28,8 +28,8 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	errCh := make(chan error)
-	go r.handleErrors(errCh)
+	errCh := make(chan error, 1)
+	logger := cli.NewLogger(errCh)
 	defer close(errCh)
 
 	wg.Add(1)
@@ -52,7 +52,7 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 		[]controller.Controller{
 			static.NewResourceController(),
 		},
-		errCh,
+		logger,
 	).Listen(ctx, wg)
 	defer func() {
 		cancel()
@@ -62,11 +62,4 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
 	<-stopCh
-}
-
-// handleErrors is method which logging occurred errors
-func (r *ResourcesApiService) handleErrors(errCh chan error) {
-	for err := range errCh {
-		log.Println(err)
-	}
 }

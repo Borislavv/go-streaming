@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/app/logger"
 	"github.com/Borislavv/video-streaming/internal/app/service"
 	"github.com/Borislavv/video-streaming/internal/domain/model/video"
 	"github.com/gorilla/websocket"
 	"gopkg.in/vansante/go-ffprobe.v2"
-	"log"
 	"os"
 	"sync"
 )
@@ -33,21 +33,21 @@ const (
 
 type StreamingService struct {
 	reader service.Reader
-	errCh  chan error
+	logger logger.Logger
 }
 
 func NewStreamingService(
 	reader service.Reader,
-	errCh chan error,
+	logger logger.Logger,
 ) *StreamingService {
 	return &StreamingService{
 		reader: reader,
-		errCh:  errCh,
+		logger: logger,
 	}
 }
 
 func (s *StreamingService) Stream(conn *websocket.Conn) {
-	log.Println("[streamer]: start streaming")
+	s.logger.Info("[streamer]: start streaming")
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -61,12 +61,12 @@ func (s *StreamingService) Stream(conn *websocket.Conn) {
 
 	wg.Wait()
 
-	log.Println("[streamer]: streaming is stopped")
+	s.logger.Info("[streamer]: streaming is stopped")
 }
 
 func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
 	defer wg.Done()
-	defer log.Println("handleStream: exit")
+	defer s.logger.Info("handleStream: exit")
 
 	videos := []*video.Video{
 		video.New(VideoPath),
@@ -106,35 +106,35 @@ func (s *StreamingService) stream(video *video.Video, conn *websocket.Conn) {
 	}
 
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(startMsg)); err != nil {
-		s.errCh <- err
+		s.logger.Error(err)
 		return
 	}
 
 	for chunk := range s.reader.Read(video) {
 		if chunk.Err != nil {
-			s.errCh <- chunk.Err
+			s.logger.Critical(chunk.Err)
 			continue
 		}
 
 		if err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data); err != nil {
-			s.errCh <- err
+			s.logger.Error(err)
 			continue
 		}
 
-		log.Printf("[streamer]: wrote %d bytes to websocket\n", chunk.Len)
+		s.logger.Info(fmt.Sprintf("[streamer]: wrote %d bytes to websocket", chunk.Len))
 	}
 
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(Stop.String())); err != nil {
-		s.errCh <- err
+		s.logger.Error(err)
 		return
 	}
 }
 
 func (s *StreamingService) handleBufferSize(decrBuffCapCh <-chan struct{}) {
-	defer log.Println("handleBufferSize: exit")
+	defer s.logger.Info("handleBufferSize: exit")
 
 	for range decrBuffCapCh {
-		log.Println("Decreased buffer capacity")
+		s.logger.Info("Decreased buffer capacity")
 	}
 }
 
@@ -145,7 +145,7 @@ func (s *StreamingService) handleMessages(
 ) {
 	defer close(actionsCh)
 	defer close(decrBuffCapCh)
-	defer log.Println("handleMessages: exit")
+	defer s.logger.Info("handleMessages: exit")
 
 	for {
 		t, b, err := conn.ReadMessage()
@@ -153,7 +153,7 @@ func (s *StreamingService) handleMessages(
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
 				return
 			}
-			s.errCh <- err
+			s.logger.Error(err)
 			return
 		}
 		if t == websocket.TextMessage {
@@ -167,7 +167,7 @@ func (s *StreamingService) handleMessages(
 				actionsCh <- action
 				continue
 			}
-			s.errCh <- errors.New(fmt.Sprintf("found unknown action: %s", action))
+			s.logger.Emergency(errors.New(fmt.Sprintf("found unknown action: %s", action)))
 		}
 	}
 }
@@ -175,13 +175,17 @@ func (s *StreamingService) handleMessages(
 func (s *StreamingService) codecs(video *video.Video) (a *ffprobe.Stream, v *ffprobe.Stream) {
 	file, err := os.Open(video.GetPath())
 	if err != nil {
-		log.Fatalf("Failed to open file: %v", err)
+		s.logger.Emergency(err)
 	}
-	defer file.Close()
+	defer func() {
+		if err = file.Close(); err != nil {
+			s.logger.Emergency(err)
+		}
+	}()
 
 	data, err := ffprobe.ProbeReader(context.Background(), file)
 	if err != nil {
-		log.Fatalln(err)
+		s.logger.Emergency(err)
 	}
 
 	return data.FirstAudioStream(), data.FirstVideoStream()

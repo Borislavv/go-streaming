@@ -2,9 +2,9 @@ package http
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/app/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/gorilla/mux"
-	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -25,26 +25,26 @@ type Server struct {
 	host              string
 	port              string
 	network           string
-	errCh             chan error
 	restControllers   []controller.Controller
 	renderControllers []controller.Controller
 	staticControllers []controller.Controller
+	logger            logger.Logger
 }
 
 func NewHttpServer(
 	restControllers []controller.Controller,
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
-	errCh chan error,
+	logger logger.Logger,
 ) *Server {
 	return &Server{
 		host:              Host,
 		port:              Port,
 		network:           Netw,
-		errCh:             errCh,
 		restControllers:   restControllers,
 		renderControllers: renderControllers,
 		staticControllers: staticControllers,
+		logger:            logger,
 	}
 }
 
@@ -52,7 +52,7 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	addr, err := net.ResolveTCPAddr(s.network, net.JoinHostPort(s.host, s.port))
 	if err != nil {
-		s.errCh <- err
+		s.logger.Error(err)
 		return
 	}
 
@@ -64,22 +64,22 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		defer log.Println("[http server]: stopped")
+		defer s.logger.Info("[http server]: stopped")
 		if err = server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.errCh <- err
+			s.logger.Error(err)
 			return
 		}
 	}()
 
-	log.Println("[http server]: running...")
+	s.logger.Info("[http server]: running...")
 	<-ctx.Done()
-	log.Println("[http server]: shutting down...")
+	s.logger.Info("[http server]: shutting down...")
 
 	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
 	if shErr := server.Shutdown(serverCtx); shErr != nil && shErr != context.Canceled {
-		s.errCh <- shErr
+		s.logger.Critical(err)
 		return
 	}
 }
