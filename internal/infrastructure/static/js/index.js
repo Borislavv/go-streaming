@@ -1,5 +1,7 @@
 const videoPlayer = document.getElementById('videoPlayer');
 const nextBtn = document.getElementById('next-btn');
+const prevBtn = document.getElementById('prev-btn');
+const listBtn = document.getElementById('list-btn');
 const socket = new WebSocket('ws://0.0.0.0:9988/');
 
 socket.binaryType = 'arraybuffer';
@@ -56,6 +58,11 @@ videoPlayer.addEventListener('waiting', function() {
 nextBtn.addEventListener('click', function() {
     // requesting new video/audio from server
     socket.send("next")
+});
+
+prevBtn.addEventListener('click', function() {
+    // requesting the prev video/audio from server
+    socket.send("prev")
 });
 
 function addNextChunk() {
