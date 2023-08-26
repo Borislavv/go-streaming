@@ -25,9 +25,9 @@ func (a Action) String() string {
 
 const (
 	Start             Action = "start"
-	Pause             Action = "pause"
 	Stop              Action = "stop"
 	Next              Action = "next"
+	Previous          Action = "prev"
 	DecreaseBufferCap Action = "decrBuff"
 )
 
@@ -69,23 +69,28 @@ func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn
 	defer s.logger.Info("handleStream: exit")
 
 	videos := []*video.Video{
-		video.New(VideoPath),
-		video.New(Video2Path),
-		video.New(Video3Path),
+		1: video.New(VideoPath),
+		2: video.New(Video2Path),
+		3: video.New(Video3Path),
 	}
 
+	l := len(videos) - 1
+	c := 0
 	for action := range actionCh {
 		if action == Next {
-			l := len(videos)
-			if l >= 1 {
-				v := videos[0]
-				if l == 1 {
-					videos = []*video.Video{}
-				} else {
-					videos = append(videos[:0], videos[1:]...)
-				}
-				s.stream(v, conn)
+			if c < l {
+				c++
 			}
+
+			v := videos[c]
+			s.stream(v, conn)
+		} else if action == Previous {
+			if c > 1 {
+				c--
+			}
+
+			v := videos[c]
+			s.stream(v, conn)
 		}
 	}
 }
@@ -163,7 +168,7 @@ func (s *StreamingService) handleMessages(
 				decrBuffCapCh <- struct{}{}
 				continue
 			}
-			if action == Start || action == Pause || action == Stop || action == Next {
+			if action == Start || action == Stop || action == Next || action == Previous {
 				actionsCh <- action
 				continue
 			}
