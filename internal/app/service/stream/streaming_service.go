@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/app/logger"
 	"github.com/Borislavv/video-streaming/internal/app/service"
+	"github.com/Borislavv/video-streaming/internal/app/service/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/model/video"
 	"github.com/gorilla/websocket"
 	"gopkg.in/vansante/go-ffprobe.v2"
@@ -13,9 +13,9 @@ import (
 	"sync"
 )
 
-const VideoPath = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/static/tmp/video/example_video_new.mp4"
-const Video2Path = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/static/tmp/video/example_video_2_new.mp4"
-const Video3Path = "/home/jared/jaredsplace/projects/go/streaming/internal/infrastructure/static/tmp/video/example_video_3_new.mp4"
+const VideoPath = "/streaming_root/internal/infrastructure/static/tmp/video/example_video_new.mp4"
+const Video2Path = "/streaming_root/internal/infrastructure/static/tmp/video/example_video_2_new.mp4"
+const Video3Path = "/streaming_root/internal/infrastructure/static/tmp/video/example_video_3_new.mp4"
 
 type Action string
 

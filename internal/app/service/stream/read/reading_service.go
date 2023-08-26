@@ -2,7 +2,7 @@ package read
 
 import (
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/app/logger"
+	"github.com/Borislavv/video-streaming/internal/app/service/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/model"
 	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
 	"io"

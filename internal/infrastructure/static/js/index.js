@@ -1,6 +1,6 @@
 const videoPlayer = document.getElementById('videoPlayer');
 const nextBtn = document.getElementById('next-btn');
-const socket = new WebSocket('ws://127.0.0.1:9988/'); // Replace with the actual address of your WebSocket server
+const socket = new WebSocket('ws://0.0.0.0:9988/');
 
 socket.binaryType = 'arraybuffer';
 

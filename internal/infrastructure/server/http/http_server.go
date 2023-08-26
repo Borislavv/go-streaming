@@ -2,7 +2,7 @@ package http
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/app/logger"
+	"github.com/Borislavv/video-streaming/internal/app/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/gorilla/mux"
 	"net"
@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Host = "127.0.0.1"
+	Host = "0.0.0.0"
 	Port = "8000"
 	Netw = "tcp"
 

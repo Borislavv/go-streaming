@@ -3,8 +3,8 @@ package socket
 import (
 	"context"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/app/logger"
 	"github.com/Borislavv/video-streaming/internal/app/service"
+	"github.com/Borislavv/video-streaming/internal/app/service/logger"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	Host = "127.0.0.1"
+	Host = "0.0.0.0"
 	Port = "9988"
 	Netw = "tcp"
 )
