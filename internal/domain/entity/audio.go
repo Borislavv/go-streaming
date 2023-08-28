@@ -1,10 +1,10 @@
-package audio
+package entity
 
 type Audio struct {
 	path string
 }
 
-func New(path string) *Audio {
+func NewAudio(path string) *Audio {
 	return &Audio{path: path}
 }
 

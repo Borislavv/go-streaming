@@ -1,4 +1,4 @@
-package stream
+package entity
 
 // DefaultChunkSize is one MB
 const DefaultChunkSize = 1024 * 1024
