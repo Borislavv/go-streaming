@@ -6,17 +6,28 @@ import (
 	"github.com/Borislavv/video-streaming/internal/app/service/stream/read"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/cli"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/socket"
+	"github.com/caarlos0/env/v9"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 )
 
+type config struct {
+	// server
+	host      string `env:"RESOURCES_SERVER_HOST" envDefault:"0.0.0.0"`
+	port      string `env:"RESOURCES_SERVER_PORT" envDefault:"8000"`
+	transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
+	// database
+	mongoUri string `env:"MONGO_URI" envDefault:"mongodb://database:27017/streaming"`
+}
+
 type StreamingApiService struct {
+	cfg config
 }
 
 func NewApiService() *StreamingApiService {
-	return &StreamingApiService{}
+	return &StreamingApiService{cfg: config{}}
 }
 
 // Run is method which running the streaming part of app
@@ -27,18 +38,23 @@ func (s *StreamingApiService) Run(mWg *sync.WaitGroup) {
 
 	errCh := make(chan error, 1)
 	logger := cli.NewLogger(errCh)
-	defer close(errCh)
-
-	reader := read.NewReadingService(logger)
-	streamer := stream.NewStreamingService(reader, logger)
-	server := socket.NewSocketServer(streamer, logger)
-
-	wg.Add(1)
-	go server.Listen(ctx, wg)
 	defer func() {
 		cancel()
 		wg.Wait()
+		close(errCh)
 	}()
+
+	if err := env.Parse(&s.cfg); err != nil {
+		logger.Critical(err)
+
+	}
+
+	reader := read.NewReadingService(logger)
+	streamer := stream.NewStreamingService(reader, logger)
+	server := socket.NewSocketServer(s.cfg.host, s.cfg.port, s.cfg.transport, streamer, logger)
+
+	wg.Add(1)
+	go server.Listen(ctx, wg)
 
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)

@@ -12,31 +12,28 @@ import (
 	"time"
 )
 
-const (
-	Host = "0.0.0.0"
-	Port = "9988"
-	Netw = "tcp"
-)
-
 type Server struct {
-	host    string
-	port    string
-	network string
+	host           string // example: "0.0.0.0"
+	port           string // example: "8000"
+	transportProto string // example: "tcp"
 
 	streamer service.Streamer
 	logger   logger.Logger
 }
 
 func NewSocketServer(
+	host string,
+	port string,
+	transportProto string,
 	streamer service.Streamer,
 	logger logger.Logger,
 ) *Server {
 	return &Server{
-		host:     Host,
-		port:     Port,
-		network:  Netw,
-		streamer: streamer,
-		logger:   logger,
+		host:           host,
+		port:           port,
+		transportProto: transportProto,
+		streamer:       streamer,
+		logger:         logger,
 	}
 }
 
@@ -44,7 +41,7 @@ func NewSocketServer(
 func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	addr, err := net.ResolveTCPAddr(s.network, net.JoinHostPort(s.host, s.port))
+	addr, err := net.ResolveTCPAddr(s.transportProto, net.JoinHostPort(s.host, s.port))
 	if err != nil {
 		s.logger.Error(err)
 		return
