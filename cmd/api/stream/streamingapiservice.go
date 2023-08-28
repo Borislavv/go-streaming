@@ -15,11 +15,11 @@ import (
 
 type config struct {
 	// server
-	host      string `env:"RESOURCES_SERVER_HOST" envDefault:"0.0.0.0"`
-	port      string `env:"RESOURCES_SERVER_PORT" envDefault:"8000"`
-	transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
+	Host      string `env:"RESOURCES_SERVER_HOST" envDefault:"0.0.0.0"`
+	Port      string `env:"RESOURCES_SERVER_PORT" envDefault:"9988"`
+	Transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
 	// database
-	mongoUri string `env:"MONGO_URI" envDefault:"mongodb://database:27017/streaming"`
+	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://database:27017/streaming"`
 }
 
 type StreamingApiService struct {
@@ -51,7 +51,7 @@ func (s *StreamingApiService) Run(mWg *sync.WaitGroup) {
 
 	reader := read.NewReadingService(logger)
 	streamer := stream.NewStreamingService(reader, logger)
-	server := socket.NewSocketServer(s.cfg.host, s.cfg.port, s.cfg.transport, streamer, logger)
+	server := socket.NewSocketServer(s.cfg.Host, s.cfg.Port, s.cfg.Transport, streamer, logger)
 
 	wg.Add(1)
 	go server.Listen(ctx, wg)

@@ -1,8 +1,7 @@
 package service
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/model"
-	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
+	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/gorilla/websocket"
 )
 
@@ -13,7 +12,7 @@ type Manager interface {
 }
 
 type Reader interface {
-	Read(resource model.Resource) chan *stream.Chunk
+	Read(resource entity.Resource) chan *entity.Chunk
 }
 
 type Streamer interface {

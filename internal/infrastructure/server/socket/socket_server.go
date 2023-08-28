@@ -14,7 +14,7 @@ import (
 
 type Server struct {
 	host           string // example: "0.0.0.0"
-	port           string // example: "8000"
+	port           string // example: "9988"
 	transportProto string // example: "tcp"
 
 	streamer service.Streamer

@@ -3,8 +3,7 @@ package read
 import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/app/service/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/model"
-	"github.com/Borislavv/video-streaming/internal/domain/model/stream"
+	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"io"
 	"os"
 )
@@ -20,16 +19,16 @@ func NewReadingService(logger logger.Logger) *ReadingService {
 	return &ReadingService{logger: logger}
 }
 
-func (r *ReadingService) Read(resource model.Resource) chan *stream.Chunk {
+func (r *ReadingService) Read(resource entity.Resource) chan *entity.Chunk {
 	r.logger.Info("[reader]: reading started")
 
-	chunksCh := make(chan *stream.Chunk, 1)
+	chunksCh := make(chan *entity.Chunk, 1)
 	go r.handleRead(resource, chunksCh)
 
 	return chunksCh
 }
 
-func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stream.Chunk) {
+func (r *ReadingService) handleRead(resource entity.Resource, chunksCh chan *entity.Chunk) {
 	defer r.logger.Info("[reader]: reading stopped")
 	defer close(chunksCh)
 
@@ -46,7 +45,7 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 	}()
 
 	for {
-		chunk := stream.NewChunk(ChunkSize)
+		chunk := entity.NewChunk(ChunkSize)
 
 		chunk.Len, err = file.Read(chunk.Data)
 		if err != nil {
@@ -62,7 +61,7 @@ func (r *ReadingService) handleRead(resource model.Resource, chunksCh chan *stre
 	}
 }
 
-func (r *ReadingService) sendChunk(chunk *stream.Chunk, chunksCh chan *stream.Chunk) {
+func (r *ReadingService) sendChunk(chunk *entity.Chunk, chunksCh chan *entity.Chunk) {
 	if chunk.Len == 0 {
 		return
 	}

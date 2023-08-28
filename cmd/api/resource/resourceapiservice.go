@@ -2,36 +2,40 @@ package resource
 
 import (
 	"context"
+	aggbuilder "github.com/Borislavv/video-streaming/internal/domain/builder/agg"
+	dtobuilder "github.com/Borislavv/video-streaming/internal/domain/builder/dto"
+	entitybuilder "github.com/Borislavv/video-streaming/internal/domain/builder/entity"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/cli"
+	mongorepository "github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/caarlos0/env/v9"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-)
-
-const (
-	MongoVideoCollection = "videos"
-	MongoAudioCollection = "audio"
+	"time"
 )
 
 type config struct {
 	// api
-	apiVersionPrefix    string `env:"API_VERSION_PREFIX" envDefault:"/api/v1"`
-	renderVersionPrefix string `env:"RENDER_VERSION_PREFIX" envDefault:""`
-	staticVersionPrefix string `env:"STATIC_VERSION_PREFIX" envDefault:""`
+	ApiVersionPrefix    string `env:"API_VERSION_PREFIX" envDefault:"/api/v1"`
+	RenderVersionPrefix string `env:"RENDER_VERSION_PREFIX" envDefault:""`
+	StaticVersionPrefix string `env:"STATIC_VERSION_PREFIX" envDefault:""`
 	// server
-	host      string `env:"RESOURCES_SERVER_HOST" envDefault:"0.0.0.0"`
-	port      string `env:"RESOURCES_SERVER_PORT" envDefault:"8000"`
-	transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
+	Host      string `env:"RESOURCES_SERVER_HOST" envDefault:"0.0.0.0"`
+	Port      string `env:"RESOURCES_SERVER_PORT" envDefault:"8000"`
+	Transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
 	// database
-	mongoUri string `env:"MONGO_URI" envDefault:"mongodb://database:27017/streaming"`
+	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://database:27017/streaming"`
+	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
 }
 
 type ResourcesApiService struct {
@@ -48,6 +52,7 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// init. logger
 	errCh := make(chan error, 1)
 	logger := cli.NewLogger(errCh)
 	defer func() {
@@ -56,23 +61,50 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 		close(errCh)
 	}()
 
+	// parse env. config
 	if err := env.Parse(&r.cfg); err != nil {
 		logger.Critical(err)
 		return
 	}
 
+	// init. mongodb client
+	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(r.cfg.MongoUri))
+	if err != nil {
+		logger.Critical(err)
+		return
+	}
+	defer mongoClient.Disconnect(ctx)
+
+	// ping mongodb
+	if err = mongoClient.Ping(ctx, readpref.Primary()); err != nil {
+		logger.Critical(err)
+		return
+	}
+
+	// connect to target mongo database
+	mongodb := mongoClient.Database(r.cfg.MongoDb)
+
+	// create video repository
+	videoRepository := mongorepository.NewVideoRepository(mongodb, time.Minute)
+
 	wg.Add(1)
 	go http.NewHttpServer(
-		r.cfg.host,
-		r.cfg.port,
-		r.cfg.transport,
-		r.cfg.apiVersionPrefix,
-		r.cfg.renderVersionPrefix,
-		r.cfg.staticVersionPrefix,
+		r.cfg.Host,
+		r.cfg.Port,
+		r.cfg.Transport,
+		r.cfg.ApiVersionPrefix,
+		r.cfg.RenderVersionPrefix,
+		r.cfg.StaticVersionPrefix,
 		// rest api controllers
 		[]controller.Controller{
 			// video
-			video.NewCreateController(),
+			video.NewCreateController(
+				logger,
+				dtobuilder.NewVideoDtoBuilder(),
+				entitybuilder.NewVideoEntityBuilder(),
+				aggbuilder.NewVideoAggBuilder(),
+				videoRepository,
+			),
 			video.NewDeleteVideoController(),
 			video.NewGetVideoController(),
 			video.NewListVideoController(),
