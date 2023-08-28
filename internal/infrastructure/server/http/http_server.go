@@ -11,20 +11,15 @@ import (
 	"time"
 )
 
-const (
-	Host = "0.0.0.0"
-	Port = "8000"
-	Netw = "tcp"
-
-	RestApiV1   = "/api/v1"
-	RenderApiV1 = ""
-	StaticApiV1 = ""
-)
-
 type Server struct {
-	host              string
-	port              string
-	network           string
+	host           string // example: "0.0.0.0"
+	port           string // example: "8000"
+	transportProto string // example: "tcp"
+
+	apiVersionPrefix    string // example: "/api/v1"
+	renderVersionPrefix string // example: ""
+	staticVersionPrefix string // example: ""
+
 	restControllers   []controller.Controller
 	renderControllers []controller.Controller
 	staticControllers []controller.Controller
@@ -32,25 +27,34 @@ type Server struct {
 }
 
 func NewHttpServer(
+	host string,
+	port string,
+	transportProto string,
+	apiVersionPrefix string,
+	renderVersionPrefix string,
+	staticVersionPrefix string,
 	restControllers []controller.Controller,
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
 ) *Server {
 	return &Server{
-		host:              Host,
-		port:              Port,
-		network:           Netw,
-		restControllers:   restControllers,
-		renderControllers: renderControllers,
-		staticControllers: staticControllers,
-		logger:            logger,
+		host:                host,
+		port:                port,
+		transportProto:      transportProto,
+		apiVersionPrefix:    apiVersionPrefix,
+		renderVersionPrefix: renderVersionPrefix,
+		staticVersionPrefix: staticVersionPrefix,
+		restControllers:     restControllers,
+		renderControllers:   renderControllers,
+		staticControllers:   staticControllers,
+		logger:              logger,
 	}
 }
 
 func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	addr, err := net.ResolveTCPAddr(s.network, net.JoinHostPort(s.host, s.port))
+	addr, err := net.ResolveTCPAddr(s.transportProto, net.JoinHostPort(s.host, s.port))
 	if err != nil {
 		s.logger.Error(err)
 		return
@@ -89,7 +93,7 @@ func (s *Server) addRoutes() *mux.Router {
 
 	// RestAPI controllers
 	restRouterV1 := router.
-		PathPrefix(RestApiV1).
+		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
 
 	for _, c := range s.restControllers {
@@ -98,7 +102,7 @@ func (s *Server) addRoutes() *mux.Router {
 
 	// Native templates rendering controllers
 	renderRouterV1 := router.
-		PathPrefix(RenderApiV1).
+		PathPrefix(s.renderVersionPrefix).
 		Subrouter()
 
 	for _, c := range s.renderControllers {
@@ -107,7 +111,7 @@ func (s *Server) addRoutes() *mux.Router {
 
 	// Static files serving controllers
 	staticRouterV1 := router.
-		PathPrefix(StaticApiV1).
+		PathPrefix(s.staticVersionPrefix).
 		Subrouter()
 
 	for _, c := range s.staticControllers {
