@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/app/service"
 	"github.com/Borislavv/video-streaming/internal/app/service/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/model/video"
+	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/gorilla/websocket"
 	"gopkg.in/vansante/go-ffprobe.v2"
 	"os"
@@ -68,10 +68,10 @@ func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn
 	defer wg.Done()
 	defer s.logger.Info("handleStream: exit")
 
-	videos := []*video.Video{
-		1: video.New(VideoPath),
-		2: video.New(Video2Path),
-		3: video.New(Video3Path),
+	videos := []*entity.Video{
+		1: entity.NewVideo("1", VideoPath, "1"),
+		2: entity.NewVideo("2", Video2Path, "2"),
+		3: entity.NewVideo("3", Video3Path, "3"),
 	}
 
 	l := len(videos) - 1
@@ -95,7 +95,7 @@ func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn
 	}
 }
 
-func (s *StreamingService) stream(video *video.Video, conn *websocket.Conn) {
+func (s *StreamingService) stream(video *entity.Video, conn *websocket.Conn) {
 	startMsg := Start.String()
 
 	ac, vc := s.codecs(video)
@@ -177,7 +177,7 @@ func (s *StreamingService) handleMessages(
 	}
 }
 
-func (s *StreamingService) codecs(video *video.Video) (a *ffprobe.Stream, v *ffprobe.Stream) {
+func (s *StreamingService) codecs(video *entity.Video) (a *ffprobe.Stream, v *ffprobe.Stream) {
 	file, err := os.Open(video.GetPath())
 	if err != nil {
 		s.logger.Emergency(err)
