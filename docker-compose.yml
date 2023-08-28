@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   streaming:
@@ -10,3 +10,17 @@ services:
       - "9988:9988"
     volumes:
       - .:/app
+    depends_on:
+      - database
+    environment:
+      MONGODB_URI: "mongodb://database:27017/streaming"
+
+  database:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - "/data/storage/mongodb:/data/db"
+
+volumes:
+  mongodb_data:
