@@ -2,9 +2,9 @@ package aggbuilder
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 )
 
 type Video interface {
-	Build(video *entity.Video) *agg.Video
+	Build(video *dto.Video) *agg.Video
 }
