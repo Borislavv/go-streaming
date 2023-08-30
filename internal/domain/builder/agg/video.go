@@ -3,6 +3,7 @@ package aggbuilder
 import (
 	"github.com/Borislavv/video-streaming/data/vo"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"time"
 )
@@ -14,9 +15,13 @@ func NewVideoAggBuilder() *VideoAggBuilder {
 	return &VideoAggBuilder{}
 }
 
-func (b *VideoAggBuilder) Build(video *entity.Video) *agg.Video {
+func (b *VideoAggBuilder) Build(video *dto.Video) *agg.Video {
 	return &agg.Video{
-		Video: *video,
+		Video: entity.Video{
+			Name:        video.Name,
+			Path:        video.Path,
+			Description: video.Description,
+		},
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),
 		},

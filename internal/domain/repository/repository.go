@@ -5,6 +5,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 )
 
-type VideoRepository interface {
+type Video interface {
 	Insert(ctx context.Context, video *agg.Video) (string, error)
 }

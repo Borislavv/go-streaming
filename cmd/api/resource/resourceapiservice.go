@@ -2,9 +2,11 @@ package resource
 
 import (
 	"context"
+	videoservice "github.com/Borislavv/video-streaming/internal/app/service/video"
 	aggbuilder "github.com/Borislavv/video-streaming/internal/domain/builder/agg"
 	dtobuilder "github.com/Borislavv/video-streaming/internal/domain/builder/dto"
-	entitybuilder "github.com/Borislavv/video-streaming/internal/domain/builder/entity"
+	aggvalidator "github.com/Borislavv/video-streaming/internal/domain/validator/agg"
+	dtovalidator "github.com/Borislavv/video-streaming/internal/domain/validator/dto"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
@@ -84,8 +86,17 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 	// connect to target mongo database
 	mongodb := mongoClient.Database(r.cfg.MongoDb)
 
-	// create video repository
+	videoDtoValidator := dtovalidator.NewVideoDtoValidator()
+	videoAggValidator := aggvalidator.NewVideoAggValidator()
+
+	// init. video agg builder
+	videoAggBuilder := aggbuilder.NewVideoAggBuilder()
+
+	// init. video repository
 	videoRepository := mongorepository.NewVideoRepository(mongodb, time.Minute)
+
+	// init. video creator
+	videoCreator := videoservice.NewCreateVideoService(ctx, logger, videoDtoValidator, videoAggValidator, videoAggBuilder, videoRepository)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -101,9 +112,7 @@ func (r *ResourcesApiService) Run(mWg *sync.WaitGroup) {
 			video.NewCreateController(
 				logger,
 				dtobuilder.NewVideoDtoBuilder(),
-				entitybuilder.NewVideoEntityBuilder(),
-				aggbuilder.NewVideoAggBuilder(),
-				videoRepository,
+				videoCreator,
 			),
 			video.NewDeleteVideoController(),
 			video.NewGetVideoController(),
