@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errs"
 )
 
 type VideoValidator struct {
