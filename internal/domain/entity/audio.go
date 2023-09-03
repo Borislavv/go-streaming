@@ -1,13 +1,19 @@
 package entity
 
 type Audio struct {
-	path string
+	Name        string `bson:"name"`
+	Path        string `bson:"path"`
+	Description string `bson:"description,omitempty"`
 }
 
-func NewAudio(path string) *Audio {
-	return &Audio{path: path}
+func NewAudio(name string, path string, description string) *Audio {
+	return &Audio{
+		Name:        name,
+		Path:        path,
+		Description: description,
+	}
 }
 
-func (a *Audio) GetPath() string {
-	return a.path
+func (v *Audio) GetPath() string {
+	return v.Path
 }
