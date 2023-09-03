@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Borislavv/video-streaming/cmd/api/resource"
-	"github.com/Borislavv/video-streaming/cmd/api/stream"
+	"github.com/Borislavv/video-streaming/internal/app/resource"
+	"github.com/Borislavv/video-streaming/internal/app/stream"
 	"sync"
 )
 
@@ -11,10 +11,10 @@ func main() {
 	wg.Add(2)
 
 	// Run streaming service (websocket server)
-	go stream.NewApiService().Run(wg)
+	go stream.NewStreamingApp().Run(wg)
 
 	// Run static handler service (http server)
-	go resource.NewApiService().Run(wg)
+	go resource.NewResourcesApp().Run(wg)
 
 	wg.Wait()
 }
