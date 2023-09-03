@@ -75,10 +75,10 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// init. video repository
 	videoRepository := mongodb.NewVideoRepository(db, time.Minute)
 
-	// init. video agg builder
+	// init. video builder
 	videoBuilder := builder.NewVideoBuilder(videoRepository)
 
-	// init. video creator
+	// init. video service
 	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
 
 	wg.Add(1)
