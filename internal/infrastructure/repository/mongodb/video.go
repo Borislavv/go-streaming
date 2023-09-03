@@ -1,4 +1,4 @@
-package mongorepository
+package mongodb
 
 import (
 	"context"
