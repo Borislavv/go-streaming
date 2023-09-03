@@ -10,10 +10,10 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
-	// Run streaming service (websocket server)
+	// Run streaming app (websocket server)
 	go stream.NewStreamingApp().Run(wg)
 
-	// Run static handler service (http server)
+	// RestApi, Static files serving, Native rendering (http server)
 	go resource.NewResourcesApp().Run(wg)
 
 	wg.Wait()
