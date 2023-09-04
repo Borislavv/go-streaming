@@ -70,6 +70,7 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// connect to target mongodb database
 	db := mongoClient.Database(r.cfg.MongoDb)
 
+	// init. video validator
 	videoValidator := validator.NewVideoValidator()
 
 	// init. video repository
