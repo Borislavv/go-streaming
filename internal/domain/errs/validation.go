@@ -1,13 +1,25 @@
 package errs
 
+import "fmt"
+
+const ValidationType = "validation"
+
 type FieldCannotBeEmptyError struct {
 	Message string
+	Type    string
 }
 
-func NewFieldCannotBeEmptyError(msg string) FieldCannotBeEmptyError {
-	return FieldCannotBeEmptyError{Message: msg}
+func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
+	return &FieldCannotBeEmptyError{
+		Message: fmt.Sprintf("field '%s' must not be empty or omitted", field),
+		Type:    ValidationType,
+	}
 }
 
-func (e FieldCannotBeEmptyError) Error() string {
+func (e *FieldCannotBeEmptyError) Error() string {
 	return e.Message
+}
+
+func (e *FieldCannotBeEmptyError) Public() bool {
+	return true
 }
