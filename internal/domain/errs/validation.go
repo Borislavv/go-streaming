@@ -1,6 +1,9 @@
 package errs
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 const ValidationType = "validation"
 
@@ -20,6 +23,6 @@ func (e *FieldCannotBeEmptyError) Error() string {
 	return e.Message
 }
 
-func (e *FieldCannotBeEmptyError) Public() bool {
-	return true
+func (e *FieldCannotBeEmptyError) Status() int {
+	return http.StatusBadRequest
 }

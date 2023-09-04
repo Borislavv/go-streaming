@@ -3,23 +3,33 @@ package response
 import (
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"log"
+	"net/http"
 )
 
-const InternalServerError = "Internal server error. Please, contact with service administrator."
+const InternalServerErrorMessage = "Internal server error. Please, contact with service administrator."
 
 type Response interface {
 	Wrap() ([]byte, error)
 }
 
-// TODO нужно реализовать парсинг статус кода из ошибки
-func Respond(data any, err error) ([]byte, error) {
-	if err != nil {
-		public, ok := err.(errs.PublicError)
-		if ok {
-			return NewErrorResponse(public).Wrap()
-		} else {
-			return NewErrorResponse(errors.New(InternalServerError)).Wrap()
+func RespondData(w http.ResponseWriter, data any) {
+	if _, err := w.Write(NewDataResponse(data).Wrap()); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func RespondError(w http.ResponseWriter, err error) {
+	public, ok := err.(errs.PublicError)
+	if ok {
+		w.WriteHeader(public.Status())
+		if _, err = w.Write(NewErrorResponse(public).Wrap()); err != nil {
+			log.Fatalln(err)
+		}
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err = w.Write(NewErrorResponse(errors.New(InternalServerErrorMessage)).Wrap()); err != nil {
+			log.Fatalln(err)
 		}
 	}
-	return NewDataResponse(data).Wrap()
 }

@@ -1,6 +1,9 @@
 package errs
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 const RepositoryType = "repository"
 
@@ -18,6 +21,6 @@ func (e *NotFoundError) Error() string {
 	return e.Message
 }
 
-func (e *NotFoundError) Public() bool {
-	return true
+func (e *NotFoundError) Status() int {
+	return http.StatusInternalServerError
 }
