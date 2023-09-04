@@ -3,11 +3,12 @@ package service
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/gorilla/websocket"
 )
 
 type Video interface {
-	Create(video dto.CreateRequest) (string, error)
+	Create(video dto.CreateRequest) (*vo.ID, error)
 }
 
 type Reader interface {

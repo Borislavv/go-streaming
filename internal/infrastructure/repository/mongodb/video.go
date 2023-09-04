@@ -2,7 +2,9 @@ package mongodb
 
 import (
 	"context"
+	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,20 +30,20 @@ func NewVideoRepository(db *mongo.Database, timeout time.Duration) *VideoReposit
 	}
 }
 
-func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (string, error) {
+func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*vo.ID, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
 	res, err := r.db.InsertOne(qCtx, video, options.InsertOne())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if id, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return id.Hex(), nil
+	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
+		return &vo.ID{Value: oid}, nil
 	}
 
-	return "", nil
+	return nil, errors.New("unable to store 'video' or retrieve inserted 'id'")
 }
 
 func (r *VideoRepository) InsertMany(ctx context.Context, videos []agg.Video) error {

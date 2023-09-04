@@ -6,6 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 )
 
 type VideoService struct {
@@ -32,10 +33,10 @@ func NewVideoService(
 	}
 }
 
-func (s *VideoService) Create(video dto.CreateRequest) (string, error) {
+func (s *VideoService) Create(video dto.CreateRequest) (*vo.ID, error) {
 	// validation of input request
 	if err := s.validator.ValidateCreateRequestDto(video); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// building an aggregate
@@ -43,14 +44,14 @@ func (s *VideoService) Create(video dto.CreateRequest) (string, error) {
 
 	// validation of aggregate
 	if err := s.validator.ValidateAgg(agg); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// saving an aggregate into storage
 	id, err := s.repository.Insert(s.ctx, agg)
 	if err != nil {
 		s.logger.Error(err)
-		return "", err
+		return nil, err
 	}
 
 	return id, nil
