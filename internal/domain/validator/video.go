@@ -16,17 +16,17 @@ func NewVideoValidator() *VideoValidator {
 
 func (v *VideoValidator) ValidateCreateRequestDto(dto dto.CreateRequest) error {
 	if dto.GetName() == "" {
-		return errs.NewFieldCannotBeEmptyError("'name' field cannot be empty or omitted")
+		return errs.NewFieldCannotBeEmptyError("name")
 	}
 	if dto.GetPath() == "" {
-		return errs.NewFieldCannotBeEmptyError("'path' field cannot be empty or omitted")
+		return errs.NewFieldCannotBeEmptyError("path")
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateUpdateRequestDto(dto dto.UpdateRequest) error {
 	if dto.GetId().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError("'id' cannot be empty or omitted")
+		return errs.NewFieldCannotBeEmptyError("id")
 	}
 	return nil
 }
