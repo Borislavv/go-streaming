@@ -22,5 +22,11 @@ services:
     volumes:
       - "/data/storage/mongodb:/data/db"
 
+  mongodb-client:
+    build:
+      context: .
+      dockerfile: .ops/docker/mongoclient/Dockerfile
+    depends_on:
+      - database
 volumes:
   mongodb_data:
