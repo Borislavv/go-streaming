@@ -3,6 +3,7 @@ package video
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -28,11 +29,17 @@ func NewCreateController(
 }
 
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	videoDto, err := c.builder.BuildCreateRequestDtoFromRequest(r)
 	if err != nil {
 		c.logger.Error(err)
 		// return the error response
-		if _, err = w.Write([]byte("Internal server error, please contact with service administrator.")); err != nil {
+		bytes, rerr := response.Respond(nil, err)
+		if err != nil {
+			c.logger.Critical(rerr)
+		}
+		if _, err = w.Write(bytes); err != nil {
 			c.logger.Critical(err)
 		}
 		return
@@ -42,17 +49,27 @@ func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.logger.Error(err)
 		// return the error response
-		if _, err = w.Write([]byte("Internal server error, please contact with service administrator.")); err != nil {
+		bytes, rerr := response.Respond(nil, err)
+		if rerr != nil {
+			c.logger.Critical(rerr)
+			return
+		}
+		if _, err = w.Write(bytes); err != nil {
 			c.logger.Critical(err)
 		}
 		return
 	}
 
-	if _, err = w.Write([]byte(id)); err != nil {
+	bytes, err := response.Respond(id, nil)
+	if err != nil {
 		c.logger.Critical(err)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+	if _, err = w.Write(bytes); err != nil {
+		c.logger.Critical(err)
+		return
+	}
 }
 
 func (c *CreateVideoController) AddRoute(router *mux.Router) {
