@@ -10,6 +10,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
@@ -70,17 +71,20 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// connect to target mongodb database
 	db := mongoClient.Database(r.cfg.MongoDb)
 
-	// init. video validator
-	videoValidator := validator.NewVideoValidator()
-
 	// init. video repository
 	videoRepository := mongodb.NewVideoRepository(db, time.Minute)
+
+	// init. video validator
+	videoValidator := validator.NewVideoValidator(videoRepository)
 
 	// init. video builder
 	videoBuilder := builder.NewVideoBuilder(videoRepository)
 
 	// init. video service
 	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
+
+	// init. response service
+	responseService := response.NewResponse(loggerService)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -97,6 +101,7 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 				loggerService,
 				videoBuilder,
 				videoService,
+				responseService,
 			),
 			video.NewDeleteVideoController(),
 			video.NewGetVideoController(),
