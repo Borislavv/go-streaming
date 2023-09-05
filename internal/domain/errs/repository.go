@@ -8,7 +8,8 @@ import (
 const RepositoryType = "repository"
 
 type NotFoundError struct {
-	Message string
+	Message string `json:"message"`
+	Type    string `json:"type"`
 }
 
 func NewNotFoundError(entity string) *NotFoundError {
