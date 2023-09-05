@@ -11,41 +11,42 @@ import (
 const CreatePath = "/video"
 
 type CreateVideoController struct {
-	logger  service.Logger
-	builder builder.Video
-	service service.Video
+	logger   service.Logger
+	builder  builder.Video
+	service  service.Video
+	response response.Responder
 }
 
 func NewCreateController(
 	logger service.Logger,
 	builder builder.Video,
 	service service.Video,
+	response response.Responder,
 ) *CreateVideoController {
 	return &CreateVideoController{
-		logger:  logger,
-		builder: builder,
-		service: service,
+		logger:   logger,
+		builder:  builder,
+		service:  service,
+		response: response,
 	}
 }
 
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	videoDto, err := c.builder.BuildCreateRequestDtoFromRequest(r)
 	if err != nil {
 		c.logger.Error(err)
-		response.RespondError(w, err)
+		c.response.RespondError(w, err)
 		return
 	}
 
 	id, err := c.service.Create(videoDto)
 	if err != nil {
 		c.logger.Error(err)
-		response.RespondError(w, err)
+		c.response.RespondError(w, err)
 		return
 	}
 
-	response.RespondData(w, id)
+	c.response.RespondData(w, id)
 	w.WriteHeader(http.StatusCreated)
 	return
 }
