@@ -95,6 +95,8 @@ func (s *Server) addRoutes() *mux.Router {
 	restRouterV1 := router.
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
+	restRouterV1.
+		Use(s.RestApiHeaderMiddleware)
 
 	for _, c := range s.restControllers {
 		c.AddRoute(restRouterV1)
@@ -119,4 +121,13 @@ func (s *Server) addRoutes() *mux.Router {
 	}
 
 	return router
+}
+
+func (s *Server) RestApiHeaderMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			handler.ServeHTTP(w, r)
+		},
+	)
 }
