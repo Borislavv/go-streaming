@@ -5,13 +5,15 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
 
 type VideoValidator struct {
+	repository repository.Video
 }
 
-func NewVideoValidator() *VideoValidator {
-	return &VideoValidator{}
+func NewVideoValidator(repository repository.Video) *VideoValidator {
+	return &VideoValidator{repository: repository}
 }
 
 func (v *VideoValidator) ValidateCreateRequestDto(dto dto.CreateRequest) error {
@@ -25,6 +27,13 @@ func (v *VideoValidator) ValidateCreateRequestDto(dto dto.CreateRequest) error {
 }
 
 func (v *VideoValidator) ValidateUpdateRequestDto(dto dto.UpdateRequest) error {
+	//video, found := repository.Find(dto.GetId())
+	//if found {
+	//	if dto.GetName() == found.Name {
+	//		return errs.NewUniquenessCheckFailedError("name")
+	//	}
+	//}
+
 	if dto.GetId().Value.IsZero() {
 		return errs.NewFieldCannotBeEmptyError("id")
 	}
