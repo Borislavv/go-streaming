@@ -75,16 +75,16 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	videoRepository := mongodb.NewVideoRepository(db, time.Minute)
 
 	// init. video validator
-	videoValidator := validator.NewVideoValidator(videoRepository)
+	videoValidator := validator.NewVideoValidator(ctx, videoRepository)
 
 	// init. video builder
-	videoBuilder := builder.NewVideoBuilder(videoRepository)
+	videoBuilder := builder.NewVideoBuilder(ctx, videoRepository)
 
 	// init. video service
 	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
 
 	// init. response service
-	responseService := response.NewResponse(loggerService)
+	responseService := response.NewResponseService(loggerService)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -98,15 +98,22 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		[]controller.Controller{
 			// video
 			video.NewCreateController(
-				loggerService,
 				videoBuilder,
 				videoService,
 				responseService,
 			),
 			video.NewDeleteVideoController(),
-			video.NewGetVideoController(),
+			video.NewGetVideoController(
+				videoBuilder,
+				videoService,
+				responseService,
+			),
 			video.NewListVideoController(),
-			video.NewUpdateVideoController(),
+			video.NewUpdateVideoController(
+				videoBuilder,
+				videoService,
+				responseService,
+			),
 			// audio
 			audio.NewCreateController(),
 			audio.NewDeleteVideoController(),
