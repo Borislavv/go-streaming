@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
@@ -9,32 +10,33 @@ import (
 )
 
 type VideoValidator struct {
+	ctx        context.Context
 	repository repository.Video
 }
 
-func NewVideoValidator(repository repository.Video) *VideoValidator {
-	return &VideoValidator{repository: repository}
+func NewVideoValidator(ctx context.Context, repository repository.Video) *VideoValidator {
+	return &VideoValidator{ctx: ctx, repository: repository}
 }
 
-func (v *VideoValidator) ValidateCreateRequestDto(dto dto.CreateRequest) error {
-	if dto.GetName() == "" {
+func (v *VideoValidator) ValidateGetRequestDto(req dto.GetRequest) error {
+	if req.GetId().Value.IsZero() {
+		return errs.NewFieldCannotBeEmptyError("id")
+	}
+	return nil
+}
+
+func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
+	if req.GetName() == "" {
 		return errs.NewFieldCannotBeEmptyError("name")
 	}
-	if dto.GetPath() == "" {
+	if req.GetPath() == "" {
 		return errs.NewFieldCannotBeEmptyError("path")
 	}
 	return nil
 }
 
-func (v *VideoValidator) ValidateUpdateRequestDto(dto dto.UpdateRequest) error {
-	//video, found := repository.Find(dto.GetId())
-	//if found {
-	//	if dto.GetName() == found.Name {
-	//		return errs.NewUniquenessCheckFailedError("name")
-	//	}
-	//}
-
-	if dto.GetId().Value.IsZero() {
+func (v *VideoValidator) ValidateUpdateRequestDto(req dto.UpdateRequest) error {
+	if req.GetId().Value.IsZero() {
 		return errs.NewFieldCannotBeEmptyError("id")
 	}
 	return nil
