@@ -8,16 +8,16 @@ type VideoCreateRequestDto struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (dto *VideoCreateRequestDto) GetName() string {
-	return dto.Name
+func (req *VideoCreateRequestDto) GetName() string {
+	return req.Name
 }
 
-func (dto *VideoCreateRequestDto) GetPath() string {
-	return dto.Path
+func (req *VideoCreateRequestDto) GetPath() string {
+	return req.Path
 }
 
-func (dto *VideoCreateRequestDto) GetDescription() string {
-	return dto.Description
+func (req *VideoCreateRequestDto) GetDescription() string {
+	return req.Description
 }
 
 type VideoUpdateRequestDto struct {
@@ -26,28 +26,36 @@ type VideoUpdateRequestDto struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (dto *VideoUpdateRequestDto) GetId() vo.ID {
-	return dto.ID
+func (req *VideoUpdateRequestDto) GetId() vo.ID {
+	return req.ID
 }
 
-func (dto *VideoUpdateRequestDto) GetName() string {
-	return dto.Name
+func (req *VideoUpdateRequestDto) GetName() string {
+	return req.Name
 }
 
-func (dto *VideoUpdateRequestDto) GetDescription() string {
-	return dto.Description
+func (req *VideoUpdateRequestDto) GetDescription() string {
+	return req.Description
+}
+
+type VideoGetRequestDto struct {
+	ID vo.ID `json:"id"`
+}
+
+func (req *VideoGetRequestDto) GetId() vo.ID {
+	return req.ID
 }
 
 type VideoListRequestDto struct {
-	Name       string               `json:"name"` // part of name
-	Path       string               `json:"path"` // part of path
-	Pagination PaginationRequestDto `json:"pagination"`
+	Name                 string `json:"name"` // part of name
+	Path                 string `json:"path"` // part of path
+	PaginationRequestDto `json:"pagination"`
 }
 
-func (dto *VideoListRequestDto) GetName() string {
-	return dto.Name
+func (req *VideoListRequestDto) GetName() string {
+	return req.Name
 }
 
-func (dto *VideoListRequestDto) GetPath() string {
-	return dto.Path
+func (req *VideoListRequestDto) GetPath() string {
+	return req.Path
 }

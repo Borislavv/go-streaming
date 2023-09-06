@@ -14,6 +14,10 @@ type UpdateRequest interface {
 	GetDescription() string
 }
 
+type GetRequest interface {
+	GetId() vo.ID
+}
+
 type ListRequest interface {
 	GetName() string
 	GetPath() string

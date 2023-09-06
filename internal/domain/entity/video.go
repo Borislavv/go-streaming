@@ -1,9 +1,9 @@
 package entity
 
 type Video struct {
-	Name        string `bson:"name"`
-	Path        string `bson:"path"`
-	Description string `bson:"description,omitempty"`
+	Name        string `json:"name" bson:"name"`
+	Path        string `json:"path" bson:"path"`
+	Description string `json:"description" bson:"description,omitempty"`
 }
 
 func NewVideo(name string, path string, description string) *Video {
