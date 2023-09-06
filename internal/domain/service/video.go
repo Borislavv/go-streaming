@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
-	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"log"
 )
 
 type VideoService struct {
@@ -33,26 +34,62 @@ func NewVideoService(
 	}
 }
 
-func (s *VideoService) Create(video dto.CreateRequest) (*vo.ID, error) {
+func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDto(video); err != nil {
+	if err := s.validator.ValidateGetRequestDto(req); err != nil {
+		return nil, err
+	}
+
+	return s.repository.Find(s.ctx, req.GetId())
+}
+
+func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
+	// validation of input request
+	if err := s.validator.ValidateCreateRequestDto(req); err != nil {
 		return nil, err
 	}
 
 	// building an aggregate
-	agg := s.builder.BuildAggFromCreateRequestDto(video)
+	videoAgg := s.builder.BuildAggFromCreateRequestDto(req)
 
-	// validation of aggregate
-	if err := s.validator.ValidateAgg(agg); err != nil {
+	// validation of an aggregate
+	if err := s.validator.ValidateAgg(videoAgg); err != nil {
 		return nil, err
 	}
 
 	// saving an aggregate into storage
-	id, err := s.repository.Insert(s.ctx, agg)
+	video, err := s.repository.Insert(s.ctx, videoAgg)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
 
-	return id, nil
+	return video, nil
+}
+
+func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
+	// validation of input request
+	if err := s.validator.ValidateUpdateRequestDto(req); err != nil {
+		return nil, err
+	}
+
+	// building an aggregate
+	videoAgg, err := s.builder.BuildAggFromUpdateRequestDto(req)
+	if err != nil {
+		log.Fatalln(err)
+		return nil, err
+	}
+
+	// validation of an aggregate
+	if err = s.validator.ValidateAgg(videoAgg); err != nil {
+		return nil, err
+	}
+
+	// saving updated aggregate into storage
+	videoAgg, err = s.repository.Update(s.ctx, videoAgg)
+	if err != nil {
+		return nil, err
+	}
+
+	return videoAgg, nil
 }

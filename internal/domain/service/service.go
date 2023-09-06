@@ -1,14 +1,16 @@
 package service
 
 import (
+	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
-	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/gorilla/websocket"
 )
 
 type Video interface {
-	Create(video dto.CreateRequest) (*vo.ID, error)
+	Get(req dto.GetRequest) (*agg.Video, error)
+	Create(req dto.CreateRequest) (*agg.Video, error)
+	Update(req dto.UpdateRequest) (*agg.Video, error)
 }
 
 type Reader interface {
