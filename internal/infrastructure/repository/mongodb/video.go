@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -30,7 +32,22 @@ func NewVideoRepository(db *mongo.Database, timeout time.Duration) *VideoReposit
 	}
 }
 
-func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*vo.ID, error) {
+func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	videoAgg := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(videoAgg); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errs.NewNotFoundError("video")
+		}
+		return nil, err
+	}
+
+	return videoAgg, nil
+}
+
+func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -40,12 +57,25 @@ func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*vo.ID,
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return &vo.ID{Value: oid}, nil
+		return r.Find(qCtx, vo.ID{Value: oid})
 	}
 
 	return nil, errors.New("unable to store 'video' or retrieve inserted 'id'")
 }
 
-func (r *VideoRepository) InsertMany(ctx context.Context, videos []agg.Video) error {
-	return nil
+func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	res, err := r.db.UpdateByID(qCtx, video.ID.Value, bson.M{"$set": video})
+	if err != nil {
+		return nil, err
+	}
+
+	// check the record is really updated
+	if res.ModifiedCount > 0 {
+		return r.Find(qCtx, video.ID)
+	}
+	// if changes is not exists, then return the original data
+	return video, nil
 }
