@@ -7,14 +7,12 @@ import (
 
 const RepositoryType = "repository"
 
-type NotFoundError struct {
-	Message string `json:"message"`
-	Type    string `json:"type"`
-}
+type NotFoundError Error
 
 func NewNotFoundError(entity string) *NotFoundError {
 	return &NotFoundError{
 		Message: fmt.Sprintf("%s not found by given id", entity),
+		Type:    RepositoryType,
 	}
 }
 

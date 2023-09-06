@@ -7,10 +7,7 @@ import (
 
 const ValidationType = "validation"
 
-type FieldCannotBeEmptyError struct {
-	Message string `json:"message"`
-	Type    string `json:"type"`
-}
+type FieldCannotBeEmptyError Error
 
 func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
 	return &FieldCannotBeEmptyError{
@@ -27,10 +24,7 @@ func (e *FieldCannotBeEmptyError) Status() int {
 	return http.StatusBadRequest
 }
 
-type UniquenessCheckFailedError struct {
-	Message string `json:"message"`
-	Type    string `json:"type"`
-}
+type UniquenessCheckFailedError Error
 
 func NewUniquenessCheckFailedError(field string) *UniquenessCheckFailedError {
 	return &UniquenessCheckFailedError{
