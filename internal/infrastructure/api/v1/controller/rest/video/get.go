@@ -1,29 +1,52 @@
 package video
 
 import (
+	"github.com/Borislavv/video-streaming/internal/domain/builder"
+	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
 const GetPath = "/video/{id}"
 
 type GetVideoController struct {
+	builder  builder.Video
+	service  service.Video
+	response response.Responder
 }
 
-func NewGetVideoController() *GetVideoController {
-	return &GetVideoController{}
-}
-
-func (g *GetVideoController) Get(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte("Hello world from GET:item method!")); err != nil {
-		log.Fatalln(err)
+func NewGetVideoController(
+	builder builder.Video,
+	service service.Video,
+	response response.Responder,
+) *GetVideoController {
+	return &GetVideoController{
+		builder:  builder,
+		service:  service,
+		response: response,
 	}
 }
 
-func (g *GetVideoController) AddRoute(router *mux.Router) {
+func (c *GetVideoController) Get(w http.ResponseWriter, r *http.Request) {
+	req, err := c.builder.BuildGetRequestDtoFromRequest(r)
+	if err != nil {
+		c.response.Respond(w, err)
+		return
+	}
+
+	video, err := c.service.Get(req)
+	if err != nil {
+		c.response.Respond(w, err)
+		return
+	}
+
+	c.response.Respond(w, video)
+}
+
+func (c *GetVideoController) AddRoute(router *mux.Router) {
 	router.
 		Path(GetPath).
-		HandlerFunc(g.Get).
+		HandlerFunc(c.Get).
 		Methods(http.MethodGet)
 }

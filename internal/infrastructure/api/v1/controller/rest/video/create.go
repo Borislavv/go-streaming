@@ -11,20 +11,17 @@ import (
 const CreatePath = "/video"
 
 type CreateVideoController struct {
-	logger   service.Logger
 	builder  builder.Video
 	service  service.Video
 	response response.Responder
 }
 
 func NewCreateController(
-	logger service.Logger,
 	builder builder.Video,
 	service service.Video,
 	response response.Responder,
 ) *CreateVideoController {
 	return &CreateVideoController{
-		logger:   logger,
 		builder:  builder,
 		service:  service,
 		response: response,
@@ -34,21 +31,18 @@ func NewCreateController(
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
 	videoDto, err := c.builder.BuildCreateRequestDtoFromRequest(r)
 	if err != nil {
-		c.logger.Error(err)
-		c.response.RespondError(w, err)
+		c.response.Respond(w, err)
 		return
 	}
 
-	id, err := c.service.Create(videoDto)
+	video, err := c.service.Create(videoDto)
 	if err != nil {
-		c.logger.Error(err)
-		c.response.RespondError(w, err)
+		c.response.Respond(w, err)
 		return
 	}
 
-	c.response.RespondData(w, id)
+	c.response.Respond(w, video)
 	w.WriteHeader(http.StatusCreated)
-	return
 }
 
 func (c *CreateVideoController) AddRoute(router *mux.Router) {
