@@ -5,5 +5,5 @@ import (
 )
 
 type ID struct {
-	Value primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Value primitive.ObjectID `json:"value" bson:"_id,omitempty"`
 }
