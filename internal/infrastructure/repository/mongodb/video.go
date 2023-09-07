@@ -76,6 +76,23 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 	if res.ModifiedCount > 0 {
 		return r.Find(qCtx, video.ID)
 	}
+
 	// if changes is not exists, then return the original data
 	return video, nil
+}
+
+func (r *VideoRepository) Remove(ctx context.Context, video *agg.Video) error {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	res, err := r.db.DeleteOne(qCtx, bson.M{"_id": video.ID.Value})
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 { // checking the video is really deleted
+		return errors.New("video with id " + video.ID.Value.Hex() + " was not deleted")
+	}
+
+	return nil
 }
