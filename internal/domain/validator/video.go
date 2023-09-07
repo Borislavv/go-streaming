@@ -9,6 +9,12 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
 
+const (
+	id   = "id"
+	name = "name"
+	path = "path"
+)
+
 type VideoValidator struct {
 	ctx        context.Context
 	repository repository.Video
@@ -20,26 +26,30 @@ func NewVideoValidator(ctx context.Context, repository repository.Video) *VideoV
 
 func (v *VideoValidator) ValidateGetRequestDto(req dto.GetRequest) error {
 	if req.GetId().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError("id")
+		return errs.NewFieldCannotBeEmptyError(id)
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 	if req.GetName() == "" {
-		return errs.NewFieldCannotBeEmptyError("name")
+		return errs.NewFieldCannotBeEmptyError(name)
 	}
 	if req.GetPath() == "" {
-		return errs.NewFieldCannotBeEmptyError("path")
+		return errs.NewFieldCannotBeEmptyError(path)
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateUpdateRequestDto(req dto.UpdateRequest) error {
 	if req.GetId().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError("id")
+		return errs.NewFieldCannotBeEmptyError(id)
 	}
 	return nil
+}
+
+func (v *VideoValidator) ValidateDeleteRequestDto(req dto.DeleteRequest) error {
+	return v.ValidateGetRequestDto(req)
 }
 
 func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {

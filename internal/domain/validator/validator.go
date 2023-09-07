@@ -9,5 +9,6 @@ type Video interface {
 	ValidateGetRequestDto(req dto.GetRequest) error
 	ValidateCreateRequestDto(req dto.CreateRequest) error
 	ValidateUpdateRequestDto(req dto.UpdateRequest) error
+	ValidateDeleteRequestDto(req dto.DeleteRequest) error
 	ValidateAgg(agg *agg.Video) error
 }
