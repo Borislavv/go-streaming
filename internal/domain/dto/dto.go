@@ -14,6 +14,7 @@ type UpdateRequest interface {
 	GetDescription() string
 }
 
+type DeleteRequest GetRequest
 type GetRequest interface {
 	GetId() vo.ID
 }

@@ -38,6 +38,7 @@ func (req *VideoUpdateRequestDto) GetDescription() string {
 	return req.Description
 }
 
+type VideoDeleteRequestDto VideoGetRequestDto
 type VideoGetRequestDto struct {
 	ID vo.ID `json:"id"`
 }
