@@ -42,10 +42,7 @@ func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 }
 
 func (v *VideoValidator) ValidateUpdateRequestDto(req dto.UpdateRequest) error {
-	if req.GetId().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError(id)
-	}
-	return nil
+	return v.ValidateGetRequestDto(req)
 }
 
 func (v *VideoValidator) ValidateDeleteRequestDto(req dto.DeleteRequest) error {
