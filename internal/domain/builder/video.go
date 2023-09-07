@@ -7,8 +7,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
@@ -20,12 +20,12 @@ const (
 
 type VideoBuilder struct {
 	ctx        context.Context
-	request    service.Request
+	extractor  request.Extractor // TODO must be removed due to DDD (infrastructure leaked into the domain logic)
 	repository repository.Video
 }
 
-func NewVideoBuilder(ctx context.Context, request service.Request, repository repository.Video) *VideoBuilder {
-	return &VideoBuilder{ctx: ctx, request: request, repository: repository}
+func NewVideoBuilder(ctx context.Context, extractor request.Extractor, repository repository.Video) *VideoBuilder {
+	return &VideoBuilder{ctx: ctx, extractor: extractor, repository: repository}
 }
 
 // BuildCreateRequestDtoFromRequest - build a dto.VideoCreateRequestDto from raw *http.Request
@@ -58,7 +58,7 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 		return nil, err
 	}
 
-	hexId, err := b.request.GetParameter(ID, r)
+	hexId, err := b.extractor.GetParameter(ID, r)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDto, error) {
 	videoDto := &dto.VideoGetRequestDto{}
 
-	hexId, err := b.request.GetParameter(ID, r)
+	hexId, err := b.extractor.GetParameter(ID, r)
 	if err != nil {
 		return nil, err
 	}
