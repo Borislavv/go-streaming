@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"io"
 	"net/http"
 )
 
@@ -23,6 +24,12 @@ func NewErrorResponse(err error) ErrorResponse {
 	return ErrorResponse{Error: err}
 }
 
+// Responder - response service interface
+type Responder interface {
+	Respond(w io.Writer, dataOrErr any)
+}
+
+// Response - response service
 type Response struct {
 	logger service.Logger
 }
@@ -31,13 +38,17 @@ func NewResponseService(logger service.Logger) *Response {
 	return &Response{logger: logger}
 }
 
-func (r *Response) Respond(w http.ResponseWriter, dataOrErr any) {
+func (r *Response) Respond(w io.Writer, dataOrErr any) {
 	err, isErr := dataOrErr.(error)
 	if isErr {
 		publicErr, isPublicErr := dataOrErr.(errs.PublicError)
 		if isPublicErr {
 			r.logger.Info(publicErr.Error())
-			w.WriteHeader(publicErr.Status())
+
+			if w, ok := w.(http.ResponseWriter); ok {
+				w.WriteHeader(publicErr.Status())
+			}
+
 			if _, err = w.Write(
 				r.toBytes(
 					NewErrorResponse(publicErr),
@@ -47,7 +58,11 @@ func (r *Response) Respond(w http.ResponseWriter, dataOrErr any) {
 			}
 		} else {
 			r.logger.Critical(err)
-			w.WriteHeader(errs.DefaultErrorStatusCode)
+
+			if w, ok := w.(http.ResponseWriter); ok {
+				w.WriteHeader(errs.DefaultErrorStatusCode)
+			}
+
 			if _, err = w.Write(
 				r.toBytes(
 					NewErrorResponse(
