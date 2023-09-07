@@ -6,29 +6,35 @@ import (
 	"net/http"
 )
 
-type Request struct {
+type Extractor interface {
+	Parameters(req *http.Request) map[string]string
+	HasParameter(param string, req *http.Request) bool
+	GetParameter(param string, req *http.Request) (string, error)
 }
 
-func NewRequestService() *Request {
-	return &Request{}
+type ParametersExtractor struct {
+}
+
+func NewParametersExtractor() *ParametersExtractor {
+	return &ParametersExtractor{}
 }
 
 // Parameters - will return a map with param. names as keys to values
-func (r *Request) Parameters(req *http.Request) map[string]string {
+func (e *ParametersExtractor) Parameters(req *http.Request) map[string]string {
 	return mux.Vars(req)
 }
 
 // HasParameter - checking the param. is existing in request
-func (r *Request) HasParameter(param string, req *http.Request) bool {
-	if _, ok := r.Parameters(req)[param]; ok {
+func (e *ParametersExtractor) HasParameter(param string, req *http.Request) bool {
+	if _, ok := e.Parameters(req)[param]; ok {
 		return true
 	}
 	return false
 }
 
 // GetParameter - checking if the param. is existing in request, it will be returned
-func (r *Request) GetParameter(param string, req *http.Request) (string, error) {
-	if v, ok := r.Parameters(req)[param]; ok {
+func (e *ParametersExtractor) GetParameter(param string, req *http.Request) (string, error) {
+	if v, ok := e.Parameters(req)[param]; ok {
 		return v, nil
 	}
 	return "", errs.NewFieldCannotBeEmptyError(param)
