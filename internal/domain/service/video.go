@@ -93,3 +93,23 @@ func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 
 	return videoAgg, nil
 }
+
+func (s *VideoService) Delete(req dto.DeleteRequest) error {
+	// validation of input request
+	if err := s.validator.ValidateDeleteRequestDto(req); err != nil {
+		return err
+	}
+
+	// fetching a video which will be deleted
+	video, err := s.repository.Find(s.ctx, req.GetId())
+	if err != nil {
+		return err
+	}
+
+	// video removing
+	if err = s.repository.Remove(s.ctx, video); err != nil {
+		return err
+	}
+
+	return nil
+}
