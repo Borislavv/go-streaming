@@ -9,6 +9,7 @@ import (
 
 type Video interface {
 	Get(req dto.GetRequest) (*agg.Video, error)
+	List(req dto.ListRequest) ([]*agg.Video, error)
 	Create(req dto.CreateRequest) (*agg.Video, error)
 	Update(req dto.UpdateRequest) (*agg.Video, error)
 	Delete(req dto.DeleteRequest) error
