@@ -11,11 +11,18 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 const (
-	ID = "id"
+	id                = "id"
+	name              = "name"
+	path              = "path"
+	page              = "page"
+	limit             = "limit"
+	limitDefaultValue = 25
+	pageDefaultValue  = 1
 )
 
 type VideoBuilder struct {
@@ -58,7 +65,7 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 		return nil, err
 	}
 
-	hexId, err := b.extractor.GetParameter(ID, r)
+	hexId, err := b.extractor.GetParameter(id, r)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +105,7 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDto, error) {
 	videoDto := &dto.VideoGetRequestDto{}
 
-	hexId, err := b.extractor.GetParameter(ID, r)
+	hexId, err := b.extractor.GetParameter(id, r)
 	if err != nil {
 		return nil, err
 	}
@@ -113,11 +120,40 @@ func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.Vide
 
 // BuildListRequestDtoFromRequest - build a dto.ListRequest from raw *http.Request
 func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.VideoListRequestDto, error) {
-	v := &dto.VideoListRequestDto{}
-	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		return nil, err
+	videoDto := &dto.VideoListRequestDto{}
+
+	if b.extractor.HasParameter(name, r) {
+		if nm, err := b.extractor.GetParameter(name, r); err == nil {
+			videoDto.Name = nm
+		}
 	}
-	return v, nil
+	if b.extractor.HasParameter(path, r) {
+		if pth, err := b.extractor.GetParameter(path, r); err == nil {
+			videoDto.Path = pth
+		}
+	}
+	if b.extractor.HasParameter(page, r) {
+		pg, _ := b.extractor.GetParameter(page, r)
+		pgi, atoiErr := strconv.Atoi(pg)
+		if atoiErr != nil {
+			return nil, atoiErr
+		}
+		videoDto.Page = pgi
+	} else {
+		videoDto.Page = pageDefaultValue
+	}
+	if b.extractor.HasParameter(limit, r) {
+		l, _ := b.extractor.GetParameter(limit, r)
+		li, atoiErr := strconv.Atoi(l)
+		if atoiErr != nil {
+			return nil, atoiErr
+		}
+		videoDto.Limit = li
+	} else {
+		videoDto.Limit = limitDefaultValue
+	}
+
+	return videoDto, nil
 }
 
 func (b *VideoBuilder) BuildDeleteRequestDtoFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error) {
