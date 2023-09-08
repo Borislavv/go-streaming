@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"regexp"
 	"sync"
 	"time"
 )
@@ -45,6 +47,39 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	}
 
 	return videoAgg, nil
+}
+
+func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) ([]*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	filter := bson.M{}
+
+	if query.GetName() != "" {
+		filter["name"] = primitive.Regex{Pattern: query.GetName(), Options: "i"}
+	}
+	if query.GetPath() != "" {
+		filter["path"] = primitive.Regex{Pattern: "^" + regexp.QuoteMeta(query.GetPath()), Options: "i"}
+	}
+
+	opts := options.Find().
+		SetSkip((int64(query.GetPage()) - 1) * int64(query.GetLimit())).
+		SetLimit(int64(query.GetLimit()))
+
+	videos := []*agg.Video{}
+	cursor, err := r.db.Find(qCtx, filter, opts)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return videos, nil
+		}
+		return nil, err
+	}
+
+	if err = cursor.All(qCtx, &videos); err != nil {
+		return nil, err
+	}
+
+	return videos, nil
 }
 
 func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Video, error) {
