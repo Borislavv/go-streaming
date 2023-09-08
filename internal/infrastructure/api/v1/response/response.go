@@ -45,8 +45,9 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 		if isPublicErr {
 			r.logger.Info(publicErr.Error())
 
-			if w, ok := w.(http.ResponseWriter); ok {
-				w.WriteHeader(publicErr.Status())
+			// handle the case when write is http.ResponseWriter
+			if httpWriter, ok := w.(http.ResponseWriter); ok {
+				httpWriter.WriteHeader(publicErr.Status())
 			}
 
 			if _, err = w.Write(
@@ -59,8 +60,9 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 		} else {
 			r.logger.Critical(err)
 
-			if w, ok := w.(http.ResponseWriter); ok {
-				w.WriteHeader(errs.DefaultErrorStatusCode)
+			// handle the case when write is http.ResponseWriter
+			if httpWriter, ok := w.(http.ResponseWriter); ok {
+				httpWriter.WriteHeader(errs.DefaultErrorStatusCode)
 			}
 
 			if _, err = w.Write(
