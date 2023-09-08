@@ -7,6 +7,7 @@ import (
 
 type Video interface {
 	ValidateGetRequestDto(req dto.GetRequest) error
+	ValidateListRequestDto(req dto.ListRequest) error
 	ValidateCreateRequestDto(req dto.CreateRequest) error
 	ValidateUpdateRequestDto(req dto.UpdateRequest) error
 	ValidateDeleteRequestDto(req dto.DeleteRequest) error

@@ -31,6 +31,19 @@ func (v *VideoValidator) ValidateGetRequestDto(req dto.GetRequest) error {
 	return nil
 }
 
+func (v *VideoValidator) ValidateListRequestDto(req dto.ListRequest) error {
+	if req.GetName() == "" && req.GetPath() == "" {
+		return errs.NewAtLeastOneFieldMustBeDefinedError(name, path)
+	}
+	if req.GetName() != "" && len(req.GetName()) <= 3 {
+		return errs.NewFieldLengthMustBeMoreOrLessError(name, true, 3)
+	}
+	if req.GetPath() != "" && len(req.GetPath()) <= 3 {
+		return errs.NewFieldLengthMustBeMoreOrLessError(path, true, 3)
+	}
+	return nil
+}
+
 func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 	if req.GetName() == "" {
 		return errs.NewFieldCannotBeEmptyError(name)
