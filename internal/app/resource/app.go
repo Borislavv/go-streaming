@@ -115,7 +115,11 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 				videoService,
 				responseService,
 			),
-			video.NewListVideoController(),
+			video.NewListVideoController(
+				videoBuilder,
+				videoService,
+				responseService,
+			),
 			video.NewUpdateVideoController(
 				videoBuilder,
 				videoService,
