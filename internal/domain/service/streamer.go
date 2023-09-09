@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/gorilla/websocket"
@@ -170,7 +169,7 @@ func (s *StreamingService) handleMessages(
 				actionsCh <- action
 				continue
 			}
-			s.logger.Emergency(errors.New(fmt.Sprintf("found unknown action: %s", action)))
+			s.logger.Emergency(fmt.Sprintf("found unknown action: %s", action))
 		}
 	}
 }
