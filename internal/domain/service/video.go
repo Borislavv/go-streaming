@@ -7,7 +7,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
-	"log"
 )
 
 type VideoService struct {
@@ -40,18 +39,23 @@ func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
 		return nil, err
 	}
 
-	return s.repository.Find(s.ctx, req.GetId())
+	video, err := s.repository.Find(s.ctx, req.GetId())
+	if err != nil {
+		return nil, s.logger.ErrorPropagate(err)
+	}
+
+	return video, nil
 }
 
 func (s *VideoService) List(req dto.ListRequest) ([]*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateListRequestDto(req); err != nil {
-		return nil, err
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	videos, err := s.repository.FindList(s.ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	return videos, err
@@ -68,14 +72,13 @@ func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
 
 	// validation of an aggregate
 	if err := s.validator.ValidateAgg(videoAgg); err != nil {
-		return nil, err
+		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	// saving an aggregate into storage
 	video, err := s.repository.Insert(s.ctx, videoAgg)
 	if err != nil {
-		s.logger.Error(err)
-		return nil, err
+		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	return video, nil
@@ -90,19 +93,18 @@ func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	// building an aggregate
 	videoAgg, err := s.builder.BuildAggFromUpdateRequestDto(req)
 	if err != nil {
-		log.Fatalln(err)
-		return nil, err
+		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	// validation of an aggregate
 	if err = s.validator.ValidateAgg(videoAgg); err != nil {
-		return nil, err
+		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	// saving updated aggregate into storage
 	videoAgg, err = s.repository.Update(s.ctx, videoAgg)
 	if err != nil {
-		return nil, err
+		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	return videoAgg, nil
@@ -117,12 +119,12 @@ func (s *VideoService) Delete(req dto.DeleteRequest) error {
 	// fetching a video which will be deleted
 	video, err := s.repository.Find(s.ctx, req.GetId())
 	if err != nil {
-		return err
+		return s.logger.ErrorPropagate(err)
 	}
 
 	// video removing
 	if err = s.repository.Remove(s.ctx, video); err != nil {
-		return err
+		return s.logger.ErrorPropagate(err)
 	}
 
 	return nil
