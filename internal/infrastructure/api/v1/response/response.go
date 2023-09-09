@@ -41,10 +41,9 @@ func NewResponseService(logger service.Logger) *Response {
 func (r *Response) Respond(w io.Writer, dataOrErr any) {
 	err, isErr := dataOrErr.(error)
 	if isErr {
-		publicErr, isPublicErr := dataOrErr.(errs.PublicError)
+		r.logger.Log(err)
+		publicErr, isPublicErr := err.(errs.PublicError)
 		if isPublicErr {
-			r.logger.Info(publicErr.Error())
-
 			// handle the case when write is http.ResponseWriter
 			if httpWriter, ok := w.(http.ResponseWriter); ok {
 				httpWriter.WriteHeader(publicErr.Status())
@@ -58,21 +57,15 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 				r.logger.Emergency(err)
 			}
 		} else {
-			r.logger.Critical(err)
-
 			// handle the case when write is http.ResponseWriter
 			if httpWriter, ok := w.(http.ResponseWriter); ok {
-				httpWriter.WriteHeader(errs.DefaultErrorStatusCode)
+				httpWriter.WriteHeader(http.StatusInternalServerError)
 			}
 
 			if _, err = w.Write(
 				r.toBytes(
 					NewErrorResponse(
-						errs.NewError(
-							errs.DefaultErrorMessage,
-							errs.DefaultErrorType,
-							errs.DefaultErrorStatusCode,
-						),
+						errs.NewInternalServerError(),
 					),
 				),
 			); err != nil {
