@@ -1,11 +1,26 @@
 package service
 
-// TODO - logger must be improved for write 3-5 or all last stack frames due to handle errors properly
 type Logger interface {
-	Info(msg string)
-	Debug(msg string)
-	Warning(msg string)
-	Error(err error)
-	Critical(err error)
-	Emergency(err error)
+	Log(err error)
+	LogPropagate(err error) error
+
+	Info(strOrErr any)
+	InfoPropagate(strOrErr any) error
+
+	Debug(strOrErr any)
+	DebugPropagate(strOrErr any) error
+
+	Warning(strOrErr any)
+	WarningPropagate(strOrErr any) error
+
+	Error(strOrErr any)
+	ErrorPropagate(strOrErr any) error
+
+	Critical(strOrErr any)
+	CriticalPropagate(strOrErr any) error
+
+	Emergency(strOrErr any)
+	EmergencyPropagate(strOrErr any) error
+
+	Close() func()
 }
