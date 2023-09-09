@@ -6,6 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/service"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,13 +22,15 @@ const VideoCollection = "videos"
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
+	logger  service.Logger
 	buf     []interface{}
 	timeout time.Duration
 }
 
-func NewVideoRepository(db *mongo.Database, timeout time.Duration) *VideoRepository {
+func NewVideoRepository(db *mongo.Database, logger service.Logger, timeout time.Duration) *VideoRepository {
 	return &VideoRepository{
 		db:      db.Collection(VideoCollection),
+		logger:  logger,
 		mu:      &sync.Mutex{},
 		buf:     []interface{}{},
 		timeout: timeout,
@@ -41,9 +44,9 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	videoAgg := &agg.Video{}
 	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(videoAgg); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errs.NewNotFoundError("video")
+			return nil, r.logger.InfoPropagate(errs.NewNotFoundError("video"))
 		}
-		return nil, err
+		return nil, r.logger.ErrorPropagate(err)
 	}
 
 	return videoAgg, nil
@@ -72,11 +75,11 @@ func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) (
 		if err == mongo.ErrNoDocuments {
 			return videos, nil
 		}
-		return nil, err
+		return nil, r.logger.ErrorPropagate(err)
 	}
 
 	if err = cursor.All(qCtx, &videos); err != nil {
-		return nil, err
+		return nil, r.logger.ErrorPropagate(err)
 	}
 
 	return videos, nil
@@ -88,14 +91,14 @@ func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Vi
 
 	res, err := r.db.InsertOne(qCtx, video, options.InsertOne())
 	if err != nil {
-		return nil, err
+		return nil, r.logger.ErrorPropagate(err)
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
 		return r.Find(qCtx, vo.ID{Value: oid})
 	}
 
-	return nil, errors.New("unable to store 'video' or retrieve inserted 'id'")
+	return nil, r.logger.CriticalPropagate(errors.New("unable to store 'video' or retrieve inserted 'id'"))
 }
 
 func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Video, error) {
@@ -104,7 +107,7 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 
 	res, err := r.db.UpdateByID(qCtx, video.ID.Value, bson.M{"$set": video})
 	if err != nil {
-		return nil, err
+		return nil, r.logger.ErrorPropagate(err)
 	}
 
 	// check the record is really updated
@@ -122,11 +125,11 @@ func (r *VideoRepository) Remove(ctx context.Context, video *agg.Video) error {
 
 	res, err := r.db.DeleteOne(qCtx, bson.M{"_id": video.ID.Value})
 	if err != nil {
-		return err
+		return r.logger.ErrorPropagate(err)
 	}
 
 	if res.DeletedCount == 0 { // checking the video is really deleted
-		return errors.New("video with id " + video.ID.Value.Hex() + " was not deleted")
+		return r.logger.CriticalPropagate(errors.New("video with id " + video.ID.Value.Hex() + " was not deleted"))
 	}
 
 	return nil
