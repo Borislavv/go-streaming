@@ -26,12 +26,12 @@ func (s *StreamingApp) Run(mWg *sync.WaitGroup) {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	errCh := make(chan error, 1)
-	loggerService := logger.NewCliLogger(errCh)
+	// init. logger and close func.
+	loggerService, cls := logger.NewCliLogger(1)
 	defer func() {
 		cancel()
 		wg.Wait()
-		close(errCh)
+		cls()
 	}()
 
 	if err := env.Parse(&s.cfg); err != nil {

@@ -40,13 +40,12 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// init. loggerService
-	errCh := make(chan error, 1)
-	loggerService := logger.NewCliLogger(errCh)
+	// init. loggerService and close func.
+	loggerService, cls := logger.NewCliLogger(1)
 	defer func() {
 		cancel()
 		wg.Wait()
-		close(errCh)
+		cls()
 	}()
 
 	// parse env. config
@@ -75,7 +74,7 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	reqParamsExtractor := request.NewParametersExtractor()
 
 	// init. video repository
-	videoRepository := mongodb.NewVideoRepository(db, time.Minute)
+	videoRepository := mongodb.NewVideoRepository(db, loggerService, time.Minute)
 
 	// init. video validator
 	videoValidator := validator.NewVideoValidator(ctx, videoRepository)
