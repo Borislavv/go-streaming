@@ -2,6 +2,7 @@ package errs
 
 import (
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
 	"net/http"
 	"strings"
 )
@@ -9,43 +10,36 @@ import (
 const (
 	ValidationType   = "validation"
 	ValidationStatus = http.StatusBadRequest
+	ValidationLevel  = logger.WarningLevel
 )
 
-type FieldCannotBeEmptyError Error
+type FieldCannotBeEmptyError struct{ errored }
 
 func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
 	return &FieldCannotBeEmptyError{
-		Message: fmt.Sprintf("field '%v' must not be empty or omitted", field),
-		Type:    ValidationType,
+		errored{
+			ErrorMessage: fmt.Sprintf("field '%v' must not be empty or omitted", field),
+			ErrorType:    ValidationType,
+			errorLevel:   ValidationLevel,
+			errorStatus:  ValidationStatus,
+		},
 	}
 }
 
-func (e *FieldCannotBeEmptyError) Error() string {
-	return e.Message
-}
-
-func (e *FieldCannotBeEmptyError) Status() int {
-	return ValidationStatus
-}
-
-type AtLeastOneFieldMustBeDefinedError Error
+type AtLeastOneFieldMustBeDefinedError struct{ errored }
 
 func NewAtLeastOneFieldMustBeDefinedError(fields ...string) *AtLeastOneFieldMustBeDefinedError {
 	return &AtLeastOneFieldMustBeDefinedError{
-		Message: fmt.Sprintf("at least one of followed fields [%v] must be defined", strings.Join(fields, ", ")),
-		Type:    ValidationType,
+		errored{
+			ErrorMessage: fmt.Sprintf("at least one of followed fields [%v] must be defined", strings.Join(fields, ", ")),
+			ErrorType:    ValidationType,
+			errorLevel:   ValidationLevel,
+			errorStatus:  ValidationStatus,
+		},
 	}
 }
 
-func (e *AtLeastOneFieldMustBeDefinedError) Error() string {
-	return e.Message
-}
-
-func (e *AtLeastOneFieldMustBeDefinedError) Status() int {
-	return ValidationStatus
-}
-
-type FieldLengthMustBeMoreOrLessError Error
+type FieldLengthMustBeMoreOrLessError struct{ errored }
 
 func NewFieldLengthMustBeMoreOrLessError(field string, isMustBeMore bool, length int) *FieldLengthMustBeMoreOrLessError {
 	qualifier := "less"
@@ -53,32 +47,24 @@ func NewFieldLengthMustBeMoreOrLessError(field string, isMustBeMore bool, length
 		qualifier = "more"
 	}
 	return &FieldLengthMustBeMoreOrLessError{
-		Message: fmt.Sprintf("length of the field '%v' must be %v than %d", field, qualifier, length),
-		Type:    ValidationType,
+		errored{
+			ErrorMessage: fmt.Sprintf("length of the field '%v' must be %v than %d", field, qualifier, length),
+			ErrorType:    ValidationType,
+			errorLevel:   ValidationLevel,
+			errorStatus:  ValidationStatus,
+		},
 	}
 }
 
-func (e *FieldLengthMustBeMoreOrLessError) Error() string {
-	return e.Message
-}
-
-func (e *FieldLengthMustBeMoreOrLessError) Status() int {
-	return ValidationStatus
-}
-
-type UniquenessCheckFailedError Error
+type UniquenessCheckFailedError struct{ errored }
 
 func NewUniquenessCheckFailedError(field string) *UniquenessCheckFailedError {
 	return &UniquenessCheckFailedError{
-		Message: fmt.Sprintf("uniqueness check filed due to duplicated '%v'", field),
-		Type:    ValidationType,
+		errored{
+			ErrorMessage: fmt.Sprintf("uniqueness check filed due to duplicated '%v'", field),
+			ErrorType:    ValidationType,
+			errorLevel:   ValidationLevel,
+			errorStatus:  ValidationStatus,
+		},
 	}
-}
-
-func (e *UniquenessCheckFailedError) Error() string {
-	return e.Message
-}
-
-func (e *UniquenessCheckFailedError) Status() int {
-	return ValidationStatus
 }

@@ -2,24 +2,25 @@ package errs
 
 import (
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
 	"net/http"
 )
 
-const RepositoryType = "repository"
+const (
+	RepositoryType         = "application"
+	PublicRepositoryLevel  = logger.ErrorLevel
+	PublicRepositoryStatus = http.StatusInternalServerError
+)
 
-type NotFoundError Error
+type NotFoundError struct{ errored }
 
 func NewNotFoundError(entity string) *NotFoundError {
 	return &NotFoundError{
-		Message: fmt.Sprintf("%s not found by given id", entity),
-		Type:    RepositoryType,
+		errored{
+			ErrorMessage: fmt.Sprintf("%errorStatus not found by given id", entity),
+			ErrorType:    RepositoryType,
+			errorLevel:   PublicRepositoryLevel,
+			errorStatus:  PublicRepositoryStatus,
+		},
 	}
-}
-
-func (e *NotFoundError) Error() string {
-	return e.Message
-}
-
-func (e *NotFoundError) Status() int {
-	return http.StatusInternalServerError
 }
