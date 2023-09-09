@@ -13,10 +13,10 @@ services:
     depends_on:
       - database
     environment:
-      ENV: "prod"
-      LOGGER: "stderr"
+      ENV: "dev"
+      LOGGER: "cli"
       MONGODB_URI: "mongodb://database:27017/streaming"
-    command: ["sh", "-c", "./.ops/build/build_and_rotate.sh && ./streaming"]
+    command: ["sh", "-c", "go run ./cmd/main.go"]
 
   database:
     image: mongo:latest
