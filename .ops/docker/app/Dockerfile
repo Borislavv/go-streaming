@@ -19,9 +19,3 @@ RUN go mod download
 
 # Copy the rest of the project to the working directory
 COPY . .
-
-# Build the application
-RUN go build -o streaming ./cmd/main.go
-
-# Run the built binary file
-CMD ["./streaming"]
