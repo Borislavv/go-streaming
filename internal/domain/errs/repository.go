@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	RepositoryType         = "application"
-	PublicRepositoryLevel  = logger.ErrorLevel
-	PublicRepositoryStatus = http.StatusInternalServerError
+	repositoryType         = "application"
+	publicRepositoryLevel  = logger.ErrorLevel
+	publicRepositoryStatus = http.StatusInternalServerError
 )
 
 type NotFoundError struct{ errored }
@@ -18,9 +18,9 @@ func NewNotFoundError(entity string) *NotFoundError {
 	return &NotFoundError{
 		errored{
 			ErrorMessage: fmt.Sprintf("%errorStatus not found by given id", entity),
-			ErrorType:    RepositoryType,
-			errorLevel:   PublicRepositoryLevel,
-			errorStatus:  PublicRepositoryStatus,
+			ErrorType:    repositoryType,
+			errorLevel:   publicRepositoryLevel,
+			errorStatus:  publicRepositoryStatus,
 		},
 	}
 }

@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	ValidationType   = "validation"
-	ValidationStatus = http.StatusBadRequest
-	ValidationLevel  = logger.WarningLevel
+	validationType   = "validation"
+	validationStatus = http.StatusBadRequest
+	validationLevel  = logger.WarningLevel
 )
 
 type FieldCannotBeEmptyError struct{ errored }
@@ -19,9 +19,9 @@ func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
 	return &FieldCannotBeEmptyError{
 		errored{
 			ErrorMessage: fmt.Sprintf("field '%v' must not be empty or omitted", field),
-			ErrorType:    ValidationType,
-			errorLevel:   ValidationLevel,
-			errorStatus:  ValidationStatus,
+			ErrorType:    validationType,
+			errorLevel:   validationLevel,
+			errorStatus:  validationStatus,
 		},
 	}
 }
@@ -32,9 +32,9 @@ func NewAtLeastOneFieldMustBeDefinedError(fields ...string) *AtLeastOneFieldMust
 	return &AtLeastOneFieldMustBeDefinedError{
 		errored{
 			ErrorMessage: fmt.Sprintf("at least one of followed fields [%v] must be defined", strings.Join(fields, ", ")),
-			ErrorType:    ValidationType,
-			errorLevel:   ValidationLevel,
-			errorStatus:  ValidationStatus,
+			ErrorType:    validationType,
+			errorLevel:   validationLevel,
+			errorStatus:  validationStatus,
 		},
 	}
 }
@@ -49,9 +49,9 @@ func NewFieldLengthMustBeMoreOrLessError(field string, isMustBeMore bool, length
 	return &FieldLengthMustBeMoreOrLessError{
 		errored{
 			ErrorMessage: fmt.Sprintf("length of the field '%v' must be %v than %d", field, qualifier, length),
-			ErrorType:    ValidationType,
-			errorLevel:   ValidationLevel,
-			errorStatus:  ValidationStatus,
+			ErrorType:    validationType,
+			errorLevel:   validationLevel,
+			errorStatus:  validationStatus,
 		},
 	}
 }
@@ -64,9 +64,9 @@ func NewUniquenessCheckFailedError(fields ...string) *UniquenessCheckFailedError
 			ErrorMessage: fmt.Sprintf(
 				"uniqueness check filed due to duplicated key '%v'", strings.Join(fields, ", "),
 			),
-			ErrorType:   ValidationType,
-			errorLevel:  ValidationLevel,
-			errorStatus: ValidationStatus,
+			ErrorType:   validationType,
+			errorLevel:  validationLevel,
+			errorStatus: validationStatus,
 		},
 	}
 }
