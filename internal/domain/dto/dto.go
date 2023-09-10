@@ -20,8 +20,8 @@ type GetRequest interface {
 }
 
 type ListRequest interface {
-	GetName() string
-	GetPath() string
+	GetName() string // path of name
+	GetPath() string // path of path
 	PaginatedRequest
 }
 
