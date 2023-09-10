@@ -7,32 +7,42 @@ import (
 )
 
 const (
-	TemplatesDir     = "/html/"
-	ResourcesDirPath = "/internal/infrastructure/static/"
+	StaticDirPath    = "/internal/infrastructure/static/"
+	TemplatesDirPath = "/html/"
+	ResourcesDirPath = "/public/resources/"
 )
 
 func TemplatePath(template string, dirs ...string) (string, error) {
-	resDir, err := ResourcesDir()
+	staticFilesDir, err := StaticFilesDir()
 	if err != nil {
 		return "", err
 	}
 
 	return filepath.Join(
-		filepath.Join(resDir, TemplatesDir),
+		filepath.Join(staticFilesDir, TemplatesDirPath),
 		filepath.Join(append(dirs, template)...),
 	), nil
 }
 
+func StaticFilesDir() (string, error) {
+	return path(StaticDirPath)
+}
+
 func ResourcesDir() (string, error) {
-	execPath, err := os.Getwd()
+	return path(ResourcesDirPath)
+}
+
+// path is a function which builts any path from root dir.
+func path(additionalPath string) (string, error) {
+	root, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 
 	b := strings.Builder{}
-	b.WriteString(execPath)
-	b.WriteString(ResourcesDirPath)
-	path := b.String()
+	b.WriteString(root)
+	b.WriteString(additionalPath)
+	fullPath := b.String()
 
-	return path, nil
+	return fullPath, nil
 }
