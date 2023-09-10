@@ -18,7 +18,7 @@ func NewResourceController() *ResourceController {
 }
 
 func (i *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
-	dir, err := helper.ResourcesDir()
+	dir, err := helper.StaticFilesDir()
 	if err != nil {
 		http.Error(w, "Internal server error, please contact with administrator.", http.StatusInternalServerError)
 		log.Println("unable to serve static files due to unable receive resources path", err)
