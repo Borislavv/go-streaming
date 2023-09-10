@@ -58,13 +58,15 @@ func NewFieldLengthMustBeMoreOrLessError(field string, isMustBeMore bool, length
 
 type UniquenessCheckFailedError struct{ errored }
 
-func NewUniquenessCheckFailedError(field string) *UniquenessCheckFailedError {
+func NewUniquenessCheckFailedError(fields ...string) *UniquenessCheckFailedError {
 	return &UniquenessCheckFailedError{
 		errored{
-			ErrorMessage: fmt.Sprintf("uniqueness check filed due to duplicated '%v'", field),
-			ErrorType:    ValidationType,
-			errorLevel:   ValidationLevel,
-			errorStatus:  ValidationStatus,
+			ErrorMessage: fmt.Sprintf(
+				"uniqueness check filed due to duplicated key '%v'", strings.Join(fields, ", "),
+			),
+			ErrorType:   ValidationType,
+			errorLevel:  ValidationLevel,
+			errorStatus: ValidationStatus,
 		},
 	}
 }
