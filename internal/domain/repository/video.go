@@ -12,5 +12,6 @@ type Video interface {
 	FindList(ctx context.Context, query dto.ListRequest) ([]*agg.Video, error)
 	Insert(ctx context.Context, video *agg.Video) (*agg.Video, error)
 	Update(ctx context.Context, video *agg.Video) (*agg.Video, error)
+	Has(ctx context.Context, video *agg.Video) (bool, error)
 	Remove(ctx context.Context, video *agg.Video) error
 }

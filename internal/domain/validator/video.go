@@ -69,5 +69,15 @@ func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {
 	if agg.Video.Path == "" {
 		return errors.New("'path' cannot be empty")
 	}
+	// if id is exists, then it's an update method
+	if !agg.ID.Value.IsZero() { // uniqueness check
+		has, err := v.repository.Has(v.ctx, agg)
+		if err != nil {
+			return err
+		}
+		if has {
+			return errs.NewUniquenessCheckFailedError(name, path)
+		}
+	}
 	return nil
 }
