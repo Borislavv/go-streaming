@@ -1,0 +1,1 @@
+# For now, this dir. is a storage for uploaded resources (video, audio)

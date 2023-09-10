@@ -1,0 +1,5 @@
+# Ignore all files in this dir.
+*
+
+# Excluding readme.md from ignoring
+!readme.md
