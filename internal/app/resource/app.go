@@ -8,6 +8,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/resource"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
@@ -15,6 +16,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/filesystem"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -88,6 +91,12 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// init. response service
 	responseService := response.NewResponseService(loggerService)
 
+	// init. filesystem storage
+	filesystemStorage := filesystem.NewStorage()
+
+	// init. native uploader
+	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
+
 	wg.Add(1)
 	go http.NewHttpServer(
 		r.cfg.Host,
@@ -98,6 +107,11 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		r.cfg.StaticVersionPrefix,
 		// rest api controllers
 		[]controller.Controller{
+			// resource
+			resource.NewUploadResourceController(
+				nativeUploader,
+				responseService,
+			),
 			// video
 			video.NewCreateController(
 				videoBuilder,
