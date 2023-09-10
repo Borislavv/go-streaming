@@ -28,7 +28,7 @@ const (
 	DecreaseBufferCap Action = "decrBuff"
 )
 
-type StreamingService struct {
+type ResourceStreamer struct {
 	reader Reader
 	logger Logger
 }
@@ -36,14 +36,14 @@ type StreamingService struct {
 func NewStreamingService(
 	reader Reader,
 	logger Logger,
-) *StreamingService {
-	return &StreamingService{
+) *ResourceStreamer {
+	return &ResourceStreamer{
 		reader: reader,
 		logger: logger,
 	}
 }
 
-func (s *StreamingService) Stream(conn *websocket.Conn) {
+func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 	s.logger.Info("[streamer]: start streaming")
 
 	wg := &sync.WaitGroup{}
@@ -61,7 +61,7 @@ func (s *StreamingService) Stream(conn *websocket.Conn) {
 	s.logger.Info("[streamer]: streaming is stopped")
 }
 
-func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
+func (s *ResourceStreamer) handleStream(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
 	defer wg.Done()
 	defer s.logger.Info("handleStream: exit")
 
@@ -92,7 +92,7 @@ func (s *StreamingService) handleStream(wg *sync.WaitGroup, conn *websocket.Conn
 	}
 }
 
-func (s *StreamingService) stream(video *entity.Video, conn *websocket.Conn) {
+func (s *ResourceStreamer) stream(video *entity.Video, conn *websocket.Conn) {
 	startMsg := Start.String()
 
 	ac, vc := s.codecs(video)
@@ -132,7 +132,7 @@ func (s *StreamingService) stream(video *entity.Video, conn *websocket.Conn) {
 	}
 }
 
-func (s *StreamingService) handleBufferSize(decrBuffCapCh <-chan struct{}) {
+func (s *ResourceStreamer) handleBufferSize(decrBuffCapCh <-chan struct{}) {
 	defer s.logger.Info("handleBufferSize: exit")
 
 	for range decrBuffCapCh {
@@ -140,7 +140,7 @@ func (s *StreamingService) handleBufferSize(decrBuffCapCh <-chan struct{}) {
 	}
 }
 
-func (s *StreamingService) handleMessages(
+func (s *ResourceStreamer) handleMessages(
 	conn *websocket.Conn,
 	actionsCh chan<- Action,
 	decrBuffCapCh chan<- struct{},
@@ -174,7 +174,7 @@ func (s *StreamingService) handleMessages(
 	}
 }
 
-func (s *StreamingService) codecs(video *entity.Video) (a *ffprobe.Stream, v *ffprobe.Stream) {
+func (s *ResourceStreamer) codecs(video *entity.Video) (a *ffprobe.Stream, v *ffprobe.Stream) {
 	file, err := os.Open(video.GetPath())
 	if err != nil {
 		s.logger.Emergency(err)

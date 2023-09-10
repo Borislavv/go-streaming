@@ -11,24 +11,24 @@ import (
 // ChunkSize is 2.5MB
 const ChunkSize = 1024 * 1024 * 2.5
 
-type ReaderService struct {
+type ResourceReader struct {
 	logger Logger
 }
 
-func NewReaderService(logger Logger) *ReaderService {
-	return &ReaderService{logger: logger}
+func NewReaderService(logger Logger) *ResourceReader {
+	return &ResourceReader{logger: logger}
 }
 
-func (r *ReaderService) Read(resource entity.Resource) chan *dto.ChunkDto {
+func (r *ResourceReader) Read(resource entity.Resource) chan *dto.Chunk {
 	r.logger.Info("[reader]: reading started")
 
-	chunksCh := make(chan *dto.ChunkDto, 1)
+	chunksCh := make(chan *dto.Chunk, 1)
 	go r.handleRead(resource, chunksCh)
 
 	return chunksCh
 }
 
-func (r *ReaderService) handleRead(resource entity.Resource, chunksCh chan *dto.ChunkDto) {
+func (r *ResourceReader) handleRead(resource entity.Resource, chunksCh chan *dto.Chunk) {
 	defer r.logger.Info("[reader]: reading stopped")
 	defer close(chunksCh)
 
@@ -61,7 +61,7 @@ func (r *ReaderService) handleRead(resource entity.Resource, chunksCh chan *dto.
 	}
 }
 
-func (r *ReaderService) sendChunk(chunk *dto.ChunkDto, chunksCh chan *dto.ChunkDto) {
+func (r *ResourceReader) sendChunk(chunk *dto.Chunk, chunksCh chan *dto.Chunk) {
 	if chunk.Len == 0 {
 		return
 	}
