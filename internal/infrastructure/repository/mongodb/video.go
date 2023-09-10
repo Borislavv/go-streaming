@@ -77,6 +77,7 @@ func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) (
 		}
 		return nil, r.logger.ErrorPropagate(err)
 	}
+	defer cursor.Close(qCtx)
 
 	if err = cursor.All(qCtx, &videos); err != nil {
 		return nil, r.logger.ErrorPropagate(err)
@@ -117,6 +118,41 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 
 	// if changes is not exists, then return the original data
 	return video, nil
+}
+
+func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	opts := options.Find().
+		SetLimit(1)
+
+	filter := bson.M{}
+	if video.Video.Name != "" {
+		filter["name"] = video.Video.Name
+	}
+	if video.Video.Path != "" {
+		filter["path"] = video.Video.Path
+	}
+
+	var videos []*agg.Video
+	cursor, err := r.db.Find(qCtx, filter, opts)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return true, r.logger.CriticalPropagate(err)
+	}
+	defer cursor.Close(qCtx)
+
+	if err = cursor.All(qCtx, &videos); err != nil {
+		return true, r.logger.CriticalPropagate(err)
+	}
+
+	if len(videos) > 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (r *VideoRepository) Remove(ctx context.Context, video *agg.Video) error {
