@@ -7,6 +7,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+//type Resource interface {
+//	Upload(req dto.UploadRequest) ()
+//}
+
 type Video interface {
 	Get(req dto.GetRequest) (*agg.Video, error)
 	List(req dto.ListRequest) ([]*agg.Video, error)
@@ -16,7 +20,7 @@ type Video interface {
 }
 
 type Reader interface {
-	Read(resource entity.Resource) chan *dto.ChunkDto
+	Read(resource entity.Resource) chan *dto.Chunk
 }
 
 type Streamer interface {

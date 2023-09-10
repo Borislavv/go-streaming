@@ -30,7 +30,7 @@ type PaginatedRequest interface {
 	GetLimit() int
 }
 
-type Chunk interface {
+type Chunked interface {
 	GetLen() int
 	SetLen(len int)
 	GetData() []byte
