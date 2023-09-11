@@ -70,3 +70,16 @@ func NewUniquenessCheckFailedError(fields ...string) *UniquenessCheckFailedError
 		},
 	}
 }
+
+type InvalidUploadedFileError struct{ errored }
+
+func NewInvalidUploadedFileError(filename string) *InvalidUploadedFileError {
+	return &InvalidUploadedFileError{
+		errored{
+			ErrorMessage: fmt.Sprintf("file '%v' has a zero size", filename),
+			ErrorType:    validationType,
+			errorLevel:   validationLevel,
+			errorStatus:  validationStatus,
+		},
+	}
+}
