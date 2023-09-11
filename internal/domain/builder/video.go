@@ -6,6 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
@@ -26,12 +27,19 @@ const (
 )
 
 type VideoBuilder struct {
+	logger     logger.Logger
 	ctx        context.Context
 	extractor  request.Extractor // TODO must be removed due to DDD (infrastructure leaked into the domain logic)
 	repository repository.Video
 }
 
-func NewVideoBuilder(ctx context.Context, extractor request.Extractor, repository repository.Video) *VideoBuilder {
+// NewVideoBuilder is a constructor of VideoBuilder
+func NewVideoBuilder(
+	logger logger.Logger,
+	ctx context.Context,
+	extractor request.Extractor,
+	repository repository.Video,
+) *VideoBuilder {
 	return &VideoBuilder{ctx: ctx, extractor: extractor, repository: repository}
 }
 
@@ -39,7 +47,7 @@ func NewVideoBuilder(ctx context.Context, extractor request.Extractor, repositor
 func (b *VideoBuilder) BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.VideoCreateRequestDto, error) {
 	v := &dto.VideoCreateRequestDto{}
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 	return v, nil
 }
@@ -62,16 +70,16 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) *agg.
 func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.VideoUpdateRequestDto, error) {
 	videoDto := &dto.VideoUpdateRequestDto{}
 	if err := json.NewDecoder(r.Body).Decode(&videoDto); err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 
 	hexId, err := b.extractor.GetParameter(id, r)
 	if err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 	oid, err := primitive.ObjectIDFromHex(hexId)
 	if err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 	videoDto.ID = vo.ID{Value: oid}
 
@@ -82,7 +90,7 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg.Video, error) {
 	video, err := b.repository.Find(b.ctx, dto.GetId())
 	if err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 
 	changes := 0
@@ -107,11 +115,11 @@ func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.Vide
 
 	hexId, err := b.extractor.GetParameter(id, r)
 	if err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 	oid, err := primitive.ObjectIDFromHex(hexId)
 	if err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 	videoDto.ID = vo.ID{Value: oid}
 
@@ -136,7 +144,7 @@ func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.Vid
 		pg, _ := b.extractor.GetParameter(page, r)
 		pgi, atoiErr := strconv.Atoi(pg)
 		if atoiErr != nil {
-			return nil, atoiErr
+			return nil, b.logger.LogPropagate(atoiErr)
 		}
 		videoDto.Page = pgi
 	} else {
@@ -146,7 +154,7 @@ func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.Vid
 		l, _ := b.extractor.GetParameter(limit, r)
 		li, atoiErr := strconv.Atoi(l)
 		if atoiErr != nil {
-			return nil, atoiErr
+			return nil, b.logger.LogPropagate(atoiErr)
 		}
 		videoDto.Limit = li
 	} else {
@@ -156,10 +164,11 @@ func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.Vid
 	return videoDto, nil
 }
 
+// BuildDeleteRequestDtoFromRequest - build a dto.DeleteRequest from raw *http.Request
 func (b *VideoBuilder) BuildDeleteRequestDtoFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error) {
 	videoGetDto, err := b.BuildGetRequestDtoFromRequest(r)
 	if err != nil {
-		return nil, err
+		return nil, b.logger.LogPropagate(err)
 	}
 
 	return &dto.VideoDeleteRequestDto{ID: videoGetDto.ID}, nil
