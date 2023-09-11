@@ -1,4 +1,4 @@
-package service
+package logger
 
 type Logger interface {
 	Log(err error)
