@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/Borislavv/video-streaming/internal/domain/vo"
+import (
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"mime/multipart"
+)
 
 type CreateRequest interface {
 	GetName() string
@@ -25,6 +28,15 @@ type ListRequest interface {
 	PaginatedRequest
 }
 
+type UploadRequest interface {
+	GetFile() multipart.File
+	GetHeader() *multipart.FileHeader
+	GetUploadedFilename() string
+	SetUploadedFilename(filename string)
+	GetUploadedFilepath() string
+	SetUploadedFilepath(filepath string)
+}
+
 type PaginatedRequest interface {
 	GetPage() int
 	GetLimit() int
@@ -37,4 +49,12 @@ type Chunked interface {
 	SetData(data []byte)
 	GetError() error
 	SetError(err error)
+}
+
+type Resource interface {
+	GetPath() string
+	//GetName() string
+	//GetFilename() string
+	//GetSize() int64
+	//GetMIME() textproto.MIMEHeader
 }
