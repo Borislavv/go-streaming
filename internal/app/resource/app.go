@@ -16,7 +16,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/filesystem"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -63,7 +63,7 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		loggerService.Critical(err)
 		return
 	}
-	defer mongoClient.Disconnect(ctx)
+	defer func() { _ = mongoClient.Disconnect(ctx) }()
 
 	// ping mongodb
 	if err = mongoClient.Ping(ctx, readpref.Primary()); err != nil {
@@ -74,7 +74,11 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// connect to target mongodb database
 	db := mongoClient.Database(r.cfg.MongoDb)
 
+	// init. request param. resolver
 	reqParamsExtractor := request.NewParametersExtractor()
+
+	// init. response service
+	responseService := response.NewResponseService(loggerService)
 
 	// init. video repository
 	videoRepository := mongodb.NewVideoRepository(db, loggerService, time.Minute)
@@ -83,19 +87,27 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	videoValidator := validator.NewVideoValidator(ctx, videoRepository)
 
 	// init. video builder
-	videoBuilder := builder.NewVideoBuilder(ctx, reqParamsExtractor, videoRepository)
+	videoBuilder := builder.NewVideoBuilder(loggerService, ctx, reqParamsExtractor, videoRepository)
 
 	// init. video service
 	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
 
-	// init. response service
-	responseService := response.NewResponseService(loggerService)
-
 	// init. filesystem storage
-	filesystemStorage := filesystem.NewStorage()
+	filesystemStorage := storage.NewFilesystemStorage(loggerService)
 
 	// init. native uploader
 	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
+
+	// init. of the Resource builder
+	resourceBuilder := builder.NewResourceBuilder(loggerService, r.cfg.ResourceFormFilename, r.cfg.InMemoryFileSizeThreshold)
+
+	// init. Resource repository
+	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
+
+	// init. resource validator
+	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
+
+	resourceService := service.NewResourceService(ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -109,7 +121,9 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		[]controller.Controller{
 			// resource
 			resource.NewUploadResourceController(
-				nativeUploader,
+				loggerService,
+				resourceBuilder,
+				resourceService,
 				responseService,
 			),
 			// video
