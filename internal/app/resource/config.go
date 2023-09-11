@@ -10,6 +10,9 @@ type config struct {
 	Port      string `env:"RESOURCES_SERVER_PORT" envDefault:"8000"`
 	Transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
 	// database
-	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://database:27017/streaming"`
+	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
 	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
+	// application
+	ResourceFormFilename      string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
+	InMemoryFileSizeThreshold int64  `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"`
 }
