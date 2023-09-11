@@ -11,14 +11,29 @@ services:
     volumes:
       - .:/streaming_root
     depends_on:
-      - database
+      - mongodb
     environment:
-      ENV: "dev"
-      LOGGER: "cli"
-      MONGODB_URI: "mongodb://database:27017/streaming"
+      # API
+      API_VERSION_PREFIX: "/api/v1"
+      RENDER_VERSION_PREFIX: ""
+      STATIC_VERSION_PREFIX: ""
+      # Server (http)
+      RESOURCES_SERVER_HOST: "0.0.0.0"
+      RESOURCES_SERVER_PORT: "8000"
+      RESOURCES_SERVER_TRANSPORT_PROTOCOL: "tcp"
+      # Server (socket)
+      STREAMING_SERVER_HOST: "0.0.0.0"
+      STREAMING_SERVER_PORT: "9988"
+      STREAMING_SERVER_TRANSPORT_PROTOCOL: "tcp"
+      # Database
+      MONGODB_URI: "mongodb://mongodb:27017/streaming"
+      MONGO_DATABASE: "streaming"
+      # Application
+      RESOURCE_FORM_FILENAME: "resource"
+      IN_MEMORY_FILE_SIZE_THRESHOLD: 104857600
     command: ["sh", "-c", "go run ./cmd/main.go"]
 
-  database:
+  mongodb:
     image: mongo:latest
     ports:
       - "27017:27017"
@@ -30,6 +45,6 @@ services:
       context: .
       dockerfile: .ops/docker/mongoclient/Dockerfile
     depends_on:
-      - database
+      - mongodb
 volumes:
   mongodb_data:
