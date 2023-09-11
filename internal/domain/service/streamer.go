@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/gorilla/websocket"
 	"gopkg.in/vansante/go-ffprobe.v2"
 	"os"
@@ -30,12 +31,12 @@ const (
 
 type ResourceStreamer struct {
 	reader Reader
-	logger Logger
+	logger logger.Logger
 }
 
 func NewStreamingService(
 	reader Reader,
-	logger Logger,
+	logger logger.Logger,
 ) *ResourceStreamer {
 	return &ResourceStreamer{
 		reader: reader,

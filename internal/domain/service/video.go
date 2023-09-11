@@ -5,13 +5,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
 type VideoService struct {
 	ctx        context.Context
-	logger     Logger
+	logger     logger.Logger
 	builder    builder.Video
 	validator  validator.Video
 	repository repository.Video
@@ -19,7 +20,7 @@ type VideoService struct {
 
 func NewVideoService(
 	ctx context.Context,
-	logger Logger,
+	logger logger.Logger,
 	builder builder.Video,
 	validator validator.Video,
 	repository repository.Video,

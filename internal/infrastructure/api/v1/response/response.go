@@ -3,7 +3,7 @@ package response
 import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
 	"net/http"
 )
@@ -31,10 +31,10 @@ type Responder interface {
 
 // Response - response service
 type Response struct {
-	logger service.Logger
+	logger logger.Logger
 }
 
-func NewResponseService(logger service.Logger) *Response {
+func NewResponseService(logger logger.Logger) *Response {
 	return &Response{logger: logger}
 }
 

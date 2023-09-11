@@ -12,11 +12,9 @@ type VideoCreateRequestDto struct {
 func (req *VideoCreateRequestDto) GetName() string {
 	return req.Name
 }
-
 func (req *VideoCreateRequestDto) GetPath() string {
 	return req.Path
 }
-
 func (req *VideoCreateRequestDto) GetDescription() string {
 	return req.Description
 }
@@ -31,11 +29,9 @@ type VideoUpdateRequestDto struct {
 func (req *VideoUpdateRequestDto) GetId() vo.ID {
 	return req.ID
 }
-
 func (req *VideoUpdateRequestDto) GetName() string {
 	return req.Name
 }
-
 func (req *VideoUpdateRequestDto) GetDescription() string {
 	return req.Description
 }
@@ -59,7 +55,6 @@ type VideoListRequestDto struct {
 func (req *VideoListRequestDto) GetName() string {
 	return req.Name
 }
-
 func (req *VideoListRequestDto) GetPath() string {
 	return req.Path
 }

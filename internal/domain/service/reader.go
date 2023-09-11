@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
 	"os"
 )
@@ -12,14 +12,14 @@ import (
 const ChunkSize = 1024 * 1024 * 2.5
 
 type ResourceReader struct {
-	logger Logger
+	logger logger.Logger
 }
 
-func NewReaderService(logger Logger) *ResourceReader {
+func NewReaderService(logger logger.Logger) *ResourceReader {
 	return &ResourceReader{logger: logger}
 }
 
-func (r *ResourceReader) Read(resource entity.Resource) chan *dto.Chunk {
+func (r *ResourceReader) Read(resource dto.Resource) chan *dto.Chunk {
 	r.logger.Info("[reader]: reading started")
 
 	chunksCh := make(chan *dto.Chunk, 1)
@@ -28,7 +28,7 @@ func (r *ResourceReader) Read(resource entity.Resource) chan *dto.Chunk {
 	return chunksCh
 }
 
-func (r *ResourceReader) handleRead(resource entity.Resource, chunksCh chan *dto.Chunk) {
+func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan *dto.Chunk) {
 	defer r.logger.Info("[reader]: reading stopped")
 	defer close(chunksCh)
 

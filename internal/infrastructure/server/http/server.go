@@ -2,7 +2,7 @@ package http
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/gorilla/mux"
 	"net"
@@ -23,7 +23,7 @@ type Server struct {
 	restControllers   []controller.Controller
 	renderControllers []controller.Controller
 	staticControllers []controller.Controller
-	logger            service.Logger
+	logger            logger.Logger
 }
 
 func NewHttpServer(
@@ -36,7 +36,7 @@ func NewHttpServer(
 	restControllers []controller.Controller,
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
-	logger service.Logger,
+	logger logger.Logger,
 ) *Server {
 	return &Server{
 		host:                host,

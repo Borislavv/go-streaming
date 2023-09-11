@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,19 +17,19 @@ import (
 	"time"
 )
 
-const VideoCollection = "videos"
+const VideosCollection = "videos"
 
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
-	logger  service.Logger
+	logger  logger.Logger
 	buf     []interface{}
 	timeout time.Duration
 }
 
-func NewVideoRepository(db *mongo.Database, logger service.Logger, timeout time.Duration) *VideoRepository {
+func NewVideoRepository(db *mongo.Database, logger logger.Logger, timeout time.Duration) *VideoRepository {
 	return &VideoRepository{
-		db:      db.Collection(VideoCollection),
+		db:      db.Collection(VideosCollection),
 		logger:  logger,
 		mu:      &sync.Mutex{},
 		buf:     []interface{}{},
@@ -77,7 +77,7 @@ func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) (
 		}
 		return nil, r.logger.ErrorPropagate(err)
 	}
-	defer cursor.Close(qCtx)
+	defer func() { _ = cursor.Close(qCtx) }()
 
 	if err = cursor.All(qCtx, &videos); err != nil {
 		return nil, r.logger.ErrorPropagate(err)
@@ -99,7 +99,7 @@ func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Vi
 		return r.Find(qCtx, vo.ID{Value: oid})
 	}
 
-	return nil, r.logger.CriticalPropagate(errors.New("unable to store 'video' or retrieve inserted 'id'"))
+	return nil, r.logger.CriticalPropagate("unable to store 'video' or retrieve inserted 'id'")
 }
 
 func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Video, error) {
