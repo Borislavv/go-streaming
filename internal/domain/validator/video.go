@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	id   = "id"
-	name = "name"
-	path = "path"
+	idField         = "idField"
+	nameField       = "name"
+	pathField       = "path"
+	resourceIDField = "resourceId"
 )
 
 type VideoValidator struct {
@@ -26,30 +27,30 @@ func NewVideoValidator(ctx context.Context, repository repository.Video) *VideoV
 
 func (v *VideoValidator) ValidateGetRequestDto(req dto.GetRequest) error {
 	if req.GetId().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError(id)
+		return errs.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateListRequestDto(req dto.ListRequest) error {
-	if req.GetName() == "" && req.GetPath() == "" {
-		return errs.NewAtLeastOneFieldMustBeDefinedError(name, path)
-	}
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
-		return errs.NewFieldLengthMustBeMoreOrLessError(name, true, 3)
+		return errs.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
-	if req.GetPath() != "" && len(req.GetPath()) <= 3 {
-		return errs.NewFieldLengthMustBeMoreOrLessError(path, true, 3)
+	if req.GetFilepath() != "" && len(req.GetFilepath()) <= 3 {
+		return errs.NewFieldLengthMustBeMoreOrLessError(pathField, true, 3)
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 	if req.GetName() == "" {
-		return errs.NewFieldCannotBeEmptyError(name)
+		return errs.NewFieldCannotBeEmptyError(nameField)
 	}
-	if req.GetPath() == "" {
-		return errs.NewFieldCannotBeEmptyError(path)
+	if req.GetFilepath() == "" {
+		return errs.NewFieldCannotBeEmptyError(pathField)
+	}
+	if req.GetResourceID().Value.IsZero() {
+		return errs.NewFieldCannotBeEmptyError(resourceIDField)
 	}
 	return nil
 }
@@ -63,10 +64,10 @@ func (v *VideoValidator) ValidateDeleteRequestDto(req dto.DeleteRequest) error {
 }
 
 func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {
-	if agg.Video.Name == "" {
+	if agg.Name == "" {
 		return errors.New("'name' cannot be empty")
 	}
-	if agg.Video.Path == "" {
+	if agg.Path == "" {
 		return errors.New("'path' cannot be empty")
 	}
 	has, err := v.repository.Has(v.ctx, agg)
@@ -74,7 +75,7 @@ func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {
 		return err
 	}
 	if has {
-		return errs.NewUniquenessCheckFailedError(name, path)
+		return errs.NewUniquenessCheckFailedError(nameField, pathField)
 	}
 	return nil
 }

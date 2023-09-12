@@ -69,15 +69,18 @@ func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
 	}
 
 	// building an aggregate
-	videoAgg := s.builder.BuildAggFromCreateRequestDto(req)
+	video, err := s.builder.BuildAggFromCreateRequestDto(req)
+	if err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
 
 	// validation of an aggregate
-	if err := s.validator.ValidateAgg(videoAgg); err != nil {
+	if err = s.validator.ValidateAgg(video); err != nil {
 		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	// saving an aggregate into storage
-	video, err := s.repository.Insert(s.ctx, videoAgg)
+	video, err = s.repository.Insert(s.ctx, video)
 	if err != nil {
 		return nil, s.logger.ErrorPropagate(err)
 	}

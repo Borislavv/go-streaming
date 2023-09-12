@@ -32,20 +32,20 @@ func (v *ResourceValidator) ValidateUploadRequestDto(req dto.UploadRequest) erro
 }
 
 func (v *ResourceValidator) ValidateAgg(agg *agg.Resource) error {
-	if agg.Resource.GetName() == "" {
+	if agg.GetName() == "" {
 		return errors.New("field 'name' cannot be empty")
 	}
-	if agg.Resource.GetFilename() == "" {
+	if agg.GetFilename() == "" {
 		return errors.New("field 'filename' cannot be empty")
 	}
-	if agg.Resource.GetPath() == "" {
+	if agg.GetFilepath() == "" {
 		return errors.New("field 'path' cannot be empty")
 	}
-	if agg.Resource.GetSize() == 0 {
+	if agg.GetFilesize() == 0 {
 		return errors.New("field 'size' cannot be zero")
 	}
-	if len(agg.Resource.GetMIME()) == 0 {
-		return errors.New("field 'MIME' cannot be empty map")
+	if len(agg.GetFileMIME()) == 0 {
+		return errors.New("field 'FileMIME' cannot be empty map")
 	}
 	return nil
 }
