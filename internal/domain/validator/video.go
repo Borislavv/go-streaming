@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	idField         = "idField"
+	idField         = "id"
 	nameField       = "name"
 	pathField       = "path"
 	resourceIDField = "resourceId"
