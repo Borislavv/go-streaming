@@ -53,9 +53,9 @@ func (b *ResourceBuilder) BuildAggFromUploadRequestDto(req dto.UploadRequest) *a
 		Resource: entity.Resource{
 			Name:     req.GetHeader().Filename,
 			Filename: req.GetUploadedFilename(),
-			Path:     req.GetUploadedFilepath(),
-			Size:     req.GetHeader().Size,
-			MIME:     req.GetHeader().Header,
+			Filepath: req.GetUploadedFilepath(),
+			Filesize: req.GetHeader().Size,
+			FileMIME: req.GetHeader().Header,
 		},
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),

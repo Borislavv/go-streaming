@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/api/request"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strconv"
@@ -27,20 +27,28 @@ const (
 )
 
 type VideoBuilder struct {
-	logger     logger.Logger
-	ctx        context.Context
-	extractor  request.Extractor // TODO must be removed due to DDD (infrastructure leaked into the domain logic)
-	repository repository.Video
+	logger    logger.Logger
+	ctx       context.Context
+	extractor request.Extractor
+	video     repository.Video
+	resource  repository.Resource
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
 func NewVideoBuilder(
-	logger logger.Logger,
 	ctx context.Context,
+	logger logger.Logger,
 	extractor request.Extractor,
-	repository repository.Video,
+	video repository.Video,
+	resource repository.Resource,
 ) *VideoBuilder {
-	return &VideoBuilder{ctx: ctx, extractor: extractor, repository: repository}
+	return &VideoBuilder{
+		ctx:       ctx,
+		logger:    logger,
+		extractor: extractor,
+		video:     video,
+		resource:  resource,
+	}
 }
 
 // BuildCreateRequestDtoFromRequest - build a dto.VideoCreateRequestDto from raw *http.Request
@@ -53,17 +61,23 @@ func (b *VideoBuilder) BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromCreateRequestDto - build an agg.Video from dto.CreateRequest
-func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) *agg.Video {
+func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg.Video, error) {
+	resource, err := b.resource.Find(b.ctx, dto.GetResourceID())
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
 	return &agg.Video{
 		Video: entity.Video{
 			Name:        dto.GetName(),
-			Path:        dto.GetPath(),
+			Path:        dto.GetFilepath(),
 			Description: dto.GetDescription(),
 		},
+		Resource: resource.Resource,
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),
 		},
-	}
+	}, nil
 }
 
 // BuildUpdateRequestDtoFromRequest - build a dto.VideoUpdateRequestDto from raw *http.Request
@@ -88,18 +102,18 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 
 // BuildAggFromUpdateRequestDto - build an agg.Video from dto.UpdateRequest
 func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg.Video, error) {
-	video, err := b.repository.Find(b.ctx, dto.GetId())
+	video, err := b.video.Find(b.ctx, dto.GetId())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	changes := 0
-	if video.Video.Name != dto.GetName() {
-		video.Video.Name = dto.GetName()
+	if video.Name != dto.GetName() {
+		video.Name = dto.GetName()
 		changes++
 	}
-	if video.Video.Description != dto.GetDescription() {
-		video.Video.Description = dto.GetDescription()
+	if video.Description != dto.GetDescription() {
+		video.Description = dto.GetDescription()
 		changes++
 	}
 	if changes > 0 {
