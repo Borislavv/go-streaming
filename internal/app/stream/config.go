@@ -7,4 +7,5 @@ type config struct {
 	Transport string `env:"STREAMING_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
 	// database
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
+	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
 }
