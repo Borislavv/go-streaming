@@ -14,6 +14,6 @@ func NewVideo(name string, path string, description string) *Video {
 	}
 }
 
-func (v *Video) GetPath() string {
+func (v *Video) GetFilepath() string {
 	return v.Path
 }

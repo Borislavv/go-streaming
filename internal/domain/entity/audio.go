@@ -14,6 +14,6 @@ func NewAudio(name string, path string, description string) *Audio {
 	}
 }
 
-func (v *Audio) GetPath() string {
+func (v *Audio) GetFilepath() string {
 	return v.Path
 }

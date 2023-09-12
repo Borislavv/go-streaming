@@ -10,23 +10,29 @@ const (
 type Resource struct {
 	Name     string               `json:"name" bson:"name"`         // original filename
 	Filename string               `json:"filename" bson:"filename"` // uploaded filename
-	Path     string               `json:"path" bson:"path"`         // path to uploaded file
-	Size     int64                `json:"size" bson:"size"`         // size of file
-	MIME     textproto.MIMEHeader `json:"MIME" bson:"MIME"`         // file MIME type
+	Filepath string               `json:"path" bson:"path"`         // path to uploaded file
+	Filesize int64                `json:"size" bson:"size"`         // size of file
+	FileMIME textproto.MIMEHeader `json:"FileMIME" bson:"FileMIME"` // file FileMIME type
 }
 
-func (r *Resource) GetName() string {
+func (r Resource) GetName() string {
 	return r.Name
 }
-func (r *Resource) GetFilename() string {
+func (r Resource) GetFilename() string {
 	return r.Filename
 }
-func (r *Resource) GetPath() string {
-	return r.Path
+func (r Resource) GetFilepath() string {
+	return r.Filepath
 }
-func (r *Resource) GetSize() int64 {
-	return r.Size
+func (r Resource) GetFilesize() int64 {
+	return r.Filesize
 }
-func (r *Resource) GetMIME() textproto.MIMEHeader {
-	return r.MIME
+func (r Resource) GetFileMIME() textproto.MIMEHeader {
+	return r.FileMIME
+}
+func (r Resource) GetContentType() string {
+	return r.GetFileMIME().Get(MIMEContentTypeKey)
+}
+func (r Resource) GetContentDisposition() string {
+	return r.GetFileMIME().Get(MIMEContentDispositionKey)
 }
