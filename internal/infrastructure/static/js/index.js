@@ -15,7 +15,7 @@ let mediaSourceReady;
 
 socket.onopen = (event) => {
     console.log('WebSocket connection opened');
-    socket.send("next")
+    socket.send("start")
 };
 
 socket.onclose = (event) => {
