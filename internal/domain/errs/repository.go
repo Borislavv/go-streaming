@@ -17,7 +17,7 @@ type NotFoundError struct{ errored }
 func NewNotFoundError(entity string) *NotFoundError {
 	return &NotFoundError{
 		errored{
-			ErrorMessage: fmt.Sprintf("%errorStatus not found by given id", entity),
+			ErrorMessage: fmt.Sprintf("entity '%v' not found by given id", entity),
 			ErrorType:    repositoryType,
 			errorLevel:   publicRepositoryLevel,
 			errorStatus:  publicRepositoryStatus,
