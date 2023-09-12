@@ -61,8 +61,8 @@ func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) (
 	if query.GetName() != "" {
 		filter["name"] = primitive.Regex{Pattern: query.GetName(), Options: "i"}
 	}
-	if query.GetPath() != "" {
-		filter["path"] = primitive.Regex{Pattern: "^" + regexp.QuoteMeta(query.GetPath()), Options: "i"}
+	if query.GetFilepath() != "" {
+		filter["path"] = primitive.Regex{Pattern: "^" + regexp.QuoteMeta(query.GetFilepath()), Options: "i"}
 	}
 
 	opts := options.Find().
@@ -128,11 +128,11 @@ func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, erro
 		SetLimit(1)
 
 	filter := bson.M{}
-	if video.Video.Name != "" {
-		filter["name"] = video.Video.Name
+	if video.Name != "" {
+		filter["name"] = video.Name
 	}
-	if video.Video.Path != "" {
-		filter["path"] = video.Video.Path
+	if video.Path != "" {
+		filter["path"] = video.Path
 	}
 
 	var videos []*agg.Video
