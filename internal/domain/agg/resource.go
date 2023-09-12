@@ -6,7 +6,11 @@ import (
 )
 
 type Resource struct {
-	ID        vo.ID           `json:"id" bson:",inline"`
-	Resource  entity.Resource `json:"resource" bson:",inline"`
-	Timestamp vo.Timestamp    `json:"timestamp" bson:",inline"`
+	ID              vo.ID `json:"id" bson:",inline"`
+	entity.Resource `json:"resource" bson:",inline"`
+	Timestamp       vo.Timestamp `json:"timestamp" bson:",inline"`
+}
+
+func (r *Resource) GetFilepath() string {
+	return r.Filepath
 }
