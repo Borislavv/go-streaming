@@ -1,19 +1,25 @@
 package dto
 
-import "github.com/Borislavv/video-streaming/internal/domain/vo"
+import (
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
+)
 
 // VideoCreateRequestDto - used when u want to create a new one video
 type VideoCreateRequestDto struct {
 	Name        string `json:"name"`
 	Path        string `json:"path"`
+	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
 
 func (req *VideoCreateRequestDto) GetName() string {
 	return req.Name
 }
-func (req *VideoCreateRequestDto) GetPath() string {
+func (req *VideoCreateRequestDto) GetFilepath() string {
 	return req.Path
+}
+func (req *VideoCreateRequestDto) GetResourceID() vo.ID {
+	return req.ResourceID
 }
 func (req *VideoCreateRequestDto) GetDescription() string {
 	return req.Description
@@ -55,7 +61,7 @@ type VideoListRequestDto struct {
 func (req *VideoListRequestDto) GetName() string {
 	return req.Name
 }
-func (req *VideoListRequestDto) GetPath() string {
+func (req *VideoListRequestDto) GetFilepath() string {
 	return req.Path
 }
 

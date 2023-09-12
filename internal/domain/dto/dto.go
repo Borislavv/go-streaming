@@ -7,7 +7,8 @@ import (
 
 type CreateRequest interface {
 	GetName() string
-	GetPath() string
+	GetFilepath() string
+	GetResourceID() vo.ID
 	GetDescription() string
 }
 
@@ -23,8 +24,8 @@ type GetRequest interface {
 }
 
 type ListRequest interface {
-	GetName() string // path of name
-	GetPath() string // path of path
+	GetName() string     // path of name
+	GetFilepath() string // path of path
 	PaginatedRequest
 }
 
@@ -52,9 +53,9 @@ type Chunked interface {
 }
 
 type Resource interface {
-	GetPath() string
+	GetFilepath() string
 	//GetName() string
 	//GetFilename() string
-	//GetSize() int64
-	//GetMIME() textproto.MIMEHeader
+	//GetFilesize() int64
+	//GetFileMIME() textproto.MIMEHeader
 }
