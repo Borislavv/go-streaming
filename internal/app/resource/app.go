@@ -38,7 +38,7 @@ func NewResourcesApp() *ResourcesApp {
 }
 
 // Run is method which running the REST API part of app
-func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
+func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	defer mWg.Done()
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -52,13 +52,13 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	}()
 
 	// parse env. config
-	if err := env.Parse(&r.cfg); err != nil {
+	if err := env.Parse(&app.cfg); err != nil {
 		loggerService.Critical(err)
 		return
 	}
 
 	// init. mongodb client
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(r.cfg.MongoUri))
+	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(app.cfg.MongoUri))
 	if err != nil {
 		loggerService.Critical(err)
 		return
@@ -72,7 +72,7 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	}
 
 	// connect to target mongodb database
-	db := mongoClient.Database(r.cfg.MongoDb)
+	db := mongoClient.Database(app.cfg.MongoDb)
 
 	// init. request param. resolver
 	reqParamsExtractor := request.NewParametersExtractor()
@@ -86,8 +86,11 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// init. video validator
 	videoValidator := validator.NewVideoValidator(ctx, videoRepository)
 
+	// init. Resource repository
+	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
+
 	// init. video builder
-	videoBuilder := builder.NewVideoBuilder(loggerService, ctx, reqParamsExtractor, videoRepository)
+	videoBuilder := builder.NewVideoBuilder(ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository)
 
 	// init. video service
 	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
@@ -99,10 +102,7 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
 
 	// init. of the Resource builder
-	resourceBuilder := builder.NewResourceBuilder(loggerService, r.cfg.ResourceFormFilename, r.cfg.InMemoryFileSizeThreshold)
-
-	// init. Resource repository
-	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
+	resourceBuilder := builder.NewResourceBuilder(loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
 
 	// init. resource validator
 	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
@@ -111,12 +111,12 @@ func (r *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 	wg.Add(1)
 	go http.NewHttpServer(
-		r.cfg.Host,
-		r.cfg.Port,
-		r.cfg.Transport,
-		r.cfg.ApiVersionPrefix,
-		r.cfg.RenderVersionPrefix,
-		r.cfg.StaticVersionPrefix,
+		app.cfg.Host,
+		app.cfg.Port,
+		app.cfg.Transport,
+		app.cfg.ApiVersionPrefix,
+		app.cfg.RenderVersionPrefix,
+		app.cfg.StaticVersionPrefix,
 		// rest api controllers
 		[]controller.Controller{
 			// resource
