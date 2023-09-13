@@ -51,7 +51,7 @@ func NewStreamingService(
 }
 
 func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
-	s.logger.Info("start streaming")
+	s.logger.Info(fmt.Sprintf("[%v]: start streaming", conn.RemoteAddr()))
 
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
@@ -60,15 +60,53 @@ func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 	decrBuffCh := make(chan struct{})
 
 	go s.listenClient(wg, conn, actionCh)
-	go s.handleBufferCapacity(wg, decrBuffCh)
-	go s.handleActions(wg, conn, actionCh, decrBuffCh)
+	go s.handleBufferCapacity(wg, conn, decrBuffCh)
+	go s.handleStreamActions(wg, conn, actionCh, decrBuffCh)
 
 	wg.Wait()
 
-	s.logger.Info("streaming is stopped")
+	s.logger.Info(fmt.Sprintf("[%v]: streaming is stopped", conn.RemoteAddr()))
 }
 
-func (s *ResourceStreamer) handleActions(
+func (s *ResourceStreamer) listenClient(wg *sync.WaitGroup, conn *websocket.Conn, actionsCh chan<- Action) {
+	defer func() {
+		close(actionsCh)
+		wg.Done()
+	}()
+
+	for {
+		t, b, err := conn.ReadMessage()
+		if err != nil {
+			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+				s.logger.Info(fmt.Sprintf("[%v]: websocket connection has been closed", conn.RemoteAddr()))
+				return
+			}
+			s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
+			return
+		}
+		if t == websocket.TextMessage {
+			actionsCh <- Action(b)
+		}
+	}
+}
+
+func (s *ResourceStreamer) handleBufferCapacity(
+	wg *sync.WaitGroup,
+	conn *websocket.Conn,
+	decrBuffCapCh <-chan struct{},
+) {
+	defer wg.Done()
+	for range decrBuffCapCh {
+		s.logger.Info(
+			fmt.Sprintf(
+				"[%v]: decreased buffer capacity action received",
+				conn.RemoteAddr(),
+			),
+		)
+	}
+}
+
+func (s *ResourceStreamer) handleStreamActions(
 	wg *sync.WaitGroup,
 	conn *websocket.Conn,
 	actionCh <-chan Action,
@@ -89,7 +127,7 @@ func (s *ResourceStreamer) handleActions(
 		},
 	)
 	if err != nil {
-		s.logger.Log(err)
+		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
 
@@ -98,32 +136,32 @@ func (s *ResourceStreamer) handleActions(
 	for action := range actionCh {
 		switch action {
 		case Start:
-			s.logger.Info("action 'start' received")
+			s.logger.Info(fmt.Sprintf("[%v]: action 'start' received", conn.RemoteAddr()))
 		case Next:
 			if c < l {
 				c++
 			}
-			s.logger.Info("action 'next' received")
+			s.logger.Info(fmt.Sprintf("[%v]: action 'next' received", conn.RemoteAddr()))
 		case Previous:
 			if c >= 1 {
 				c--
 			}
-			s.logger.Info("action 'previous' received")
+			s.logger.Info(fmt.Sprintf("[%v]: action 'previous' received", conn.RemoteAddr()))
 		case DecreaseBufferCap:
 			decrBuffCapCh <- struct{}{}
 			continue
 		}
 
 		resource := videos[c].Resource
-		s.logger.Info(fmt.Sprintf("streaming 'resource':'%v'", resource.Name))
-		s.stream(resource, conn)
+		s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", conn.RemoteAddr(), resource.Name))
+		s.streamResource(resource, conn)
 	}
 }
 
 func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn *websocket.Conn) error {
 	audioCodec, videoCodec, err := s.codecs(resource)
 	if err != nil {
-		return s.logger.LogPropagate(err)
+		return s.logger.ErrorPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
 
 	b := strings.Builder{}
@@ -136,7 +174,7 @@ func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn
 
 	// writing the stream initialization message in a websocket connection
 	if err = conn.WriteMessage(websocket.TextMessage, []byte(initMessage)); err != nil {
-		return s.logger.LogPropagate(err)
+		return s.logger.ErrorPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
 
 	return nil
@@ -144,70 +182,48 @@ func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn
 
 func (s *ResourceStreamer) sendStopStreamMessage(conn *websocket.Conn) error {
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(Stop.String())); err != nil {
-		return s.logger.CriticalPropagate(err)
+		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
 	return nil
 }
 
 func (s *ResourceStreamer) sendChunkStreamMessage(chunk *dto.Chunk, conn *websocket.Conn) error {
 	if chunk.Err != nil {
-		return s.logger.CriticalPropagate(chunk.Err)
+		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.Err.Error()))
 	}
 
 	if err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data); err != nil {
-		return s.logger.CriticalPropagate(err)
+		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
 
 	return nil
 }
 
-func (s *ResourceStreamer) stream(resource entity.Resource, conn *websocket.Conn) {
+func (s *ResourceStreamer) streamResource(resource entity.Resource, conn *websocket.Conn) {
 	if err := s.sendStartStreamMessage(resource, conn); err != nil {
-		s.logger.Critical(err)
+		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
 
 	for chunk := range s.reader.Read(resource) {
 		if err := s.sendChunkStreamMessage(chunk, conn); err != nil {
-			s.logger.Critical(err)
+			s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 			break
-			// TODO must be implemented method `sendErrorStreamMessage` due to be able to tell client that error occurred on the server side
+			// TODO must be implemented method `sendErrorStreamMessage`
+			// due to be able to tell client that error occurred on the server side
 		}
-		s.logger.Info(fmt.Sprintf("wrote %d bytes of '%v' to websocket", chunk.Len, resource.Name))
+
+		s.logger.Info(
+			fmt.Sprintf(
+				"[%v]: wrote %d bytes of '%v' to websocket",
+				conn.RemoteAddr(), chunk.Len, resource.Name,
+			),
+		)
 	}
 
 	if err := s.sendStopStreamMessage(conn); err != nil {
-		s.logger.Critical(err)
+		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
-	}
-}
-
-func (s *ResourceStreamer) handleBufferCapacity(wg *sync.WaitGroup, decrBuffCapCh <-chan struct{}) {
-	defer wg.Done()
-	for range decrBuffCapCh {
-		s.logger.Info("decreased buffer capacity action received")
-	}
-}
-
-func (s *ResourceStreamer) listenClient(wg *sync.WaitGroup, conn *websocket.Conn, actionsCh chan<- Action) {
-	defer func() {
-		close(actionsCh)
-		wg.Done()
-	}()
-
-	for {
-		t, b, err := conn.ReadMessage()
-		if err != nil {
-			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
-				s.logger.Info("websocket connection has been closed")
-				return
-			}
-			s.logger.Error(err)
-			return
-		}
-		if t == websocket.TextMessage {
-			actionsCh <- Action(b)
-		}
 	}
 }
 
