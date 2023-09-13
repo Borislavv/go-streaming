@@ -12,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"regexp"
 	"sync"
 	"time"
 )
@@ -23,7 +22,6 @@ type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
 	logger  logger.Logger
-	buf     []interface{}
 	timeout time.Duration
 }
 
@@ -32,7 +30,6 @@ func NewVideoRepository(db *mongo.Database, logger logger.Logger, timeout time.D
 		db:      db.Collection(VideosCollection),
 		logger:  logger,
 		mu:      &sync.Mutex{},
-		buf:     []interface{}{},
 		timeout: timeout,
 	}
 }
@@ -60,9 +57,6 @@ func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) (
 
 	if query.GetName() != "" {
 		filter["name"] = primitive.Regex{Pattern: query.GetName(), Options: "i"}
-	}
-	if query.GetFilepath() != "" {
-		filter["path"] = primitive.Regex{Pattern: "^" + regexp.QuoteMeta(query.GetFilepath()), Options: "i"}
 	}
 
 	opts := options.Find().
@@ -131,9 +125,6 @@ func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, erro
 	if video.Name != "" {
 		filter["name"] = video.Name
 	}
-	if video.Path != "" {
-		filter["path"] = video.Path
-	}
 
 	var videos []*agg.Video
 	cursor, err := r.db.Find(qCtx, filter, opts)
@@ -143,7 +134,7 @@ func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, erro
 		}
 		return true, r.logger.CriticalPropagate(err)
 	}
-	defer cursor.Close(qCtx)
+	defer func() { _ = cursor.Close(qCtx) }()
 
 	if err = cursor.All(qCtx, &videos); err != nil {
 		return true, r.logger.CriticalPropagate(err)

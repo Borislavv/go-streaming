@@ -20,7 +20,6 @@ type ResourceRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
 	logger  logger.Logger
-	buf     []interface{}
 	timeout time.Duration
 }
 
@@ -29,7 +28,6 @@ func NewResourceRepository(db *mongo.Database, logger logger.Logger, timeout tim
 		db:      db.Collection(ResourcesCollection),
 		logger:  logger,
 		mu:      &sync.Mutex{},
-		buf:     []interface{}{},
 		timeout: timeout,
 	}
 }
