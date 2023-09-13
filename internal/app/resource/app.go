@@ -44,7 +44,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. loggerService and close func.
-	loggerService, cls := logger.NewCliLogger(1)
+	loggerService, cls := logger.NewStdOutLogger(1)
 	defer func() {
 		cancel()
 		wg.Wait()
