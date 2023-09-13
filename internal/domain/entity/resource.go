@@ -11,8 +11,8 @@ type Resource struct {
 	Name     string               `json:"name" bson:"name"`         // original filename
 	Filename string               `json:"filename" bson:"filename"` // uploaded filename
 	Filepath string               `json:"path" bson:"path"`         // path to uploaded file
-	Filesize int64                `json:"size" bson:"size"`         // size of file
-	FileMIME textproto.MIMEHeader `json:"FileMIME" bson:"FileMIME"` // file FileMIME type
+	Filesize int64                `json:"size" bson:"size"`         // size of uploaded file
+	FileMIME textproto.MIMEHeader `json:"MIME" bson:"MIME"`         // file MIME type
 }
 
 func (r Resource) GetName() string {
