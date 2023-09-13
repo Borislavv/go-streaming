@@ -158,6 +158,9 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 			}
 			s.logger.LogRequestInfo(requestInfo)
 
+			// TODO add new method in the logger which will be named as SetContent for
+			// be able to pass context.WithValue() and get though it unique request id
+
 			handler.ServeHTTP(w, r)
 		},
 	)
