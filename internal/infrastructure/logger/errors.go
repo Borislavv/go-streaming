@@ -1,6 +1,8 @@
 package logger
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	InfoLevelReadable      = "INFO"

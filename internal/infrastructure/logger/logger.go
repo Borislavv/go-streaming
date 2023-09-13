@@ -13,23 +13,32 @@ import (
 type Logger struct {
 	writer io.Writer
 	errCh  chan introspectedError
+	reqCh  chan any
 }
 
-func NewLogger(w io.Writer, buf int) (logger *Logger, closeFunc func()) {
+func NewLogger(w io.Writer, errBuff int, reqBuff int) (logger *Logger, closeFunc func()) {
 	l := &Logger{
 		writer: w,
-		errCh:  make(chan introspectedError, buf),
+		errCh:  make(chan introspectedError, errBuff),
+		reqCh:  make(chan any, reqBuff),
 	}
 	l.handle()
 	return l, l.Close()
 }
 
 func (l *Logger) Close() (closeFunc func()) {
-	return func() { close(l.errCh) }
+	return func() {
+		close(l.errCh)
+		close(l.reqCh)
+	}
 }
 
 func (l *Logger) SetOutput(w io.Writer) {
 	l.writer = w
+}
+
+func (l *Logger) LogRequestInfo(info any) {
+	l.reqCh <- info
 }
 
 func (l *Logger) Log(err error) {
@@ -237,6 +246,25 @@ func (l *Logger) handle() {
 				_, fmterr := fmt.Fprintln(l.writer, string(j))
 				if fmterr != nil {
 					log.Println(err)
+					log.Fatalln(fmterr)
+				}
+			}
+		}
+	}()
+
+	go func() {
+		for info := range l.reqCh {
+			j, e := json.MarshalIndent(info, "", "  ")
+			if e != nil {
+				_, fmterr := fmt.Fprintln(l.writer, e)
+				if fmterr != nil {
+					log.Println(info)
+					log.Fatalln(fmterr)
+				}
+			} else {
+				_, fmterr := fmt.Fprintln(l.writer, string(j))
+				if fmterr != nil {
+					log.Println(info)
 					log.Fatalln(fmterr)
 				}
 			}

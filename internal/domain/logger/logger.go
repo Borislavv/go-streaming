@@ -3,6 +3,7 @@ package logger
 type Logger interface {
 	Log(err error)
 	LogPropagate(err error) error
+	LogRequestInfo(info any)
 
 	Info(strOrErr any)
 	InfoPropagate(strOrErr any) error

@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/domain/api/request"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/gorilla/mux"
@@ -23,7 +24,9 @@ type Server struct {
 	restControllers   []controller.Controller
 	renderControllers []controller.Controller
 	staticControllers []controller.Controller
-	logger            logger.Logger
+
+	logger             logger.Logger
+	reqParamsExtractor request.Extractor
 }
 
 func NewHttpServer(
@@ -37,6 +40,7 @@ func NewHttpServer(
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
+	reqParamsExtractor request.Extractor,
 ) *Server {
 	return &Server{
 		host:                host,
@@ -49,6 +53,7 @@ func NewHttpServer(
 		renderControllers:   renderControllers,
 		staticControllers:   staticControllers,
 		logger:              logger,
+		reqParamsExtractor:  reqParamsExtractor,
 	}
 }
 
@@ -68,16 +73,16 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		defer s.logger.Info("[http server]: stopped")
+		defer s.logger.Info("stopped")
 		if err = server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.logger.Error(err)
 			return
 		}
 	}()
 
-	s.logger.Info("[http server]: running...")
+	s.logger.Info("running...")
 	<-ctx.Done()
-	s.logger.Info("[http server]: shutting down...")
+	s.logger.Info("shutting down...")
 
 	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
@@ -96,7 +101,9 @@ func (s *Server) addRoutes() *mux.Router {
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
 	restRouterV1.
-		Use(s.RestApiHeaderMiddleware)
+		Use(s.restApiHeaderMiddleware)
+	restRouterV1.
+		Use(s.requestsLoggingMiddleware)
 
 	for _, c := range s.restControllers {
 		c.AddRoute(restRouterV1)
@@ -123,10 +130,34 @@ func (s *Server) addRoutes() *mux.Router {
 	return router
 }
 
-func (s *Server) RestApiHeaderMiddleware(handler http.Handler) http.Handler {
+func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
+			handler.ServeHTTP(w, r)
+		},
+	)
+}
+
+func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			requestInfo := struct {
+				Date       time.Time         `json:"date"`
+				Method     string            `json:"method"`
+				URL        string            `json:"URL"`
+				Header     http.Header       `json:"header"`
+				RemoteAddr string            `json:"remoteAddr"`
+				Params     map[string]string `json:"params"`
+			}{
+				Method:     r.Method,
+				URL:        r.URL.String(),
+				Header:     r.Header,
+				RemoteAddr: r.RemoteAddr,
+				Params:     s.reqParamsExtractor.Parameters(r),
+			}
+			s.logger.LogRequestInfo(requestInfo)
+
 			handler.ServeHTTP(w, r)
 		},
 	)

@@ -44,7 +44,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. loggerService and close func.
-	loggerService, cls := logger.NewStdOutLogger(1)
+	loggerService, cls := logger.NewStdOutLogger(1, 10)
 	defer func() {
 		cancel()
 		wg.Wait()
@@ -168,6 +168,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			static.NewResourceController(),
 		},
 		loggerService,
+		reqParamsExtractor,
 	).Listen(ctx, wg)
 
 	stopCh := make(chan os.Signal, 1)
