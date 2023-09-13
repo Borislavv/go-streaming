@@ -59,16 +59,16 @@ func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 	actionCh := make(chan Action, 1)
 	decrBuffCapCh := make(chan struct{})
 
-	go s.handleMessages(conn, actionCh, decrBuffCapCh)
+	go s.listenClient(conn, actionCh, decrBuffCapCh)
 	go s.handleBufferSize(decrBuffCapCh)
-	go s.handleStream(wg, conn, actionCh)
+	go s.handleActions(wg, conn, actionCh)
 
 	wg.Wait()
 
 	s.logger.Info("streaming is stopped")
 }
 
-func (s *ResourceStreamer) handleStream(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
+func (s *ResourceStreamer) handleActions(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
 	defer wg.Done()
 
 	videos, err := s.videoRepository.FindList(
@@ -159,7 +159,7 @@ func (s *ResourceStreamer) handleBufferSize(decrBuffCapCh <-chan struct{}) {
 	}
 }
 
-func (s *ResourceStreamer) handleMessages(
+func (s *ResourceStreamer) listenClient(
 	conn *websocket.Conn,
 	actionsCh chan<- Action,
 	decrBuffCapCh chan<- struct{},
