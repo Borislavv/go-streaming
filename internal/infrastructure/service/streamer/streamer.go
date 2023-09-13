@@ -15,10 +15,6 @@ import (
 	"sync"
 )
 
-const VideoPath = "/streaming_root/internal/infrastructure/static/tmp/video/example_video_new.mp4"
-const Video2Path = "/streaming_root/internal/infrastructure/static/tmp/video/example_video_2_new.mp4"
-const Video3Path = "/streaming_root/internal/infrastructure/static/tmp/video/example_video_3_new.mp4"
-
 type Action string
 
 func (a Action) String() string {
