@@ -29,13 +29,13 @@ func NewCreateController(
 }
 
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
-	videoDto, err := c.builder.BuildCreateRequestDtoFromRequest(r)
+	dto, err := c.builder.BuildCreateRequestDtoFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, err)
 		return
 	}
 
-	video, err := c.service.Create(videoDto)
+	video, err := c.service.Create(dto)
 	if err != nil {
 		c.response.Respond(w, err)
 		return
