@@ -7,14 +7,15 @@ import (
 
 type CreateRequest interface {
 	GetName() string
-	GetFilepath() string
 	GetResourceID() vo.ID
 	GetDescription() string
 }
 
+// TODO updating of resource must be implemented
 type UpdateRequest interface {
 	GetId() vo.ID
 	GetName() string
+	//GetResourceID() vo.ID
 	GetDescription() string
 }
 
@@ -24,8 +25,7 @@ type GetRequest interface {
 }
 
 type ListRequest interface {
-	GetName() string     // path of name
-	GetFilepath() string // path of path
+	GetName() string // path of name
 	PaginatedRequest
 }
 

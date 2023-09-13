@@ -70,7 +70,6 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg
 	return &agg.Video{
 		Video: entity.Video{
 			Name:        dto.GetName(),
-			Path:        dto.GetFilepath(),
 			Description: dto.GetDescription(),
 		},
 		Resource: resource.Resource,

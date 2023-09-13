@@ -12,7 +12,6 @@ import (
 const (
 	idField         = "id"
 	nameField       = "name"
-	pathField       = "path"
 	resourceIDField = "resourceId"
 )
 
@@ -36,18 +35,12 @@ func (v *VideoValidator) ValidateListRequestDto(req dto.ListRequest) error {
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
 		return errs.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
-	if req.GetFilepath() != "" && len(req.GetFilepath()) <= 3 {
-		return errs.NewFieldLengthMustBeMoreOrLessError(pathField, true, 3)
-	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 	if req.GetName() == "" {
 		return errs.NewFieldCannotBeEmptyError(nameField)
-	}
-	if req.GetFilepath() == "" {
-		return errs.NewFieldCannotBeEmptyError(pathField)
 	}
 	if req.GetResourceID().Value.IsZero() {
 		return errs.NewFieldCannotBeEmptyError(resourceIDField)
@@ -67,15 +60,12 @@ func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {
 	if agg.Name == "" {
 		return errors.New("'name' cannot be empty")
 	}
-	if agg.Path == "" {
-		return errors.New("'path' cannot be empty")
-	}
 	has, err := v.repository.Has(v.ctx, agg)
 	if err != nil {
 		return err
 	}
 	if has {
-		return errs.NewUniquenessCheckFailedError(nameField, pathField)
+		return errs.NewUniquenessCheckFailedError(nameField)
 	}
 	return nil
 }

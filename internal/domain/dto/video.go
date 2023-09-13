@@ -7,16 +7,12 @@ import (
 // VideoCreateRequestDto - used when u want to create a new one video
 type VideoCreateRequestDto struct {
 	Name        string `json:"name"`
-	Path        string `json:"path"`
 	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
 
 func (req *VideoCreateRequestDto) GetName() string {
 	return req.Name
-}
-func (req *VideoCreateRequestDto) GetFilepath() string {
-	return req.Path
 }
 func (req *VideoCreateRequestDto) GetResourceID() vo.ID {
 	return req.ResourceID
@@ -60,9 +56,6 @@ type VideoListRequestDto struct {
 
 func (req *VideoListRequestDto) GetName() string {
 	return req.Name
-}
-func (req *VideoListRequestDto) GetFilepath() string {
-	return req.Path
 }
 
 // VideoDeleteRequestDto - used when u want to remove the video
