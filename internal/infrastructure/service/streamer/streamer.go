@@ -51,7 +51,7 @@ func NewStreamingService(
 }
 
 func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
-	s.logger.Info("[streamer]: start streaming")
+	s.logger.Info("start streaming")
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -65,12 +65,11 @@ func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 
 	wg.Wait()
 
-	s.logger.Info("[streamer]: streaming is stopped")
+	s.logger.Info("streaming is stopped")
 }
 
 func (s *ResourceStreamer) handleStream(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
 	defer wg.Done()
-	defer s.logger.Info("handleStream: exit")
 
 	videos, err := s.videoRepository.FindList(
 		s.ctx,
@@ -145,7 +144,7 @@ func (s *ResourceStreamer) stream(video *agg.Video, conn *websocket.Conn) {
 			continue
 		}
 
-		//s.logger.Info(fmt.Sprintf("[streamer]: wrote %d bytes to websocket", chunk.Len))
+		s.logger.Info(fmt.Sprintf("wrote %d bytes of '%v' to websocket", chunk.Len, video.Name))
 	}
 
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(Stop.String())); err != nil {
@@ -155,10 +154,8 @@ func (s *ResourceStreamer) stream(video *agg.Video, conn *websocket.Conn) {
 }
 
 func (s *ResourceStreamer) handleBufferSize(decrBuffCapCh <-chan struct{}) {
-	defer s.logger.Info("handleBufferSize: exit")
-
 	for range decrBuffCapCh {
-		s.logger.Info("Decreased buffer capacity")
+		s.logger.Info("decreased buffer capacity action received")
 	}
 }
 
@@ -169,7 +166,6 @@ func (s *ResourceStreamer) handleMessages(
 ) {
 	defer close(actionsCh)
 	defer close(decrBuffCapCh)
-	defer s.logger.Info("handleMessages: exit")
 
 	for {
 		t, b, err := conn.ReadMessage()
