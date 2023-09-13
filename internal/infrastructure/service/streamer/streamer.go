@@ -57,11 +57,11 @@ func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 	wg.Add(3)
 
 	actionCh := make(chan Action, 1)
-	decrBuffCapCh := make(chan struct{})
+	decrBuffCh := make(chan struct{})
 
 	go s.listenClient(wg, conn, actionCh)
-	go s.handleBufferSize(wg, decrBuffCapCh)
-	go s.handleActions(wg, conn, actionCh, decrBuffCapCh)
+	go s.handleBufferSize(wg, decrBuffCh)
+	go s.handleActions(wg, conn, actionCh, decrBuffCh)
 
 	wg.Wait()
 
