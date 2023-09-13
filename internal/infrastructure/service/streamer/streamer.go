@@ -3,7 +3,6 @@ package streamer
 import (
 	"context"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -12,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"gopkg.in/vansante/go-ffprobe.v2"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -54,22 +54,30 @@ func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 	s.logger.Info("start streaming")
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
+	wg.Add(3)
 
 	actionCh := make(chan Action, 1)
 	decrBuffCapCh := make(chan struct{})
 
-	go s.listenClient(conn, actionCh, decrBuffCapCh)
-	go s.handleBufferSize(decrBuffCapCh)
-	go s.handleActions(wg, conn, actionCh)
+	go s.listenClient(wg, conn, actionCh)
+	go s.handleBufferSize(wg, decrBuffCapCh)
+	go s.handleActions(wg, conn, actionCh, decrBuffCapCh)
 
 	wg.Wait()
 
 	s.logger.Info("streaming is stopped")
 }
 
-func (s *ResourceStreamer) handleActions(wg *sync.WaitGroup, conn *websocket.Conn, actionCh <-chan Action) {
-	defer wg.Done()
+func (s *ResourceStreamer) handleActions(
+	wg *sync.WaitGroup,
+	conn *websocket.Conn,
+	actionCh <-chan Action,
+	decrBuffCapCh chan<- struct{},
+) {
+	defer func() {
+		close(decrBuffCapCh)
+		wg.Done()
+	}()
 
 	videos, err := s.videoRepository.FindList(
 		s.ctx,
@@ -88,125 +96,148 @@ func (s *ResourceStreamer) handleActions(wg *sync.WaitGroup, conn *websocket.Con
 	l := len(videos) - 1
 	c := 0
 	for action := range actionCh {
-		if action == Start {
+		switch action {
+		case Start:
 			s.logger.Info("action 'start' received")
-			v := videos[c]
-			s.logger.Info(fmt.Sprintf("streaming 'video':'%v'", v.Name))
-			s.stream(v, conn)
-		} else if action == Next {
+		case Next:
 			if c < l {
 				c++
 			}
 			s.logger.Info("action 'next' received")
-			v := videos[c]
-			s.logger.Info(fmt.Sprintf("streaming 'video':'%v'", v.Name))
-			s.stream(v, conn)
-		} else if action == Previous {
+		case Previous:
 			if c >= 1 {
 				c--
 			}
 			s.logger.Info("action 'previous' received")
-			v := videos[c]
-			s.logger.Info(fmt.Sprintf("streaming 'video':'%v'", v.Name))
-			s.stream(v, conn)
+		case DecreaseBufferCap:
+			decrBuffCapCh <- struct{}{}
+			continue
 		}
+
+		resource := videos[c].Resource
+		s.logger.Info(fmt.Sprintf("streaming 'resource':'%v'", resource.Name))
+		s.stream(resource, conn)
 	}
 }
 
-func (s *ResourceStreamer) stream(video *agg.Video, conn *websocket.Conn) {
-	startMsg := Start.String()
-
-	ac, vc := s.codecs(video.Resource)
-	if ac != nil {
-		startMsg += ":" + ac.CodecTagString
-	} else {
-		startMsg += ":"
-	}
-	if vc != nil {
-		startMsg += ":" + vc.CodecTagString
-	} else {
-		startMsg += ":"
+func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn *websocket.Conn) error {
+	audioCodec, videoCodec, err := s.codecs(resource)
+	if err != nil {
+		return s.logger.LogPropagate(err)
 	}
 
-	if err := conn.WriteMessage(websocket.TextMessage, []byte(startMsg)); err != nil {
-		s.logger.Error(err)
-		return
+	b := strings.Builder{}
+	b.WriteString(Start.String()) // writing init. message identifier
+	b.WriteString(":")
+	b.WriteString(audioCodec)
+	b.WriteString(":")
+	b.WriteString(videoCodec)
+	initMessage := b.String()
+
+	// writing the stream initialization message in a websocket connection
+	if err = conn.WriteMessage(websocket.TextMessage, []byte(initMessage)); err != nil {
+		return s.logger.LogPropagate(err)
 	}
 
-	for chunk := range s.reader.Read(video.Resource) {
-		if chunk.Err != nil {
-			s.logger.Critical(chunk.Err)
-			continue
-		}
+	return nil
+}
 
-		if err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data); err != nil {
-			s.logger.Error(err)
-			continue
-		}
-
-		s.logger.Info(fmt.Sprintf("wrote %d bytes of '%v' to websocket", chunk.Len, video.Name))
-	}
-
+func (s *ResourceStreamer) sendStopStreamMessage(conn *websocket.Conn) error {
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(Stop.String())); err != nil {
-		s.logger.Error(err)
+		return s.logger.CriticalPropagate(err)
+	}
+	return nil
+}
+
+func (s *ResourceStreamer) sendChunkStreamMessage(chunk *dto.Chunk, conn *websocket.Conn) error {
+	if chunk.Err != nil {
+		return s.logger.CriticalPropagate(chunk.Err)
+	}
+
+	if err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data); err != nil {
+		return s.logger.CriticalPropagate(err)
+	}
+
+	return nil
+}
+
+func (s *ResourceStreamer) stream(resource entity.Resource, conn *websocket.Conn) {
+	if err := s.sendStartStreamMessage(resource, conn); err != nil {
+		s.logger.Critical(err)
+		return
+	}
+
+	for chunk := range s.reader.Read(resource) {
+		if err := s.sendChunkStreamMessage(chunk, conn); err != nil {
+			s.logger.Critical(err)
+			break
+			// TODO must be implemented method `sendErrorStreamMessage` due to be able to tell client that error occurred on the server side
+		}
+		s.logger.Info(fmt.Sprintf("wrote %d bytes of '%v' to websocket", chunk.Len, resource.Name))
+	}
+
+	if err := s.sendStopStreamMessage(conn); err != nil {
+		s.logger.Critical(err)
 		return
 	}
 }
 
-func (s *ResourceStreamer) handleBufferSize(decrBuffCapCh <-chan struct{}) {
+func (s *ResourceStreamer) handleBufferSize(wg *sync.WaitGroup, decrBuffCapCh <-chan struct{}) {
+	defer wg.Done()
 	for range decrBuffCapCh {
 		s.logger.Info("decreased buffer capacity action received")
 	}
 }
 
-func (s *ResourceStreamer) listenClient(
-	conn *websocket.Conn,
-	actionsCh chan<- Action,
-	decrBuffCapCh chan<- struct{},
-) {
-	defer close(actionsCh)
-	defer close(decrBuffCapCh)
+func (s *ResourceStreamer) listenClient(wg *sync.WaitGroup, conn *websocket.Conn, actionsCh chan<- Action) {
+	defer func() {
+		close(actionsCh)
+		wg.Done()
+	}()
 
 	for {
 		t, b, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+				s.logger.Info("websocket connection has been closed")
 				return
 			}
 			s.logger.Error(err)
 			return
 		}
 		if t == websocket.TextMessage {
-			action := Action(b)
-
-			if action == DecreaseBufferCap {
-				decrBuffCapCh <- struct{}{}
-				continue
-			}
-			if action == Start || action == Stop || action == Next || action == Previous {
-				actionsCh <- action
-				continue
-			}
-			s.logger.Emergency(fmt.Sprintf("found unknown action: %s", action))
+			actionsCh <- Action(b)
 		}
 	}
 }
 
-func (s *ResourceStreamer) codecs(resource entity.Resource) (audioStream *ffprobe.Stream, videoStream *ffprobe.Stream) {
+// codecs will determine video and audio stream codecs of target resource
+func (s *ResourceStreamer) codecs(
+	resource entity.Resource,
+) (
+	audioCodec string,
+	videoCodec string,
+	e error,
+) {
 	file, err := os.Open(resource.GetFilepath())
 	if err != nil {
-		s.logger.Emergency(err)
+		return "", "", s.logger.LogPropagate(err)
 	}
-	defer func() {
-		if err = file.Close(); err != nil {
-			s.logger.Emergency(err)
-		}
-	}()
+	defer func() { _ = file.Close() }()
 
-	data, err := ffprobe.ProbeReader(context.Background(), file)
+	data, err := ffprobe.ProbeReader(s.ctx, file)
 	if err != nil {
-		s.logger.Emergency(err)
+		return "", "", s.logger.LogPropagate(err)
 	}
 
-	return data.FirstAudioStream(), data.FirstVideoStream()
+	audioCodec = ""
+	videoCodec = ""
+	if data.FirstAudioStream() != nil {
+		audioCodec = data.FirstAudioStream().CodecTagString
+	}
+	if data.FirstVideoStream() != nil {
+		videoCodec = data.FirstVideoStream().CodecTagString
+	}
+
+	return audioCodec, videoCodec, nil
 }
