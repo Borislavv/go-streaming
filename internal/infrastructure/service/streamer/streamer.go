@@ -60,7 +60,7 @@ func (s *ResourceStreamer) Stream(conn *websocket.Conn) {
 	decrBuffCh := make(chan struct{})
 
 	go s.listenClient(wg, conn, actionCh)
-	go s.handleBufferSize(wg, decrBuffCh)
+	go s.handleBufferCapacity(wg, decrBuffCh)
 	go s.handleActions(wg, conn, actionCh, decrBuffCh)
 
 	wg.Wait()
@@ -182,7 +182,7 @@ func (s *ResourceStreamer) stream(resource entity.Resource, conn *websocket.Conn
 	}
 }
 
-func (s *ResourceStreamer) handleBufferSize(wg *sync.WaitGroup, decrBuffCapCh <-chan struct{}) {
+func (s *ResourceStreamer) handleBufferCapacity(wg *sync.WaitGroup, decrBuffCapCh <-chan struct{}) {
 	defer wg.Done()
 	for range decrBuffCapCh {
 		s.logger.Info("decreased buffer capacity action received")
