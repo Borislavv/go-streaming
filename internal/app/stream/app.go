@@ -33,7 +33,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. logger and close func.
-	loggerService, cls := logger.NewStdOutLogger(1, 10)
+	loggerService, cls := logger.NewStdOutLogger(ctx, 1, 10)
 	defer func() {
 		cancel()
 		wg.Wait()

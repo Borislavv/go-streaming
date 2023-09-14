@@ -5,6 +5,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/api/request"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
 	"github.com/gorilla/mux"
 	"net"
 	"net/http"
@@ -12,7 +13,11 @@ import (
 	"time"
 )
 
+const UniqueRequestIdKey = "UniqueRequestId"
+
 type Server struct {
+	ctx context.Context
+
 	host           string // example: "0.0.0.0"
 	port           string // example: "8000"
 	transportProto string // example: "tcp"
@@ -30,6 +35,7 @@ type Server struct {
 }
 
 func NewHttpServer(
+	ctx context.Context,
 	host string,
 	port string,
 	transportProto string,
@@ -43,6 +49,7 @@ func NewHttpServer(
 	reqParamsExtractor request.Extractor,
 ) *Server {
 	return &Server{
+		ctx:                 ctx,
 		host:                host,
 		port:                port,
 		transportProto:      transportProto,
@@ -133,7 +140,9 @@ func (s *Server) addRoutes() *mux.Router {
 func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
+			// adding the rest api header
 			w.Header().Set("Content-Type", "application/json")
+			// service the next layer
 			handler.ServeHTTP(w, r)
 		},
 	)
@@ -144,23 +153,26 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			requestInfo := struct {
 				Date       time.Time         `json:"date"`
+				RequestId  string            `json:"requestID"`
 				Method     string            `json:"method"`
 				URL        string            `json:"URL"`
 				Header     http.Header       `json:"header"`
 				RemoteAddr string            `json:"remoteAddr"`
 				Params     map[string]string `json:"params"`
 			}{
+				Date:       time.Now(),
+				RequestId:  ruid.RequestUniqueID(r),
 				Method:     r.Method,
 				URL:        r.URL.String(),
 				Header:     r.Header,
 				RemoteAddr: r.RemoteAddr,
 				Params:     s.reqParamsExtractor.Parameters(r),
 			}
+			// request logging
 			s.logger.LogRequestInfo(requestInfo)
-
-			// TODO add new method in the logger which will be named as SetContent for
-			// be able to pass context.WithValue() and get though it unique request id
-
+			// pass the requestId through entire app.
+			s.logger.SetContext(context.WithValue(s.ctx, UniqueRequestIdKey, requestInfo.RequestId))
+			// service the next layer
 			handler.ServeHTTP(w, r)
 		},
 	)

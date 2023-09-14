@@ -44,7 +44,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. loggerService and close func.
-	loggerService, cls := logger.NewStdOutLogger(1, 10)
+	loggerService, cls := logger.NewStdOutLogger(ctx, 1, 10)
 	defer func() {
 		cancel()
 		wg.Wait()
@@ -111,6 +111,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 	wg.Add(1)
 	go http.NewHttpServer(
+		ctx,
 		app.cfg.Host,
 		app.cfg.Port,
 		app.cfg.Transport,
