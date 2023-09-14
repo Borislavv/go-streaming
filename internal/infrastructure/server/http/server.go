@@ -140,7 +140,9 @@ func (s *Server) addRoutes() *mux.Router {
 func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
+			// adding the rest api header
 			w.Header().Set("Content-Type", "application/json")
+			// service the next layer
 			handler.ServeHTTP(w, r)
 		},
 	)
@@ -166,8 +168,11 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 				RemoteAddr: r.RemoteAddr,
 				Params:     s.reqParamsExtractor.Parameters(r),
 			}
+			// request logging
 			s.logger.LogRequestInfo(requestInfo)
+			// pass the requestId through entire app.
 			s.logger.SetContext(context.WithValue(s.ctx, UniqueRequestIdKey, requestInfo.RequestId))
+			// service the next layer
 			handler.ServeHTTP(w, r)
 		},
 	)
