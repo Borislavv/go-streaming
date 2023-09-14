@@ -148,11 +148,6 @@ func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.Vid
 			videoDto.Name = nm
 		}
 	}
-	if b.extractor.HasParameter(path, r) {
-		if pth, err := b.extractor.GetParameter(path, r); err == nil {
-			videoDto.Path = pth
-		}
-	}
 	if b.extractor.HasParameter(page, r) {
 		pg, _ := b.extractor.GetParameter(page, r)
 		pgi, atoiErr := strconv.Atoi(pg)
