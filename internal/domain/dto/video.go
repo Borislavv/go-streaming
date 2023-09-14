@@ -50,7 +50,6 @@ func (req *VideoGetRequestDto) GetId() vo.ID {
 // VideoListRequestDto - used when u want to find a collection of videos
 type VideoListRequestDto struct {
 	Name string `json:"name"` // part of name
-	Path string `json:"path"` // part of path
 	PaginationRequestDto
 }
 
