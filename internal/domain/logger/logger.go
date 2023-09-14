@@ -1,5 +1,10 @@
 package logger
 
+import (
+	"context"
+	"io"
+)
+
 type Logger interface {
 	Log(err error)
 	LogPropagate(err error) error
@@ -22,6 +27,9 @@ type Logger interface {
 
 	Emergency(strOrErr any)
 	EmergencyPropagate(strOrErr any) error
+
+	SetOutput(w io.Writer)
+	SetContext(ctx context.Context)
 
 	Close() func()
 }
