@@ -30,5 +30,5 @@ func NewListResourceController(
 }
 
 func (c *ListResourceController) List(w http.ResponseWriter, r *http.Request) {
-	
+
 }
