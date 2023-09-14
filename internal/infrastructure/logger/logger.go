@@ -1,9 +1,11 @@
 package logger
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"io"
 	"log"
 	"runtime"
@@ -11,13 +13,15 @@ import (
 )
 
 type Logger struct {
+	ctx    context.Context
 	writer io.Writer
 	errCh  chan introspectedError
 	reqCh  chan any
 }
 
-func NewLogger(w io.Writer, errBuff int, reqBuff int) (logger *Logger, closeFunc func()) {
+func NewLogger(ctx context.Context, w io.Writer, errBuff int, reqBuff int) (logger *Logger, closeFunc func()) {
 	l := &Logger{
+		ctx:    ctx,
 		writer: w,
 		errCh:  make(chan introspectedError, errBuff),
 		reqCh:  make(chan any, reqBuff),
@@ -35,6 +39,10 @@ func (l *Logger) Close() (closeFunc func()) {
 
 func (l *Logger) SetOutput(w io.Writer) {
 	l.writer = w
+}
+
+func (l *Logger) SetContext(ctx context.Context) {
+	l.ctx = ctx
 }
 
 func (l *Logger) LogRequestInfo(info any) {
@@ -57,12 +65,14 @@ func (l *Logger) Info(strOrErr any) {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- infoLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &infoLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 }
 
@@ -71,12 +81,14 @@ func (l *Logger) InfoPropagate(strOrErr any) error {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- infoLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &infoLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 
 	return err
@@ -87,12 +99,14 @@ func (l *Logger) Debug(strOrErr any) {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- debugLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &debugLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 }
 
@@ -101,12 +115,14 @@ func (l *Logger) DebugPropagate(strOrErr any) error {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- debugLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &debugLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 
 	return err
@@ -117,12 +133,14 @@ func (l *Logger) Warning(strOrErr any) {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- warningLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &warningLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 }
 
@@ -131,12 +149,14 @@ func (l *Logger) WarningPropagate(strOrErr any) error {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- warningLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &warningLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 
 	return err
@@ -147,12 +167,14 @@ func (l *Logger) Error(strOrErr any) {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- errorLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &errorLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 }
 
@@ -161,12 +183,14 @@ func (l *Logger) ErrorPropagate(strOrErr any) error {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- errorLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &errorLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 
 	return err
@@ -177,12 +201,14 @@ func (l *Logger) Critical(strOrErr any) {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- criticalLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &criticalLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 }
 
@@ -191,12 +217,14 @@ func (l *Logger) CriticalPropagate(strOrErr any) error {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- criticalLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &criticalLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 
 	return err
@@ -207,12 +235,14 @@ func (l *Logger) Emergency(strOrErr any) {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- emergencyLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &emergencyLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 }
 
@@ -221,12 +251,14 @@ func (l *Logger) EmergencyPropagate(strOrErr any) error {
 
 	err := l.error(strOrErr)
 
-	l.errCh <- emergencyLevelError{
-		Dt: time.Now(),
-		Mg: err.Error(),
-		Fl: file,
-		Fn: function,
-		Ln: line,
+	l.errCh <- &emergencyLevelError{
+		introspectionError{
+			Dt: time.Now(),
+			Mg: err.Error(),
+			Fl: file,
+			Fn: function,
+			Ln: line,
+		},
 	}
 
 	return err
@@ -235,6 +267,12 @@ func (l *Logger) EmergencyPropagate(strOrErr any) error {
 func (l *Logger) handle() {
 	go func() {
 		for err := range l.errCh {
+			if uniqReqID := l.ctx.Value(http.UniqueRequestIdKey); uniqReqID != nil {
+				if strUniqReqID, ok := uniqReqID.(string); ok {
+					err.SetRequestId(strUniqReqID)
+				}
+			}
+
 			j, e := json.MarshalIndent(err, "", "  ")
 			if e != nil {
 				_, fmterr := fmt.Fprintln(l.writer, e)
@@ -275,69 +313,83 @@ func (l *Logger) handle() {
 func (l *Logger) log(e error, file string, function string, line int) {
 	err, isLoggableErr := e.(LoggableError)
 	if !isLoggableErr {
-		l.errCh <- errorLevelError{
-			Dt: time.Now(),
-			Mg: e.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &errorLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: e.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	}
 
 	switch err.Level() {
 	case InfoLevel:
-		l.errCh <- infoLevelError{
-			Dt: time.Now(),
-			Mg: err.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &infoLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: err.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	case DebugLevel:
-		l.errCh <- infoLevelError{
-			Dt: time.Now(),
-			Mg: err.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &debugLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: err.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	case WarningLevel:
-		l.errCh <- warningLevelError{
-			Dt: time.Now(),
-			Mg: err.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &warningLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: err.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	case ErrorLevel:
-		l.errCh <- errorLevelError{
-			Dt: time.Now(),
-			Mg: err.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &errorLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: err.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	case CriticalLevel:
-		l.errCh <- criticalLevelError{
-			Dt: time.Now(),
-			Mg: err.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &criticalLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: err.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	case EmergencyLevel:
-		l.errCh <- emergencyLevelError{
-			Dt: time.Now(),
-			Mg: err.Error(),
-			Fl: file,
-			Fn: function,
-			Ln: line,
+		l.errCh <- &emergencyLevelError{
+			introspectionError{
+				Dt: time.Now(),
+				Mg: err.Error(),
+				Fl: file,
+				Fn: function,
+				Ln: line,
+			},
 		}
 		return
 	}
