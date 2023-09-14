@@ -50,9 +50,9 @@ func (r *ResourceUploadRequestDto) SetUploadedFilepath(filepath string) {
 }
 
 type ResourceListRequestDto struct {
-	CreatedAt time.Time `json:"createdAt"`
-	From      time.Time `json:"from"`
-	To        time.Time `json:"to"`
+	CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
+	From      time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
+	To        time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
 	PaginationRequestDto
 }
 
