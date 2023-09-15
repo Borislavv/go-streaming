@@ -10,6 +10,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strconv"
@@ -17,11 +18,13 @@ import (
 )
 
 const (
-	id                = "id"
-	name              = "name"
-	path              = "path"
-	page              = "page"
-	limit             = "limit"
+	idField           = "idField"
+	nameField         = "nameField"
+	createdAtField    = "createdAt"
+	fromField         = "from"
+	toField           = "to"
+	pageField         = "pageField"
+	limitField        = "limitField"
 	limitDefaultValue = 25
 	pageDefaultValue  = 1
 )
@@ -86,7 +89,7 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	hexId, err := b.extractor.GetParameter(id, r)
+	hexId, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -126,7 +129,7 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDto, error) {
 	videoDto := &dto.VideoGetRequestDto{}
 
-	hexId, err := b.extractor.GetParameter(id, r)
+	hexId, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -143,13 +146,43 @@ func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.Vide
 func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.VideoListRequestDto, error) {
 	videoDto := &dto.VideoListRequestDto{}
 
-	if b.extractor.HasParameter(name, r) {
-		if nm, err := b.extractor.GetParameter(name, r); err == nil {
+	if b.extractor.HasParameter(nameField, r) {
+		if nm, err := b.extractor.GetParameter(nameField, r); err == nil {
 			videoDto.Name = nm
 		}
 	}
-	if b.extractor.HasParameter(page, r) {
-		pg, _ := b.extractor.GetParameter(page, r)
+	if b.extractor.HasParameter(createdAtField, r) {
+		createdAt, _ := b.extractor.GetParameter(createdAtField, r)
+
+		parsedCreatedAt, err := helper.ParseTime(createdAt)
+		if err != nil {
+			return nil, b.logger.LogPropagate(err)
+		} else {
+			videoDto.CreatedAt = parsedCreatedAt
+		}
+	}
+	if b.extractor.HasParameter(fromField, r) {
+		from, _ := b.extractor.GetParameter(fromField, r)
+
+		parsedFrom, err := helper.ParseTime(from)
+		if err != nil {
+			return nil, b.logger.LogPropagate(err)
+		} else {
+			videoDto.From = parsedFrom
+		}
+	}
+	if b.extractor.HasParameter(toField, r) {
+		to, _ := b.extractor.GetParameter(toField, r)
+
+		parsedTo, err := helper.ParseTime(to)
+		if err != nil {
+			return nil, b.logger.LogPropagate(err)
+		} else {
+			videoDto.To = parsedTo
+		}
+	}
+	if b.extractor.HasParameter(pageField, r) {
+		pg, _ := b.extractor.GetParameter(pageField, r)
 		pgi, atoiErr := strconv.Atoi(pg)
 		if atoiErr != nil {
 			return nil, b.logger.LogPropagate(atoiErr)
@@ -158,8 +191,8 @@ func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.Vid
 	} else {
 		videoDto.Page = pageDefaultValue
 	}
-	if b.extractor.HasParameter(limit, r) {
-		l, _ := b.extractor.GetParameter(limit, r)
+	if b.extractor.HasParameter(limitField, r) {
+		l, _ := b.extractor.GetParameter(limitField, r)
 		li, atoiErr := strconv.Atoi(l)
 		if atoiErr != nil {
 			return nil, b.logger.LogPropagate(atoiErr)
