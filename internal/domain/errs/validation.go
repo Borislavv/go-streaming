@@ -83,3 +83,22 @@ func NewInvalidUploadedFileError(filename string) *InvalidUploadedFileError {
 		},
 	}
 }
+
+type TimeParsingValidationError struct{ errored }
+
+func NewTimeParsingValidationError(date string) *TimeParsingValidationError {
+	return &TimeParsingValidationError{
+		errored{
+			ErrorMessage: fmt.Sprintf(
+				"date string '%v' has wrong format. "+
+					"date + time + timezone - corrent format: '2006-01-02T15:04:05-07:00', "+
+					"date + time - corrent format: '2006-01-02T15:04:05', "+
+					"date - corrent format: '2006-01-02'",
+				date,
+			),
+			ErrorType:   validationType,
+			errorLevel:  validationLevel,
+			errorStatus: validationStatus,
+		},
+	}
+}
