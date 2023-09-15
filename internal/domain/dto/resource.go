@@ -3,7 +3,6 @@ package dto
 import (
 	"mime/multipart"
 	"runtime"
-	"time"
 )
 
 type ResourceUploadRequestDto struct {
@@ -47,21 +46,4 @@ func (r *ResourceUploadRequestDto) GetUploadedFilepath() string {
 }
 func (r *ResourceUploadRequestDto) SetUploadedFilepath(filepath string) {
 	r.uploadedFilepath = filepath
-}
-
-type ResourceListRequestDto struct {
-	CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
-	From      time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
-	To        time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
-	PaginationRequestDto
-}
-
-func (r *ResourceListRequestDto) GetCreatedAt() time.Time {
-	return r.CreatedAt
-}
-func (r *ResourceListRequestDto) GetFrom() time.Time {
-	return r.From
-}
-func (r *ResourceListRequestDto) GetTo() time.Time {
-	return r.To
 }
