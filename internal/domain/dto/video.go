@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"time"
 )
 
 // VideoCreateRequestDto - used when u want to create a new one video
@@ -49,12 +50,24 @@ func (req *VideoGetRequestDto) GetId() vo.ID {
 
 // VideoListRequestDto - used when u want to find a collection of videos
 type VideoListRequestDto struct {
-	Name string `json:"name"` // part of name
+	Name      string    `json:"name"` // part of name
+	CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
+	From      time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
+	To        time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
 	PaginationRequestDto
 }
 
 func (req *VideoListRequestDto) GetName() string {
 	return req.Name
+}
+func (req *VideoListRequestDto) GetCreatedAt() time.Time {
+	return req.CreatedAt
+}
+func (req *VideoListRequestDto) GetFrom() time.Time {
+	return req.From
+}
+func (req *VideoListRequestDto) GetTo() time.Time {
+	return req.To
 }
 
 // VideoDeleteRequestDto - used when u want to remove the video
