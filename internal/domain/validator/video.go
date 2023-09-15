@@ -35,6 +35,9 @@ func (v *VideoValidator) ValidateListRequestDto(req dto.ListRequest) error {
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
 		return errs.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
+	if !req.GetCreatedAt().IsZero() && (!req.GetFrom().IsZero() || !req.GetTo().IsZero()) {
+		return errs.NewValidationError("field 'from' or 'to' cannot be passed with 'createdAt'")
+	}
 	return nil
 }
 
