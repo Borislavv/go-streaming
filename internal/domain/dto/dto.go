@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"mime/multipart"
+	"time"
 )
 
 type CreateRequest interface {
@@ -25,7 +26,10 @@ type GetRequest interface {
 }
 
 type ListRequest interface {
-	GetName() string // path of name
+	GetName() string         // path of name
+	GetCreatedAt() time.Time // concrete search date point
+	GetFrom() time.Time      // search date limit from
+	GetTo() time.Time        // search date limit to
 	PaginatedRequest
 }
 
