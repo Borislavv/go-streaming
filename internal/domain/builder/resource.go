@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
@@ -62,14 +61,4 @@ func (b *ResourceBuilder) BuildAggFromUploadRequestDto(req dto.UploadRequest) *a
 			CreatedAt: time.Now(),
 		},
 	}
-}
-
-func (b *ResourceBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.ResourceListRequestDto, error) {
-	reqDto := &dto.ResourceListRequestDto{}
-
-	if err := json.NewDecoder(r.Body).Decode(reqDto); err != nil {
-		return nil, b.logger.LogPropagate(err)
-	}
-
-	return reqDto, nil
 }

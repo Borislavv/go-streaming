@@ -49,19 +49,38 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	return videoAgg, nil
 }
 
-func (r *VideoRepository) FindList(ctx context.Context, query dto.ListRequest) ([]*agg.Video, error) {
+func (r *VideoRepository) FindList(ctx context.Context, dto dto.ListRequest) ([]*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
 	filter := bson.M{}
 
-	if query.GetName() != "" {
-		filter["name"] = primitive.Regex{Pattern: query.GetName(), Options: "i"}
+	if dto.GetName() != "" {
+		filter["name"] = primitive.Regex{Pattern: dto.GetName(), Options: "i"}
+	}
+	if !dto.GetCreatedAt().IsZero() {
+		y := dto.GetCreatedAt().Year()
+		m := dto.GetCreatedAt().Month()
+		d := dto.GetCreatedAt().Day()
+
+		filter["createdAt"] = bson.M{
+			"$gt":  time.Date(y, m, d, 0, 0, 0, 0, time.UTC),
+			"$lte": time.Date(y, m, d, 23, 59, 59, 0, time.UTC),
+		}
+	} else if !dto.GetFrom().IsZero() || !dto.GetTo().IsZero() {
+		createdAtFilter := bson.M{}
+		if !dto.GetFrom().IsZero() {
+			createdAtFilter["$gt"] = dto.GetFrom()
+		}
+		if !dto.GetTo().IsZero() {
+			createdAtFilter["$lte"] = dto.GetTo()
+		}
+		filter["createdAt"] = createdAtFilter
 	}
 
 	opts := options.Find().
-		SetSkip((int64(query.GetPage()) - 1) * int64(query.GetLimit())).
-		SetLimit(int64(query.GetLimit()))
+		SetSkip((int64(dto.GetPage()) - 1) * int64(dto.GetLimit())).
+		SetLimit(int64(dto.GetLimit()))
 
 	videos := []*agg.Video{}
 	cursor, err := r.db.Find(qCtx, filter, opts)
