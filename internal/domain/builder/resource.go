@@ -2,7 +2,6 @@ package builder
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/api/request"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -13,20 +12,17 @@ import (
 
 type ResourceBuilder struct {
 	logger                    logger.Logger
-	extractor                 request.Extractor
 	formFilename              string
 	inMemoryFileSizeThreshold int64
 }
 
 func NewResourceBuilder(
 	logger logger.Logger,
-	extractor request.Extractor,
 	formFilename string,
 	inMemoryFileSizeThreshold int64,
 ) *ResourceBuilder {
 	return &ResourceBuilder{
 		logger:                    logger,
-		extractor:                 extractor,
 		formFilename:              formFilename,
 		inMemoryFileSizeThreshold: inMemoryFileSizeThreshold,
 	}
