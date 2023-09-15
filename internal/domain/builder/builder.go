@@ -9,8 +9,6 @@ import (
 type Resource interface {
 	BuildUploadRequestDtoFromRequest(r *http.Request) (*dto.ResourceUploadRequestDto, error)
 	BuildAggFromUploadRequestDto(req dto.UploadRequest) *agg.Resource
-
-	BuildListRequestDtoFromRequest(r *http.Request) (*dto.ResourceListRequestDto, error)
 }
 
 type Video interface {
