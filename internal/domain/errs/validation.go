@@ -13,6 +13,19 @@ const (
 	validationLevel  = logger.WarningLevel
 )
 
+type ValidationError struct{ errored }
+
+func NewValidationError(message string) *ValidationError {
+	return &ValidationError{
+		errored{
+			ErrorMessage: message,
+			ErrorType:    validationType,
+			errorLevel:   validationLevel,
+			errorStatus:  validationStatus,
+		},
+	}
+}
+
 type FieldCannotBeEmptyError struct{ errored }
 
 func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
