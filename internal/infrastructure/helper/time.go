@@ -1,0 +1,23 @@
+package helper
+
+import (
+	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"time"
+)
+
+var dateLayouts = []string{
+	"2006-01-02T15:04:05Z07:00",
+	"2006-01-02T15:04:05",
+	"2006-01-02",
+}
+
+func ParseTime(date string) (time.Time, error) {
+	for _, layout := range dateLayouts {
+		parsed, err := time.Parse(layout, date)
+		if err != nil {
+			continue
+		}
+		return parsed, nil
+	}
+	return time.Time{}, errs.NewTimeParsingValidationError(date)
+}
