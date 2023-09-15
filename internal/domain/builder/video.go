@@ -18,13 +18,13 @@ import (
 )
 
 const (
-	idField           = "idField"
-	nameField         = "nameField"
+	idField           = "id"
+	nameField         = "name"
 	createdAtField    = "createdAt"
 	fromField         = "from"
 	toField           = "to"
-	pageField         = "pageField"
-	limitField        = "limitField"
+	pageField         = "page"
+	limitField        = "limit"
 	limitDefaultValue = 25
 	pageDefaultValue  = 1
 )
