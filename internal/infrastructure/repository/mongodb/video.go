@@ -59,16 +59,21 @@ func (r *VideoRepository) FindList(ctx context.Context, dto dto.ListRequest) ([]
 		filter["name"] = primitive.Regex{Pattern: dto.GetName(), Options: "i"}
 	}
 	if !dto.GetCreatedAt().IsZero() {
-		fromCreatedAt := time.Date(dto.GetCreatedAt().Year(), dto.GetCreatedAt().Month(), dto.GetCreatedAt().Day(), 0, 0, 0, 0, time.UTC)
-		toCreatedAt := time.Date(dto.GetCreatedAt().Year(), dto.GetCreatedAt().Month(), dto.GetCreatedAt().Day(), 23, 59, 59, 0, time.UTC)
-		filter["createdAt"] = bson.M{"$gth": fromCreatedAt, "$lth": toCreatedAt}
+		y := dto.GetCreatedAt().Year()
+		m := dto.GetCreatedAt().Month()
+		d := dto.GetCreatedAt().Day()
+
+		filter["createdAt"] = bson.M{
+			"$gt":  time.Date(y, m, d, 0, 0, 0, 0, time.UTC),
+			"$lte": time.Date(y, m, d, 23, 59, 59, 0, time.UTC),
+		}
 	} else if !dto.GetFrom().IsZero() || !dto.GetTo().IsZero() {
 		createdAtFilter := bson.M{}
 		if !dto.GetFrom().IsZero() {
-			createdAtFilter["$gth"] = dto.GetFrom()
+			createdAtFilter["$gt"] = dto.GetFrom()
 		}
 		if !dto.GetTo().IsZero() {
-			createdAtFilter["$lth"] = dto.GetTo()
+			createdAtFilter["$lte"] = dto.GetTo()
 		}
 		filter["createdAt"] = createdAtFilter
 	}
