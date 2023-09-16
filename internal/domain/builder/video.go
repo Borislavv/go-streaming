@@ -30,11 +30,11 @@ const (
 )
 
 type VideoBuilder struct {
-	logger    logger.Logger
-	ctx       context.Context
-	extractor request.Extractor
-	video     repository.Video
-	resource  repository.Resource
+	logger             logger.Logger
+	ctx                context.Context
+	extractor          request.Extractor
+	videoRepository    repository.Video
+	resourceRepository repository.Resource
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
@@ -42,15 +42,15 @@ func NewVideoBuilder(
 	ctx context.Context,
 	logger logger.Logger,
 	extractor request.Extractor,
-	video repository.Video,
-	resource repository.Resource,
+	videoRepository repository.Video,
+	resourceRepository repository.Resource,
 ) *VideoBuilder {
 	return &VideoBuilder{
-		ctx:       ctx,
-		logger:    logger,
-		extractor: extractor,
-		video:     video,
-		resource:  resource,
+		ctx:                ctx,
+		logger:             logger,
+		extractor:          extractor,
+		videoRepository:    videoRepository,
+		resourceRepository: resourceRepository,
 	}
 }
 
@@ -65,7 +65,7 @@ func (b *VideoBuilder) BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.V
 
 // BuildAggFromCreateRequestDto - build an agg.Video from dto.CreateRequest
 func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg.Video, error) {
-	resource, err := b.resource.Find(b.ctx, dto.GetResourceID())
+	resource, err := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -104,7 +104,7 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 
 // BuildAggFromUpdateRequestDto - build an agg.Video from dto.UpdateRequest
 func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg.Video, error) {
-	video, err := b.video.Find(b.ctx, dto.GetId())
+	video, err := b.videoRepository.Find(b.ctx, dto.GetId())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -116,6 +116,14 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 	}
 	if video.Description != dto.GetDescription() {
 		video.Description = dto.GetDescription()
+		changes++
+	}
+	if !dto.GetResourceID().Value.IsZero() {
+		resource, err := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
+		if err != nil {
+			return nil, b.logger.LogPropagate(err)
+		}
+		video.Resource = resource.Resource
 		changes++
 	}
 	if changes > 0 {

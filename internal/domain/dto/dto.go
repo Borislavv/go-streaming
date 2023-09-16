@@ -12,11 +12,10 @@ type CreateRequest interface {
 	GetDescription() string
 }
 
-// TODO updating of resource must be implemented
 type UpdateRequest interface {
 	GetId() vo.ID
 	GetName() string
-	//GetResourceID() vo.ID
+	GetResourceID() vo.ID
 	GetDescription() string
 }
 

@@ -6,22 +6,35 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
 
 const (
 	idField         = "id"
 	nameField       = "name"
-	resourceIDField = "resourceId"
+	resourceIDField = "resourceID"
 )
 
 type VideoValidator struct {
-	ctx        context.Context
-	repository repository.Video
+	ctx                context.Context
+	logger             logger.Logger
+	videoRepository    repository.Video
+	resourceRepository repository.Resource
 }
 
-func NewVideoValidator(ctx context.Context, repository repository.Video) *VideoValidator {
-	return &VideoValidator{ctx: ctx, repository: repository}
+func NewVideoValidator(
+	ctx context.Context,
+	logger logger.Logger,
+	videoRepository repository.Video,
+	resourceRepository repository.Resource,
+) *VideoValidator {
+	return &VideoValidator{
+		ctx:                ctx,
+		logger:             logger,
+		videoRepository:    videoRepository,
+		resourceRepository: resourceRepository,
+	}
 }
 
 func (v *VideoValidator) ValidateGetRequestDto(req dto.GetRequest) error {
@@ -52,7 +65,30 @@ func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 }
 
 func (v *VideoValidator) ValidateUpdateRequestDto(req dto.UpdateRequest) error {
-	return v.ValidateGetRequestDto(req)
+	if err := v.ValidateGetRequestDto(req); err != nil {
+		return err
+	}
+
+	if !req.GetResourceID().Value.IsZero() {
+		resource, err := v.resourceRepository.Find(v.ctx, req.GetResourceID())
+		if err != nil {
+			return err
+		}
+
+		video, err := v.videoRepository.FindByResource(v.ctx, resource)
+		if err != nil {
+			if errs.IsNotFoundError(err) {
+				return nil
+			}
+			return v.logger.LogPropagate(err)
+		}
+
+		if video.ID == req.GetId() {
+			return errs.NewUniquenessCheckFailedError(resourceIDField)
+		}
+	}
+
+	return nil
 }
 
 func (v *VideoValidator) ValidateDeleteRequestDto(req dto.DeleteRequest) error {
@@ -63,12 +99,14 @@ func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {
 	if agg.Name == "" {
 		return errors.New("'name' cannot be empty")
 	}
-	has, err := v.repository.Has(v.ctx, agg)
+
+	has, err := v.videoRepository.Has(v.ctx, agg)
 	if err != nil {
-		return err
+		return v.logger.LogPropagate(err)
 	}
 	if has {
-		return errs.NewUniquenessCheckFailedError(nameField)
+		return errs.NewUniquenessCheckFailedError(nameField, resourceIDField)
 	}
+
 	return nil
 }

@@ -130,6 +130,10 @@ func (s *ResourceStreamer) handleStreamActions(
 		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
+	// TODO must be implemented select a video from client, at now if services has not any videos, return
+	if len(videos) < 1 {
+		return
+	}
 
 	l := len(videos) - 1
 	c := 0

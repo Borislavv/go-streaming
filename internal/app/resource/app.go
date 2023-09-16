@@ -83,11 +83,11 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// init. video repository
 	videoRepository := mongodb.NewVideoRepository(db, loggerService, time.Minute)
 
-	// init. video validator
-	videoValidator := validator.NewVideoValidator(ctx, videoRepository)
-
 	// init. Resource repository
 	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
+
+	// init. video validator
+	videoValidator := validator.NewVideoValidator(ctx, videoRepository, resourceRepository)
 
 	// init. video builder
 	videoBuilder := builder.NewVideoBuilder(ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository)
