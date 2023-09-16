@@ -1,6 +1,9 @@
 package entity
 
-import "net/textproto"
+import (
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"net/textproto"
+)
 
 const (
 	MIMEContentDispositionKey = "Content-Disposition"
@@ -8,6 +11,7 @@ const (
 )
 
 type Resource struct {
+	ID       vo.ID                `json:"id" bson:",inline"`
 	Name     string               `json:"name" bson:"name"`         // original filename
 	Filename string               `json:"filename" bson:"filename"` // uploaded filename
 	Filepath string               `json:"path" bson:"path"`         // path to uploaded file
