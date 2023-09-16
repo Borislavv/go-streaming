@@ -91,24 +91,24 @@ func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
 func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateUpdateRequestDto(req); err != nil {
-		return nil, err
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
 	videoAgg, err := s.builder.BuildAggFromUpdateRequestDto(req)
 	if err != nil {
-		return nil, s.logger.ErrorPropagate(err)
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	// validation of an aggregate
 	if err = s.validator.ValidateAgg(videoAgg); err != nil {
-		return nil, s.logger.ErrorPropagate(err)
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	// saving updated aggregate into storage
 	videoAgg, err = s.repository.Update(s.ctx, videoAgg)
 	if err != nil {
-		return nil, s.logger.ErrorPropagate(err)
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	return videoAgg, nil
