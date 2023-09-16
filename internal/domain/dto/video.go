@@ -26,6 +26,7 @@ func (req *VideoCreateRequestDto) GetDescription() string {
 type VideoUpdateRequestDto struct {
 	ID          vo.ID  `json:"id"`
 	Name        string `json:"name"`
+	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
 
@@ -34,6 +35,9 @@ func (req *VideoUpdateRequestDto) GetId() vo.ID {
 }
 func (req *VideoUpdateRequestDto) GetName() string {
 	return req.Name
+}
+func (req *VideoUpdateRequestDto) GetResourceID() vo.ID {
+	return req.ResourceID
 }
 func (req *VideoUpdateRequestDto) GetDescription() string {
 	return req.Description
