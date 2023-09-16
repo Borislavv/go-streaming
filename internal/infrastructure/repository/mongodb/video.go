@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -12,11 +13,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"reflect"
 	"sync"
 	"time"
 )
 
 const VideosCollection = "videos"
+
+var (
+	VideoNotFoundByIdError       = errs.NewNotFoundError("video", "id")
+	VideoNotFoundByResourceError = errs.NewNotFoundError("video", "resource")
+)
 
 type VideoRepository struct {
 	db      *mongo.Collection
@@ -38,15 +45,30 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	videoAgg := &agg.Video{}
-	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(videoAgg); err != nil {
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(video); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, r.logger.InfoPropagate(errs.NewNotFoundError("video"))
+			return nil, r.logger.InfoPropagate(VideoNotFoundByIdError)
 		}
 		return nil, r.logger.ErrorPropagate(err)
 	}
 
-	return videoAgg, nil
+	return video, nil
+}
+
+func (r *VideoRepository) FindByResource(ctx context.Context, resource *agg.Resource) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"resource": bson.M{"$eq": resource.Resource}}).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, VideoNotFoundByResourceError
+		}
+		return nil, r.logger.ErrorPropagate(err)
+	}
+
+	return video, nil
 }
 
 func (r *VideoRepository) FindList(ctx context.Context, dto dto.ListRequest) ([]*agg.Video, error) {
@@ -137,29 +159,28 @@ func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, erro
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	opts := options.Find().
-		SetLimit(1)
-
+	// TODO Stopped here, validation must be improved, probably need to migrate to store resource id instead of entity.Resource
 	filter := bson.M{}
-	if video.Name != "" {
+	if video.Name != "" && !reflect.DeepEqual(video.Resource, entity.Resource{}) {
+		filter["$or"] = []bson.M{
+			{"name": video.Name},
+			{"resource": video.Resource},
+		}
+	} else if video.Name != "" {
 		filter["name"] = video.Name
+	} else if reflect.DeepEqual(video.Resource, entity.Resource{}) {
+		filter["resource"] = video.Resource
 	}
 
-	var videos []*agg.Video
-	cursor, err := r.db.Find(qCtx, filter, opts)
-	if err != nil {
+	foundVideo := &agg.Video{}
+	if err := r.db.FindOne(qCtx, filter).Decode(foundVideo); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
 		}
 		return true, r.logger.CriticalPropagate(err)
 	}
-	defer func() { _ = cursor.Close(qCtx) }()
 
-	if err = cursor.All(qCtx, &videos); err != nil {
-		return true, r.logger.CriticalPropagate(err)
-	}
-
-	if len(videos) > 0 {
+	if !foundVideo.ID.Value.IsZero() && foundVideo.ID.Value != video.ID.Value {
 		return true, nil
 	}
 	return false, nil

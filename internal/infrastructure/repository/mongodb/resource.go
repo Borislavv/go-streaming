@@ -39,7 +39,7 @@ func (r *ResourceRepository) Find(ctx context.Context, id vo.ID) (*agg.Resource,
 	resourceAgg := &agg.Resource{}
 	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(resourceAgg); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, r.logger.InfoPropagate(errs.NewNotFoundError("resource"))
+			return nil, r.logger.InfoPropagate(errs.NewNotFoundError("resource", "id"))
 		}
 		return nil, r.logger.ErrorPropagate(err)
 	}
