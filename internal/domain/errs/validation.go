@@ -75,7 +75,7 @@ func NewUniquenessCheckFailedError(fields ...string) *UniquenessCheckFailedError
 	return &UniquenessCheckFailedError{
 		errored{
 			ErrorMessage: fmt.Sprintf(
-				"uniqueness check filed due to duplicated key '%v'", strings.Join(fields, ", "),
+				"uniqueness check failed due to duplicated key '%v'", strings.Join(fields, ", "),
 			),
 			ErrorType:   validationType,
 			errorLevel:  validationLevel,
