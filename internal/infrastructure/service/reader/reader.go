@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	ChunkSize    = 1024 * 1024 * 5 // 2.5MB
-	ChunksBuffer = 10
+	ChunkSize    = 1024 * 1024 * 2.5 // 2.5MB
+	ChunksBuffer = 4
 )
 
 type ResourceReader struct {
