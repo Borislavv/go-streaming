@@ -69,7 +69,7 @@ func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
 	}
 
 	// building an aggregate
-	video, err := s.builder.BuildAggFromCreateRequestDto(req)
+	video, err := s.builder.BuildAggFromCreateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -95,7 +95,7 @@ func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	}
 
 	// building an aggregate
-	videoAgg, err := s.builder.BuildAggFromUpdateRequestDto(req)
+	videoAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}

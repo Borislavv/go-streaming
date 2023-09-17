@@ -29,7 +29,7 @@ func NewUpdateVideoController(
 }
 
 func (c *UpdateVideoController) Update(w http.ResponseWriter, r *http.Request) {
-	videoDto, err := c.builder.BuildUpdateRequestDtoFromRequest(r)
+	videoDto, err := c.builder.BuildUpdateRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, err)
 		return

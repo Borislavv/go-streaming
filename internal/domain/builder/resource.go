@@ -28,8 +28,8 @@ func NewResourceBuilder(
 	}
 }
 
-// BuildUploadRequestDtoFromRequest will be parse raw *http.Request and build a dto.UploadRequest
-func (b *ResourceBuilder) BuildUploadRequestDtoFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error) {
+// BuildUploadRequestDTOFromRequest will be parse raw *http.Request and build a dto.UploadRequest
+func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error) {
 	// request will be parsed and stored in the memory if it is under the RAM threshold,
 	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
 	if err := r.ParseMultipartForm(b.inMemoryFileSizeThreshold); err != nil {
@@ -47,8 +47,8 @@ func (b *ResourceBuilder) BuildUploadRequestDtoFromRequest(r *http.Request) (*dt
 	return dto.NewResourceUploadRequest(file, header), nil
 }
 
-// BuildAggFromUploadRequestDto will be make an agg.Resource from dto.UploadRequest
-func (b *ResourceBuilder) BuildAggFromUploadRequestDto(req dto.UploadRequest) *agg.Resource {
+// BuildAggFromUploadRequestDTO will be make an agg.Resource from dto.UploadRequest
+func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto.UploadRequest) *agg.Resource {
 	return &agg.Resource{
 		Resource: entity.Resource{
 			Name:     req.GetHeader().Filename,

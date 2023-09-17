@@ -46,7 +46,7 @@ func (s *ResourceService) Upload(req dto.UploadRequest) (*agg.Resource, error) {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	resource := s.builder.BuildAggFromUploadRequestDto(req)
+	resource := s.builder.BuildAggFromUploadRequestDTO(req)
 
 	if err := s.validator.ValidateAggregate(resource); err != nil {
 		return nil, s.logger.LogPropagate(err)

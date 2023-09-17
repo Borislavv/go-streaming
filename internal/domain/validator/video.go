@@ -71,7 +71,6 @@ func (v *VideoValidator) ValidateUpdateRequestDTO(req dto.UpdateRequest) error {
 	if err := v.ValidateGetRequestDTO(req); err != nil {
 		return err
 	}
-
 	return nil
 }
 

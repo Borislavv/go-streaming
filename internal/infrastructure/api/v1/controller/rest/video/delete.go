@@ -29,7 +29,7 @@ func NewDeleteVideoController(
 }
 
 func (c *DeleteVideoController) Delete(w http.ResponseWriter, r *http.Request) {
-	videoDto, err := c.builder.BuildDeleteRequestDtoFromRequest(r)
+	videoDto, err := c.builder.BuildDeleteRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, err)
 		return

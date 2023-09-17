@@ -29,7 +29,7 @@ func NewListVideoController(
 }
 
 func (c *ListVideoController) List(w http.ResponseWriter, r *http.Request) {
-	reqDto, err := c.builder.BuildListRequestDtoFromRequest(r)
+	reqDto, err := c.builder.BuildListRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, err)
 		return
