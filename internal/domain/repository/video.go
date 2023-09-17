@@ -13,6 +13,8 @@ type Video interface {
 	// todo must be refactored to query builder
 	FindByResource(ctx context.Context, resource *agg.Resource) (*agg.Video, error)
 	FindList(ctx context.Context, query dto.ListRequest) ([]*agg.Video, error)
+	FindByName(ctx context.Context, name string) (*agg.Video, error)
+	FindByResourceId(ctx context.Context, resourceID vo.ID) (*agg.Video, error)
 	Has(ctx context.Context, video *agg.Video) (bool, error)
 
 	Insert(ctx context.Context, video *agg.Video) (*agg.Video, error)
