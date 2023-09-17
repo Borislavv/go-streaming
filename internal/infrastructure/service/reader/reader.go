@@ -2,14 +2,15 @@ package reader
 
 import (
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
 	"os"
 )
 
-// ChunkSize is 2.5MB
-const ChunkSize = 1024 * 1024 * 2.5
+const (
+	ChunkSize    = 1024 * 1024 * 5 // 2.5MB
+	ChunksBuffer = 10
+)
 
 type ResourceReader struct {
 	logger logger.Logger
@@ -19,18 +20,21 @@ func NewReaderService(logger logger.Logger) *ResourceReader {
 	return &ResourceReader{logger: logger}
 }
 
-func (r *ResourceReader) Read(resource dto.Resource) chan *dto.Chunk {
-	r.logger.Info("[reader]: reading started")
+// Read will read a resource and send file as butches of bytes
+func (r *ResourceReader) Read(resource Resource) chan *Chunk {
+	r.logger.Info(fmt.Sprintf("recourse '%v' reading started", resource.GetFilepath()))
 
-	chunksCh := make(chan *dto.Chunk, 1)
+	chunksCh := make(chan *Chunk, ChunksBuffer)
 	go r.handleRead(resource, chunksCh)
 
 	return chunksCh
 }
 
-func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan *dto.Chunk) {
-	defer r.logger.Info("[reader]: reading stopped")
-	defer close(chunksCh)
+func (r *ResourceReader) handleRead(resource Resource, chunksCh chan *Chunk) {
+	defer func() {
+		close(chunksCh)
+		r.logger.Info(fmt.Sprintf("recourse '%v' reading finished", resource.GetFilepath()))
+	}()
 
 	file, err := os.Open(resource.GetFilepath())
 	if err != nil {
@@ -45,12 +49,11 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan *dto.Ch
 	}()
 
 	for {
-		chunk := dto.NewChunk(ChunkSize)
+		chunk := NewChunk(ChunkSize)
 
 		chunk.Len, err = file.Read(chunk.Data)
 		if err != nil {
 			if err == io.EOF {
-				r.logger.Info("[reader]: file was successfully reader")
 				break
 			}
 			r.logger.Error(err)
@@ -61,7 +64,7 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan *dto.Ch
 	}
 }
 
-func (r *ResourceReader) sendChunk(chunk *dto.Chunk, chunksCh chan *dto.Chunk) {
+func (r *ResourceReader) sendChunk(chunk *Chunk, chunksCh chan *Chunk) {
 	if chunk.Len == 0 {
 		return
 	}
@@ -73,7 +76,7 @@ func (r *ResourceReader) sendChunk(chunk *dto.Chunk, chunksCh chan *dto.Chunk) {
 	}
 
 	if chunk.Len > 0 {
-		r.logger.Info(fmt.Sprintf("[reader]: reader %d bytes", chunk.Len))
+		r.logger.Info(fmt.Sprintf("%d bytes read and sent", chunk.Len))
 		chunksCh <- chunk
 	}
 }
