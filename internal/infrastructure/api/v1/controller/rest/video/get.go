@@ -29,7 +29,7 @@ func NewGetVideoController(
 }
 
 func (c *GetVideoController) Get(w http.ResponseWriter, r *http.Request) {
-	req, err := c.builder.BuildGetRequestDtoFromRequest(r)
+	req, err := c.builder.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, err)
 		return

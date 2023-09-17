@@ -36,7 +36,7 @@ func NewVideoService(
 
 func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateGetRequestDto(req); err != nil {
+	if err := s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, err
 	}
 
@@ -50,7 +50,7 @@ func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
 
 func (s *VideoService) List(req dto.ListRequest) ([]*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateListRequestDto(req); err != nil {
+	if err := s.validator.ValidateListRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
@@ -64,18 +64,18 @@ func (s *VideoService) List(req dto.ListRequest) ([]*agg.Video, error) {
 
 func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDto(req); err != nil {
+	if err := s.validator.ValidateCreateRequestDTO(req); err != nil {
 		return nil, err
 	}
 
 	// building an aggregate
-	video, err := s.builder.BuildAggFromCreateRequestDto(req)
+	video, err := s.builder.BuildAggFromCreateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// validation of an aggregate
-	if err = s.validator.ValidateAgg(video); err != nil {
+	if err = s.validator.ValidateAggregate(video); err != nil {
 		return nil, s.logger.ErrorPropagate(err)
 	}
 
@@ -90,18 +90,18 @@ func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
 
 func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateUpdateRequestDto(req); err != nil {
+	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	videoAgg, err := s.builder.BuildAggFromUpdateRequestDto(req)
+	videoAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// validation of an aggregate
-	if err = s.validator.ValidateAgg(videoAgg); err != nil {
+	if err = s.validator.ValidateAggregate(videoAgg); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
@@ -116,7 +116,7 @@ func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 
 func (s *VideoService) Delete(req dto.DeleteRequest) error {
 	// validation of input request
-	if err := s.validator.ValidateDeleteRequestDto(req); err != nil {
+	if err := s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return err
 	}
 

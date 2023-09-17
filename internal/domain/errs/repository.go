@@ -9,7 +9,7 @@ import (
 const (
 	repositoryType         = "application"
 	publicRepositoryLevel  = logger.ErrorLevel
-	publicRepositoryStatus = http.StatusInternalServerError
+	publicRepositoryStatus = http.StatusNotFound
 )
 
 type NotFoundError struct{ errored }

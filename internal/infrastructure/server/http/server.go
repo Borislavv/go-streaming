@@ -103,7 +103,7 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 func (s *Server) addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
-	// RestAPI controllers
+	// rest api controllers
 	restRouterV1 := router.
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
@@ -116,7 +116,7 @@ func (s *Server) addRoutes() *mux.Router {
 		c.AddRoute(restRouterV1)
 	}
 
-	// Native templates rendering controllers
+	// native templates rendering controllers
 	renderRouterV1 := router.
 		PathPrefix(s.renderVersionPrefix).
 		Subrouter()
@@ -125,7 +125,7 @@ func (s *Server) addRoutes() *mux.Router {
 		c.AddRoute(renderRouterV1)
 	}
 
-	// Static files serving controllers
+	// static files serving controllers
 	staticRouterV1 := router.
 		PathPrefix(s.staticVersionPrefix).
 		Subrouter()

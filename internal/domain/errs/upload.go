@@ -10,7 +10,6 @@ const (
 	uploadErrType         = "application"
 	publicUploadErrLevel  = logger.WarningLevel
 	publicUploadErrStatus = http.StatusBadRequest
-	uploadErrStatus       = http.StatusInternalServerError
 )
 
 type ResourceAlreadyExistsError struct{ errored }

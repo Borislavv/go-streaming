@@ -3,18 +3,20 @@ package validator
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/entity"
 )
 
 type Resource interface {
-	ValidateUploadRequestDto(req dto.UploadRequest) error
-	ValidateAgg(agg *agg.Resource) error
+	ValidateUploadRequestDTO(req dto.UploadRequest) error
+	ValidateEntity(entity entity.Resource) error
+	ValidateAggregate(agg *agg.Resource) error
 }
 
 type Video interface {
-	ValidateGetRequestDto(req dto.GetRequest) error
-	ValidateListRequestDto(req dto.ListRequest) error
-	ValidateCreateRequestDto(req dto.CreateRequest) error
-	ValidateUpdateRequestDto(req dto.UpdateRequest) error
-	ValidateDeleteRequestDto(req dto.DeleteRequest) error
-	ValidateAgg(agg *agg.Video) error
+	ValidateGetRequestDTO(req dto.GetRequest) error
+	ValidateListRequestDTO(req dto.ListRequest) error
+	ValidateCreateRequestDTO(req dto.CreateRequest) error
+	ValidateUpdateRequestDTO(req dto.UpdateRequest) error
+	ValidateDeleteRequestDTO(req dto.DeleteRequest) error
+	ValidateAggregate(agg *agg.Video) error
 }

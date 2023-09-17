@@ -5,7 +5,7 @@ import (
 	"runtime"
 )
 
-type ResourceUploadRequestDto struct {
+type ResourceUploadRequestDTO struct {
 	file             multipart.File
 	header           *multipart.FileHeader
 	uploadedFilename string
@@ -15,35 +15,35 @@ type ResourceUploadRequestDto struct {
 func NewResourceUploadRequest(
 	file multipart.File,
 	header *multipart.FileHeader,
-) (dto *ResourceUploadRequestDto) {
-	resourceDto := &ResourceUploadRequestDto{
+) (dto *ResourceUploadRequestDTO) {
+	resourceDTO := &ResourceUploadRequestDTO{
 		file:   file,
 		header: header,
 	}
 
 	// destructor implementation for deferred close file
-	runtime.SetFinalizer(resourceDto, func(dto *ResourceUploadRequestDto) {
+	runtime.SetFinalizer(resourceDTO, func(dto *ResourceUploadRequestDTO) {
 		_ = dto.file.Close()
 	})
 
-	return resourceDto
+	return resourceDTO
 }
 
-func (r *ResourceUploadRequestDto) GetFile() multipart.File {
+func (r *ResourceUploadRequestDTO) GetFile() multipart.File {
 	return r.file
 }
-func (r *ResourceUploadRequestDto) GetHeader() *multipart.FileHeader {
+func (r *ResourceUploadRequestDTO) GetHeader() *multipart.FileHeader {
 	return r.header
 }
-func (r *ResourceUploadRequestDto) GetUploadedFilename() string {
+func (r *ResourceUploadRequestDTO) GetUploadedFilename() string {
 	return r.uploadedFilename
 }
-func (r *ResourceUploadRequestDto) SetUploadedFilename(filename string) {
+func (r *ResourceUploadRequestDTO) SetUploadedFilename(filename string) {
 	r.uploadedFilename = filename
 }
-func (r *ResourceUploadRequestDto) GetUploadedFilepath() string {
+func (r *ResourceUploadRequestDTO) GetUploadedFilepath() string {
 	return r.uploadedFilepath
 }
-func (r *ResourceUploadRequestDto) SetUploadedFilepath(filepath string) {
+func (r *ResourceUploadRequestDTO) SetUploadedFilepath(filepath string) {
 	r.uploadedFilepath = filepath
 }

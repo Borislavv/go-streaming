@@ -29,7 +29,7 @@ func NewCreateController(
 }
 
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
-	dto, err := c.builder.BuildCreateRequestDtoFromRequest(r)
+	dto, err := c.builder.BuildCreateRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, err)
 		return

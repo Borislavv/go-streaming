@@ -5,72 +5,72 @@ import (
 	"time"
 )
 
-// VideoCreateRequestDto - used when u want to create a new one video
-type VideoCreateRequestDto struct {
+// VideoCreateRequestDTO - used when u want to create a new one video
+type VideoCreateRequestDTO struct {
 	Name        string `json:"name"`
 	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
 
-func (req *VideoCreateRequestDto) GetName() string {
+func (req *VideoCreateRequestDTO) GetName() string {
 	return req.Name
 }
-func (req *VideoCreateRequestDto) GetResourceID() vo.ID {
+func (req *VideoCreateRequestDTO) GetResourceID() vo.ID {
 	return req.ResourceID
 }
-func (req *VideoCreateRequestDto) GetDescription() string {
+func (req *VideoCreateRequestDTO) GetDescription() string {
 	return req.Description
 }
 
-// VideoUpdateRequestDto - used when u want to update a video record
-type VideoUpdateRequestDto struct {
+// VideoUpdateRequestDTO - used when u want to update a video record
+type VideoUpdateRequestDTO struct {
 	ID          vo.ID  `json:"id"`
 	Name        string `json:"name"`
 	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
 
-func (req *VideoUpdateRequestDto) GetId() vo.ID {
+func (req *VideoUpdateRequestDTO) GetId() vo.ID {
 	return req.ID
 }
-func (req *VideoUpdateRequestDto) GetName() string {
+func (req *VideoUpdateRequestDTO) GetName() string {
 	return req.Name
 }
-func (req *VideoUpdateRequestDto) GetResourceID() vo.ID {
+func (req *VideoUpdateRequestDTO) GetResourceID() vo.ID {
 	return req.ResourceID
 }
-func (req *VideoUpdateRequestDto) GetDescription() string {
+func (req *VideoUpdateRequestDTO) GetDescription() string {
 	return req.Description
 }
 
-// VideoGetRequestDto - used when u want to find a single video
-type VideoGetRequestDto struct {
+// VideoGetRequestDTO - used when u want to find a single video
+type VideoGetRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *VideoGetRequestDto) GetId() vo.ID {
+func (req *VideoGetRequestDTO) GetId() vo.ID {
 	return req.ID
 }
 
-// VideoListRequestDto - used when u want to find a collection of videos
-type VideoListRequestDto struct {
+// VideoListRequestDTO - used when u want to find a collection of videos
+type VideoListRequestDTO struct {
 	Name      string    `json:"name"` // part of name
 	CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
 	From      time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
 	To        time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
-	PaginationRequestDto
+	PaginationRequestDTO
 }
 
-func (req *VideoListRequestDto) GetName() string {
+func (req *VideoListRequestDTO) GetName() string {
 	return req.Name
 }
-func (req *VideoListRequestDto) GetCreatedAt() time.Time {
+func (req *VideoListRequestDTO) GetCreatedAt() time.Time {
 	return req.CreatedAt
 }
-func (req *VideoListRequestDto) GetFrom() time.Time {
+func (req *VideoListRequestDTO) GetFrom() time.Time {
 	return req.From
 }
-func (req *VideoListRequestDto) GetTo() time.Time {
+func (req *VideoListRequestDTO) GetTo() time.Time {
 	return req.To
 }
 
