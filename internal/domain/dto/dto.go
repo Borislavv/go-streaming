@@ -45,20 +45,3 @@ type PaginatedRequest interface {
 	GetPage() int
 	GetLimit() int
 }
-
-type Chunked interface {
-	GetLen() int
-	SetLen(len int)
-	GetData() []byte
-	SetData(data []byte)
-	GetError() error
-	SetError(err error)
-}
-
-type Resource interface {
-	GetFilepath() string
-	//GetName() string
-	//GetFilename() string
-	//GetFilesize() int64
-	//GetFileMIME() textproto.MIMEHeader
-}
