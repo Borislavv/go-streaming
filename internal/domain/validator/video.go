@@ -19,6 +19,7 @@ const (
 type VideoValidator struct {
 	ctx                context.Context
 	logger             logger.Logger
+	resourceValidator  Resource
 	videoRepository    repository.Video
 	resourceRepository repository.Resource
 }
@@ -26,25 +27,27 @@ type VideoValidator struct {
 func NewVideoValidator(
 	ctx context.Context,
 	logger logger.Logger,
+	resourceValidator Resource,
 	videoRepository repository.Video,
 	resourceRepository repository.Resource,
 ) *VideoValidator {
 	return &VideoValidator{
 		ctx:                ctx,
 		logger:             logger,
+		resourceValidator:  resourceValidator,
 		videoRepository:    videoRepository,
 		resourceRepository: resourceRepository,
 	}
 }
 
-func (v *VideoValidator) ValidateGetRequestDto(req dto.GetRequest) error {
+func (v *VideoValidator) ValidateGetRequestDTO(req dto.GetRequest) error {
 	if req.GetId().Value.IsZero() {
 		return errs.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
 
-func (v *VideoValidator) ValidateListRequestDto(req dto.ListRequest) error {
+func (v *VideoValidator) ValidateListRequestDTO(req dto.ListRequest) error {
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
 		return errs.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
@@ -54,7 +57,7 @@ func (v *VideoValidator) ValidateListRequestDto(req dto.ListRequest) error {
 	return nil
 }
 
-func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
+func (v *VideoValidator) ValidateCreateRequestDTO(req dto.CreateRequest) error {
 	if req.GetName() == "" {
 		return errs.NewFieldCannotBeEmptyError(nameField)
 	}
@@ -64,48 +67,61 @@ func (v *VideoValidator) ValidateCreateRequestDto(req dto.CreateRequest) error {
 	return nil
 }
 
-func (v *VideoValidator) ValidateUpdateRequestDto(req dto.UpdateRequest) error {
-	if err := v.ValidateGetRequestDto(req); err != nil {
+func (v *VideoValidator) ValidateUpdateRequestDTO(req dto.UpdateRequest) error {
+	if err := v.ValidateGetRequestDTO(req); err != nil {
 		return err
-	}
-
-	if !req.GetResourceID().Value.IsZero() {
-		resource, err := v.resourceRepository.Find(v.ctx, req.GetResourceID())
-		if err != nil {
-			return err
-		}
-
-		video, err := v.videoRepository.FindByResource(v.ctx, resource)
-		if err != nil {
-			if errs.IsNotFoundError(err) {
-				return nil
-			}
-			return v.logger.LogPropagate(err)
-		}
-
-		if video.ID == req.GetId() {
-			return errs.NewUniquenessCheckFailedError(resourceIDField)
-		}
 	}
 
 	return nil
 }
 
-func (v *VideoValidator) ValidateDeleteRequestDto(req dto.DeleteRequest) error {
-	return v.ValidateGetRequestDto(req)
+func (v *VideoValidator) ValidateDeleteRequestDTO(req dto.DeleteRequest) error {
+	return v.ValidateGetRequestDTO(req)
 }
 
-func (v *VideoValidator) ValidateAgg(agg *agg.Video) error {
+func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
+	// video fields validation
 	if agg.Name == "" {
 		return errors.New("'name' cannot be empty")
+	} else if agg.Resource.ID.Value.IsZero() {
+		return errors.New("'resource.id' cannot be empty")
 	}
 
-	has, err := v.videoRepository.Has(v.ctx, agg)
-	if err != nil {
-		return v.logger.LogPropagate(err)
+	// resource fields validation
+	if err := v.resourceValidator.ValidateEntity(agg.Resource); err != nil {
+		return err
 	}
-	if has {
-		return errs.NewUniquenessCheckFailedError(nameField, resourceIDField)
+
+	// video validation by name which must be unique
+	video, err := v.videoRepository.FindByName(v.ctx, agg.Name)
+	if err != nil {
+		if !errs.IsNotFoundError(err) {
+			return v.logger.LogPropagate(err)
+		}
+	} else {
+		if !agg.ID.Value.IsZero() {
+			if video.ID.Value != agg.ID.Value {
+				return errs.NewUniquenessCheckFailedError(nameField)
+			}
+		} else {
+			return errs.NewUniquenessCheckFailedError(nameField)
+		}
+	}
+
+	// video validation by resource.id which must be unique too
+	video, err = v.videoRepository.FindByResourceId(v.ctx, agg.Resource.ID)
+	if err != nil {
+		if !errs.IsNotFoundError(err) {
+			return v.logger.LogPropagate(err)
+		}
+	} else {
+		if !agg.ID.Value.IsZero() {
+			if video.ID.Value != agg.ID.Value {
+				return errs.NewUniquenessCheckFailedError(resourceIDField)
+			}
+		} else {
+			return errs.NewUniquenessCheckFailedError(resourceIDField)
+		}
 	}
 
 	return nil
