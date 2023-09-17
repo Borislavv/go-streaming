@@ -119,12 +119,14 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 		changes++
 	}
 	if !dto.GetResourceID().Value.IsZero() {
-		resource, err := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
-		if err != nil {
-			return nil, b.logger.LogPropagate(err)
+		resource, ferr := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
+		if ferr != nil {
+			return nil, b.logger.LogPropagate(ferr)
 		}
-		video.Resource = resource.Resource
-		changes++
+		if video.Resource.ID.Value != resource.Resource.ID.Value {
+			video.Resource = resource.Resource
+			changes++
+		}
 	}
 	if changes > 0 {
 		video.Timestamp.UpdatedAt = time.Now()
