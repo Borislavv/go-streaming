@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -13,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"reflect"
 	"sync"
 	"time"
 )
@@ -155,21 +153,50 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 	return video, nil
 }
 
+func (r *VideoRepository) FindByName(ctx context.Context, name string) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"name": name}).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errs.NewNotFoundError("video", "name")
+		}
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	return video, nil
+}
+
+func (r *VideoRepository) FindByResourceId(ctx context.Context, resourceID vo.ID) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"resource._id": resourceID.Value}).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errs.NewNotFoundError("video", "resource.id")
+		}
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	return video, nil
+}
+
 func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	// TODO Stopped here, validation must be improved, probably need to migrate to store resource id instead of entity.Resource
 	filter := bson.M{}
-	if video.Name != "" && !reflect.DeepEqual(video.Resource, entity.Resource{}) {
+	if video.Name != "" && !video.Resource.ID.Value.IsZero() {
 		filter["$or"] = []bson.M{
 			{"name": video.Name},
-			{"resource": video.Resource},
+			{"resource.id": video.Resource.ID.Value},
 		}
 	} else if video.Name != "" {
 		filter["name"] = video.Name
-	} else if reflect.DeepEqual(video.Resource, entity.Resource{}) {
-		filter["resource"] = video.Resource
+	} else if !video.Resource.ID.Value.IsZero() {
+		filter["resource.id"] = video.Resource.ID.Value
 	}
 
 	foundVideo := &agg.Video{}
@@ -180,9 +207,10 @@ func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, erro
 		return true, r.logger.CriticalPropagate(err)
 	}
 
-	if !foundVideo.ID.Value.IsZero() && foundVideo.ID.Value != video.ID.Value {
+	if foundVideo.ID.Value != video.ID.Value {
 		return true, nil
 	}
+
 	return false, nil
 }
 
