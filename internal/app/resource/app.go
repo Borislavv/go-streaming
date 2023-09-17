@@ -86,8 +86,11 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// resource repository
 	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
 
+	// resource validator
+	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
+
 	// video validator
-	videoValidator := validator.NewVideoValidator(ctx, loggerService, videoRepository, resourceRepository)
+	videoValidator := validator.NewVideoValidator(ctx, loggerService, resourceValidator, videoRepository, resourceRepository)
 
 	// video builder
 	videoBuilder := builder.NewVideoBuilder(ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository)
@@ -104,9 +107,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// resource builder
 	resourceBuilder := builder.NewResourceBuilder(loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
 
-	// resource validator
-	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
-
+	// resource service
 	resourceService := service.NewResourceService(ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository)
 
 	wg.Add(1)
