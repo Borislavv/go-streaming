@@ -1,10 +1,9 @@
 package service
 
 import (
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 )
 
 type Reader interface {
-	Read(resource reader.Resource) chan streamer.Chunk
+	Read(resource dto.Resource) chan dto.Chunk
 }
