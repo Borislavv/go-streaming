@@ -119,8 +119,8 @@ func (s *ResourceStreamer) handleStreamActions(
 
 	videos, err := s.videoRepository.FindList(
 		s.ctx,
-		&dto.VideoListRequestDto{
-			PaginationRequestDto: dto.PaginationRequestDto{
+		&dto.VideoListRequestDTO{
+			PaginationRequestDTO: dto.PaginationRequestDTO{
 				Page:  1,
 				Limit: 10,
 			},
@@ -191,7 +191,7 @@ func (s *ResourceStreamer) sendStopStreamMessage(conn *websocket.Conn) error {
 	return nil
 }
 
-func (s *ResourceStreamer) sendChunkStreamMessage(chunk Chunk, conn *websocket.Conn) error {
+func (s *ResourceStreamer) sendChunkStreamMessage(chunk dto.Chunk, conn *websocket.Conn) error {
 	if chunk.GetError() != nil {
 		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.GetError().Error()))
 	}

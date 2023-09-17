@@ -54,9 +54,9 @@ func NewVideoBuilder(
 	}
 }
 
-// BuildCreateRequestDtoFromRequest - build a dto.VideoCreateRequestDto from raw *http.Request
-func (b *VideoBuilder) BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.VideoCreateRequestDto, error) {
-	v := &dto.VideoCreateRequestDto{}
+// BuildCreateRequestDtoFromRequest - build a dto.VideoCreateRequestDTO from raw *http.Request
+func (b *VideoBuilder) BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.VideoCreateRequestDTO, error) {
+	v := &dto.VideoCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -82,9 +82,9 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg
 	}, nil
 }
 
-// BuildUpdateRequestDtoFromRequest - build a dto.VideoUpdateRequestDto from raw *http.Request
-func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.VideoUpdateRequestDto, error) {
-	videoDto := &dto.VideoUpdateRequestDto{}
+// BuildUpdateRequestDtoFromRequest - build a dto.VideoUpdateRequestDTO from raw *http.Request
+func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.VideoUpdateRequestDTO, error) {
+	videoDto := &dto.VideoUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&videoDto); err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -136,8 +136,8 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 }
 
 // BuildGetRequestDtoFromRequest - build a dto.GetRequest from raw *http.Request
-func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDto, error) {
-	videoDto := &dto.VideoGetRequestDto{}
+func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDTO, error) {
+	videoDto := &dto.VideoGetRequestDTO{}
 
 	hexId, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
@@ -153,8 +153,8 @@ func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.Vide
 }
 
 // BuildListRequestDtoFromRequest - build a dto.ListRequest from raw *http.Request
-func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.VideoListRequestDto, error) {
-	videoDto := &dto.VideoListRequestDto{}
+func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.VideoListRequestDTO, error) {
+	videoDto := &dto.VideoListRequestDTO{}
 
 	if b.extractor.HasParameter(nameField, r) {
 		if nm, err := b.extractor.GetParameter(nameField, r); err == nil {
