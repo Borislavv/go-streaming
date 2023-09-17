@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
@@ -14,38 +15,39 @@ type ResourceValidator struct {
 	repository repository.Resource
 }
 
-func NewResourceValidator(
-	ctx context.Context,
-	repository repository.Resource,
-) *ResourceValidator {
+func NewResourceValidator(ctx context.Context, repository repository.Resource) *ResourceValidator {
 	return &ResourceValidator{
 		ctx:        ctx,
 		repository: repository,
 	}
 }
 
-func (v *ResourceValidator) ValidateUploadRequestDto(req dto.UploadRequest) error {
+func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadRequest) error {
 	if req.GetHeader().Size == 0 {
 		return errs.NewInvalidUploadedFileError(req.GetHeader().Filename)
 	}
 	return nil
 }
 
-func (v *ResourceValidator) ValidateAgg(agg *agg.Resource) error {
-	if agg.GetName() == "" {
+func (v *ResourceValidator) ValidateEntity(entity entity.Resource) error {
+	if entity.GetName() == "" {
 		return errors.New("field 'name' cannot be empty")
 	}
-	if agg.GetFilename() == "" {
+	if entity.GetFilename() == "" {
 		return errors.New("field 'filename' cannot be empty")
 	}
-	if agg.GetFilepath() == "" {
-		return errors.New("field 'path' cannot be empty")
+	if entity.GetFilepath() == "" {
+		return errors.New("field 'filepath' cannot be empty")
 	}
-	if agg.GetFilesize() == 0 {
-		return errors.New("field 'size' cannot be zero")
+	if entity.GetFilesize() == 0 {
+		return errors.New("field 'filesize' cannot be zero")
 	}
-	if len(agg.GetFileMIME()) == 0 {
-		return errors.New("field 'FileMIME' cannot be empty map")
+	if len(entity.GetFileMIME()) == 0 {
+		return errors.New("field 'fileMIME' cannot be empty map")
 	}
 	return nil
+}
+
+func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
+	return v.ValidateEntity(agg.Resource)
 }
