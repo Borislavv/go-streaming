@@ -24,6 +24,11 @@ type LoggableError interface {
 	Level() int
 }
 
+type RequestIdAware interface {
+	RequestId() string
+	SetRequestId(id string)
+}
+
 type introspectedError interface {
 	Date() time.Time
 	Error() string
