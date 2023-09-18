@@ -128,9 +128,11 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			videoService,
 		),
 		app.InitNativeRenderingControllers(
+			loggerService,
 			responseService,
 		),
 		app.InitStaticServingControllers(
+			loggerService,
 			responseService,
 		),
 		loggerService,
@@ -162,26 +164,31 @@ func (app *ResourcesApp) InitRestApiControllers(
 		),
 		// video
 		video.NewCreateController(
+			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
 		video.NewDeleteVideoController(
+			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
 		video.NewGetVideoController(
+			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
 		video.NewListVideoController(
+			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
 		video.NewUpdateVideoController(
+			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
@@ -195,14 +202,20 @@ func (app *ResourcesApp) InitRestApiControllers(
 	}
 }
 
-func (app *ResourcesApp) InitNativeRenderingControllers(responseService response.Responder) []controller.Controller {
+func (app *ResourcesApp) InitNativeRenderingControllers(
+	loggerService *logger.StdOutLogger,
+	responseService response.Responder,
+) []controller.Controller {
 	return []controller.Controller{
-		render.NewIndexController(responseService),
+		render.NewIndexController(loggerService, responseService),
 	}
 }
 
-func (app *ResourcesApp) InitStaticServingControllers(responseService response.Responder) []controller.Controller {
+func (app *ResourcesApp) InitStaticServingControllers(
+	loggerService *logger.StdOutLogger,
+	responseService response.Responder,
+) []controller.Controller {
 	return []controller.Controller{
-		static.NewResourceController(responseService),
+		static.NewResourceController(loggerService, responseService),
 	}
 }
