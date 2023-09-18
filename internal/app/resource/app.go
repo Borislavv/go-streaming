@@ -130,7 +130,9 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		app.InitNativeRenderingControllers(
 			responseService,
 		),
-		app.InitStaticServingControllers(),
+		app.InitStaticServingControllers(
+			responseService,
+		),
 		loggerService,
 		reqParamsExtractor,
 	).Listen(ctx, wg)
@@ -199,8 +201,8 @@ func (app *ResourcesApp) InitNativeRenderingControllers(responseService response
 	}
 }
 
-func (app *ResourcesApp) InitStaticServingControllers() []controller.Controller {
+func (app *ResourcesApp) InitStaticServingControllers(responseService response.Responder) []controller.Controller {
 	return []controller.Controller{
-		static.NewResourceController(),
+		static.NewResourceController(responseService),
 	}
 }
