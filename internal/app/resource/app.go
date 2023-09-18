@@ -127,7 +127,9 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			videoBuilder,
 			videoService,
 		),
-		app.InitNativeRenderingControllers(),
+		app.InitNativeRenderingControllers(
+			responseService,
+		),
 		app.InitStaticServingControllers(),
 		loggerService,
 		reqParamsExtractor,
@@ -191,9 +193,9 @@ func (app *ResourcesApp) InitRestApiControllers(
 	}
 }
 
-func (app *ResourcesApp) InitNativeRenderingControllers() []controller.Controller {
+func (app *ResourcesApp) InitNativeRenderingControllers(responseService response.Responder) []controller.Controller {
 	return []controller.Controller{
-		render.NewIndexController(),
+		render.NewIndexController(responseService),
 	}
 }
 
