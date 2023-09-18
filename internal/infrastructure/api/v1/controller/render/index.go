@@ -1,10 +1,10 @@
 package render
 
 import (
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -14,39 +14,39 @@ const (
 )
 
 type IndexController struct {
+	responder response.Responder
 }
 
-func NewIndexController() *IndexController {
-	return &IndexController{}
+func NewIndexController(responder response.Responder) *IndexController {
+	return &IndexController{
+		responder: responder,
+	}
 }
 
-func (i *IndexController) Index(w http.ResponseWriter, r *http.Request) {
+func (c *IndexController) Index(w http.ResponseWriter, r *http.Request) {
 	tplPath, err := helper.TemplatePath(TemplateName)
 	if err != nil {
-		http.Error(w, "Internal server error, please contact with administrator.", http.StatusInternalServerError)
-		log.Println("unable to parse path to index.html template", err)
+		c.responder.Respond(w, err)
 		return
 	}
 
 	tpl, err := template.ParseFiles(tplPath)
 	if err != nil {
-		http.Error(w, "Internal server error, please contact with administrator.", http.StatusInternalServerError)
-		log.Println("unable to parse index.html template", err)
+		c.responder.Respond(w, err)
 		return
 	}
 
 	if err = tpl.Execute(w, nil); err != nil {
 		if err != nil {
-			http.Error(w, "Internal server error, please contact with administrator.", http.StatusInternalServerError)
-			log.Println("unable to render index.html template", err)
+			c.responder.Respond(w, err)
 			return
 		}
 	}
 }
 
-func (i *IndexController) AddRoute(router *mux.Router) {
+func (c *IndexController) AddRoute(router *mux.Router) {
 	router.
 		Path(IndexPath).
-		HandlerFunc(i.Index).
+		HandlerFunc(c.Index).
 		Methods(http.MethodGet)
 }
