@@ -1,6 +1,7 @@
 package render
 
 import (
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
@@ -14,31 +15,36 @@ const (
 )
 
 type IndexController struct {
+	logger    logger.Logger
 	responder response.Responder
 }
 
-func NewIndexController(responder response.Responder) *IndexController {
+func NewIndexController(
+	logger logger.Logger,
+	responder response.Responder,
+) *IndexController {
 	return &IndexController{
+		logger:    logger,
 		responder: responder,
 	}
 }
 
-func (c *IndexController) Index(w http.ResponseWriter, r *http.Request) {
+func (c *IndexController) Index(w http.ResponseWriter, _ *http.Request) {
 	tplPath, err := helper.TemplatePath(TemplateName)
 	if err != nil {
-		c.responder.Respond(w, err)
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
 	tpl, err := template.ParseFiles(tplPath)
 	if err != nil {
-		c.responder.Respond(w, err)
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
 	if err = tpl.Execute(w, nil); err != nil {
 		if err != nil {
-			c.responder.Respond(w, err)
+			c.responder.Respond(w, c.logger.LogPropagate(err))
 			return
 		}
 	}
