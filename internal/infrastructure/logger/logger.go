@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"io"
 	"log"
 	"runtime"
@@ -41,12 +41,20 @@ func (l *Logger) SetOutput(w io.Writer) {
 	l.writer = w
 }
 
+func (l *Logger) Writer() io.Writer {
+	return l.writer
+}
+
 func (l *Logger) SetContext(ctx context.Context) {
 	l.ctx = ctx
 }
 
-func (l *Logger) LogRequestInfo(info any) {
-	l.reqCh <- info
+func (l *Logger) Context() context.Context {
+	return l.ctx
+}
+
+func (l *Logger) LogData(data any) {
+	l.reqCh <- data
 }
 
 func (l *Logger) Log(err error) {
@@ -267,7 +275,7 @@ func (l *Logger) EmergencyPropagate(strOrErr any) error {
 func (l *Logger) handle() {
 	go func() {
 		for err := range l.errCh {
-			if uniqReqID := l.ctx.Value(http.UniqueRequestIdKey); uniqReqID != nil {
+			if uniqReqID := l.ctx.Value(enum.UniqueRequestIdKey); uniqReqID != nil {
 				if strUniqReqID, ok := uniqReqID.(string); ok {
 					err.SetRequestId(strUniqReqID)
 				}
@@ -292,6 +300,7 @@ func (l *Logger) handle() {
 
 	go func() {
 		for info := range l.reqCh {
+			// todo set up the all data or at least request id here
 			j, e := json.MarshalIndent(info, "", "  ")
 			if e != nil {
 				_, fmterr := fmt.Fprintln(l.writer, e)

@@ -2,11 +2,15 @@ package response
 
 import (
 	"encoding/json"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
 	"net/http"
+	"time"
 )
+
+const LogType = "response"
 
 type DataResponse struct {
 	Data any `json:"data"`
@@ -74,9 +78,35 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 		}
 		return
 	}
-	if _, err = w.Write(r.toBytes(NewDataResponse(dataOrErr))); err != nil {
+
+	resp := NewDataResponse(dataOrErr)
+	if _, err = w.Write(r.toBytes(resp)); err != nil {
 		r.logger.Emergency(err)
 	}
+	r.logResponse(resp)
+}
+
+func (r *Response) logResponse(resp DataResponse) {
+	requestID := ""
+	if uniqReqID := r.logger.Context().Value(enum.UniqueRequestIdKey); uniqReqID != nil {
+		if strUniqReqID, ok := uniqReqID.(string); ok {
+			requestID = strUniqReqID
+		}
+	}
+
+	respData := struct {
+		Date      time.Time `json:"date"`
+		RequestId string    `json:"requestID,omitempty"`
+		Type      string    `json:"type"`
+		DataResponse
+	}{
+		Date:         time.Now(),
+		RequestId:    requestID,
+		Type:         LogType,
+		DataResponse: resp,
+	}
+
+	r.logger.LogData(respData)
 }
 
 func (r *Response) toBytes(resp any) []byte {

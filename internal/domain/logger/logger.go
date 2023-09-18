@@ -8,7 +8,7 @@ import (
 type Logger interface {
 	Log(err error)
 	LogPropagate(err error) error
-	LogRequestInfo(info any)
+	LogData(data any)
 
 	Info(strOrErr any)
 	InfoPropagate(strOrErr any) error
@@ -28,7 +28,9 @@ type Logger interface {
 	Emergency(strOrErr any)
 	EmergencyPropagate(strOrErr any) error
 
+	Writer() io.Writer
 	SetOutput(w io.Writer)
+	Context() context.Context
 	SetContext(ctx context.Context)
 
 	Close() func()
