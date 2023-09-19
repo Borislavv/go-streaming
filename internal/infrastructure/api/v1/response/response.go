@@ -74,9 +74,25 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 		}
 		return
 	}
-	if _, err = w.Write(r.toBytes(NewDataResponse(dataOrErr))); err != nil {
+
+	// building a new response data
+	resp := NewDataResponse(dataOrErr)
+	// writing a response data
+	if _, err = w.Write(r.toBytes(resp)); err != nil {
 		r.logger.Emergency(err)
 	}
+	// logging a response
+	r.logResponse(resp)
+}
+
+func (r *Response) logResponse(resp DataResponse) {
+	r.logger.LogData(
+		&LoggableData{
+			Date:         time.Now(),
+			Type:         LogType,
+			DataResponse: resp,
+		},
+	)
 }
 
 func (r *Response) toBytes(resp any) []byte {
