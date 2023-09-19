@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -15,6 +16,11 @@ import (
 )
 
 const ResourcesCollection = "resources"
+
+var (
+	ResourceNotFoundByIdError    = errs.NewNotFoundError("resource", "id")
+	ResourceInsertingFailedError = errors.New("unable to store 'resource' or retrieve inserted 'id'")
+)
 
 type ResourceRepository struct {
 	db      *mongo.Collection
@@ -39,7 +45,7 @@ func (r *ResourceRepository) Find(ctx context.Context, id vo.ID) (*agg.Resource,
 	resourceAgg := &agg.Resource{}
 	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(resourceAgg); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, r.logger.InfoPropagate(errs.NewNotFoundError("resource", "id"))
+			return nil, r.logger.InfoPropagate(ResourceNotFoundByIdError)
 		}
 		return nil, r.logger.ErrorPropagate(err)
 	}
@@ -60,5 +66,5 @@ func (r *ResourceRepository) Insert(ctx context.Context, resource *agg.Resource)
 		return r.Find(qCtx, vo.ID{Value: oid})
 	}
 
-	return nil, r.logger.CriticalPropagate("unable to store 'resource' or retrieve inserted 'id'")
+	return nil, r.logger.CriticalPropagate(ResourceInsertingFailedError)
 }
