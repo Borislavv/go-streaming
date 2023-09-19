@@ -69,6 +69,7 @@ func (l *Logger) Info(strOrErr any) {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: InfoLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -85,6 +86,7 @@ func (l *Logger) InfoPropagate(strOrErr any) error {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: InfoLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -103,6 +105,7 @@ func (l *Logger) Debug(strOrErr any) {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: DebugLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -119,6 +122,7 @@ func (l *Logger) DebugPropagate(strOrErr any) error {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: DebugLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -137,6 +141,7 @@ func (l *Logger) Warning(strOrErr any) {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -153,6 +158,7 @@ func (l *Logger) WarningPropagate(strOrErr any) error {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -171,6 +177,7 @@ func (l *Logger) Error(strOrErr any) {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -187,6 +194,7 @@ func (l *Logger) ErrorPropagate(strOrErr any) error {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -205,6 +213,7 @@ func (l *Logger) Critical(strOrErr any) {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -221,6 +230,7 @@ func (l *Logger) CriticalPropagate(strOrErr any) error {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -239,6 +249,7 @@ func (l *Logger) Emergency(strOrErr any) {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -255,6 +266,7 @@ func (l *Logger) EmergencyPropagate(strOrErr any) error {
 		introspectionError{
 			Dt: time.Now(),
 			Mg: err.Error(),
+			Tp: ErrorLogType,
 			Fl: file,
 			Fn: function,
 			Ln: line,
@@ -292,6 +304,14 @@ func (l *Logger) handle() {
 
 	go func() {
 		for info := range l.reqCh {
+			if uniqReqID := l.ctx.Value(enum.UniqueRequestIdKey); uniqReqID != nil {
+				if strUniqReqID, ok := uniqReqID.(string); ok {
+					if infoObj, iok := info.(RequestIdAware); iok {
+						infoObj.SetRequestID(strUniqReqID)
+					}
+				}
+			}
+
 			j, e := json.MarshalIndent(info, "", "  ")
 			if e != nil {
 				_, fmterr := fmt.Fprintln(l.writer, e)
@@ -317,6 +337,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: e.Error(),
+				Tp: ErrorLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
@@ -331,6 +352,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: err.Error(),
+				Tp: InfoLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
@@ -342,6 +364,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: err.Error(),
+				Tp: DebugLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
@@ -353,6 +376,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: err.Error(),
+				Tp: ErrorLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
@@ -364,6 +388,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: err.Error(),
+				Tp: ErrorLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
@@ -375,6 +400,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: err.Error(),
+				Tp: ErrorLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
@@ -386,6 +412,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 			introspectionError{
 				Dt: time.Now(),
 				Mg: err.Error(),
+				Tp: ErrorLogType,
 				Fl: file,
 				Fn: function,
 				Ln: line,
