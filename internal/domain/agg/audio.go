@@ -6,7 +6,7 @@ import (
 )
 
 type Audio struct {
-	ID        vo.ID        `json:"id,omitempty" bson:"_id,omitempty,inline"`
-	Audio     entity.Audio `bson:",inline"`
-	Timestamp vo.Timestamp `bson:",inline"`
+	entity.Audio `bson:",inline"`
+	Resource     entity.Resource `json:"resource" bson:"resource"`
+	Timestamp    vo.Timestamp    `bson:",inline"`
 }

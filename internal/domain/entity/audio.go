@@ -1,19 +1,9 @@
 package entity
 
+import "github.com/Borislavv/video-streaming/internal/domain/vo"
+
 type Audio struct {
+	ID          vo.ID  `json:"id,omitempty" bson:"_id,omitempty,inline"`
 	Name        string `bson:"name"`
-	Path        string `bson:"path"`
 	Description string `bson:"description,omitempty"`
-}
-
-func NewAudio(name string, path string, description string) *Audio {
-	return &Audio{
-		Name:        name,
-		Path:        path,
-		Description: description,
-	}
-}
-
-func (v *Audio) GetFilepath() string {
-	return v.Path
 }

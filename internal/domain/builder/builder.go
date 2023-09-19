@@ -7,16 +7,16 @@ import (
 )
 
 type Resource interface {
-	BuildUploadRequestDtoFromRequest(r *http.Request) (*dto.ResourceUploadRequestDto, error)
-	BuildAggFromUploadRequestDto(req dto.UploadRequest) *agg.Resource
+	BuildUploadRequestDTOFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error)
+	BuildAggFromUploadRequestDTO(req dto.UploadRequest) *agg.Resource
 }
 
 type Video interface {
-	BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDto, error)
-	BuildListRequestDtoFromRequest(r *http.Request) (*dto.VideoListRequestDto, error)
-	BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.VideoCreateRequestDto, error)
-	BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.VideoUpdateRequestDto, error)
-	BuildDeleteRequestDtoFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error)
-	BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg.Video, error)
-	BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg.Video, error)
+	BuildGetRequestDTOFromRequest(r *http.Request) (*dto.VideoGetRequestDTO, error)
+	BuildListRequestDTOFromRequest(r *http.Request) (*dto.VideoListRequestDTO, error)
+	BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.VideoCreateRequestDTO, error)
+	BuildAggFromCreateRequestDTO(dto dto.CreateRequest) (*agg.Video, error)
+	BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.VideoUpdateRequestDTO, error)
+	BuildAggFromUpdateRequestDTO(dto dto.UpdateRequest) (*agg.Video, error)
+	BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error)
 }

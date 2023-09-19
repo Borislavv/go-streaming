@@ -1,9 +1,10 @@
 package static
 
 import (
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -11,17 +12,24 @@ import (
 const ResourcesPrefix = "/static/"
 
 type ResourceController struct {
+	logger    logger.Logger
+	responder response.Responder
 }
 
-func NewResourceController() *ResourceController {
-	return &ResourceController{}
+func NewResourceController(
+	logger logger.Logger,
+	responder response.Responder,
+) *ResourceController {
+	return &ResourceController{
+		logger:    logger,
+		responder: responder,
+	}
 }
 
-func (i *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
+func (c *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
 	dir, err := helper.StaticFilesDir()
 	if err != nil {
-		http.Error(w, "Internal server error, please contact with administrator.", http.StatusInternalServerError)
-		log.Println("unable to serve static files due to unable receive resources path", err)
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
@@ -33,9 +41,9 @@ func (i *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, dir+path)
 }
 
-func (i *ResourceController) AddRoute(router *mux.Router) {
+func (c *ResourceController) AddRoute(router *mux.Router) {
 	router.
 		PathPrefix(ResourcesPrefix).
-		HandlerFunc(i.Serve).
+		HandlerFunc(c.Serve).
 		Methods(http.MethodGet)
 }

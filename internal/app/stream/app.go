@@ -62,20 +62,24 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	// connect to target mongodb database
 	db := mongoClient.Database(app.cfg.MongoDb)
 
-	// init. video repository
+	// video repository
 	videoRepository := mongodb.NewVideoRepository(db, loggerService, time.Minute)
 
-	// init. resource reader service
+	// resource reader service
 	readerService := reader.NewReaderService(loggerService)
 
-	// init. resource streaming service
+	// resource streaming service
 	streamingService := streamer.NewStreamingService(ctx, loggerService, readerService, videoRepository)
 
-	// init. streaming websocket service
-	server := socket.NewSocketServer(app.cfg.Host, app.cfg.Port, app.cfg.Transport, streamingService, loggerService)
-
+	// websocket server
 	wg.Add(1)
-	go server.Listen(ctx, wg)
+	go socket.NewSocketServer(
+		app.cfg.Host,
+		app.cfg.Port,
+		app.cfg.Transport,
+		streamingService,
+		loggerService,
+	).Listen(ctx, wg)
 
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)

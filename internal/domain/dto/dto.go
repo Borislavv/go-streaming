@@ -12,11 +12,10 @@ type CreateRequest interface {
 	GetDescription() string
 }
 
-// TODO updating of resource must be implemented
 type UpdateRequest interface {
 	GetId() vo.ID
 	GetName() string
-	//GetResourceID() vo.ID
+	GetResourceID() vo.ID
 	GetDescription() string
 }
 
@@ -47,19 +46,19 @@ type PaginatedRequest interface {
 	GetLimit() int
 }
 
-type Chunked interface {
-	GetLen() int
-	SetLen(len int)
-	GetData() []byte
-	SetData(data []byte)
-	GetError() error
-	SetError(err error)
-}
-
 type Resource interface {
 	GetFilepath() string
 	//GetName() string
 	//GetFilename() string
 	//GetFilesize() int64
 	//GetFileMIME() textproto.MIMEHeader
+}
+
+type Chunk interface {
+	GetLen() int
+	SetLen(len int)
+	GetData() []byte
+	SetData(data []byte)
+	GetError() error
+	SetError(err error)
 }

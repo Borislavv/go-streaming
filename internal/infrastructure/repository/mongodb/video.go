@@ -18,6 +18,11 @@ import (
 
 const VideosCollection = "videos"
 
+var (
+	VideoNotFoundByIdError       = errs.NewNotFoundError("video", "id")
+	VideoNotFoundByResourceError = errs.NewNotFoundError("video", "resource")
+)
+
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
@@ -38,15 +43,30 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	videoAgg := &agg.Video{}
-	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(videoAgg); err != nil {
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(video); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, r.logger.InfoPropagate(errs.NewNotFoundError("video"))
+			return nil, r.logger.InfoPropagate(VideoNotFoundByIdError)
 		}
 		return nil, r.logger.ErrorPropagate(err)
 	}
 
-	return videoAgg, nil
+	return video, nil
+}
+
+func (r *VideoRepository) FindByResource(ctx context.Context, resource *agg.Resource) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"resource": bson.M{"$eq": resource.Resource}}).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, VideoNotFoundByResourceError
+		}
+		return nil, r.logger.ErrorPropagate(err)
+	}
+
+	return video, nil
 }
 
 func (r *VideoRepository) FindList(ctx context.Context, dto dto.ListRequest) ([]*agg.Video, error) {
@@ -133,35 +153,64 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 	return video, nil
 }
 
+func (r *VideoRepository) FindByName(ctx context.Context, name string) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"name": name}).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errs.NewNotFoundError("video", "name")
+		}
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	return video, nil
+}
+
+func (r *VideoRepository) FindByResourceId(ctx context.Context, resourceID vo.ID) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, bson.M{"resource._id": resourceID.Value}).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errs.NewNotFoundError("video", "resource.id")
+		}
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	return video, nil
+}
+
 func (r *VideoRepository) Has(ctx context.Context, video *agg.Video) (bool, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	opts := options.Find().
-		SetLimit(1)
-
 	filter := bson.M{}
-	if video.Name != "" {
+	if video.Name != "" && !video.Resource.ID.Value.IsZero() {
+		filter["$or"] = []bson.M{
+			{"name": video.Name},
+			{"resource.id": video.Resource.ID.Value},
+		}
+	} else if video.Name != "" {
 		filter["name"] = video.Name
+	} else if !video.Resource.ID.Value.IsZero() {
+		filter["resource.id"] = video.Resource.ID.Value
 	}
 
-	var videos []*agg.Video
-	cursor, err := r.db.Find(qCtx, filter, opts)
-	if err != nil {
+	foundVideo := &agg.Video{}
+	if err := r.db.FindOne(qCtx, filter).Decode(foundVideo); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
 		}
 		return true, r.logger.CriticalPropagate(err)
 	}
-	defer func() { _ = cursor.Close(qCtx) }()
 
-	if err = cursor.All(qCtx, &videos); err != nil {
-		return true, r.logger.CriticalPropagate(err)
-	}
-
-	if len(videos) > 0 {
+	if foundVideo.ID.Value != video.ID.Value {
 		return true, nil
 	}
+
 	return false, nil
 }
 

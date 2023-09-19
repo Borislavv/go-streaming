@@ -33,17 +33,15 @@ func NewUploadResourceController(
 }
 
 func (c *UploadResourceController) Upload(w http.ResponseWriter, r *http.Request) {
-	req, err := c.builder.BuildUploadRequestDtoFromRequest(r)
+	req, err := c.builder.BuildUploadRequestDTOFromRequest(r)
 	if err != nil {
-		c.logger.Log(err)
-		c.responder.Respond(w, err)
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
 	agg, err := c.service.Upload(req)
 	if err != nil {
-		c.logger.Log(err)
-		c.responder.Respond(w, err)
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 

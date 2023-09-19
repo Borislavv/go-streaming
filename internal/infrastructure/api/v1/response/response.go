@@ -2,11 +2,15 @@ package response
 
 import (
 	"encoding/json"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errs"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
 	"net/http"
+	"time"
 )
+
+const LogType = "response"
 
 type DataResponse struct {
 	Data any `json:"data"`

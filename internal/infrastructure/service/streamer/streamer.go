@@ -119,8 +119,8 @@ func (s *ResourceStreamer) handleStreamActions(
 
 	videos, err := s.videoRepository.FindList(
 		s.ctx,
-		&dto.VideoListRequestDto{
-			PaginationRequestDto: dto.PaginationRequestDto{
+		&dto.VideoListRequestDTO{
+			PaginationRequestDTO: dto.PaginationRequestDTO{
 				Page:  1,
 				Limit: 10,
 			},
@@ -128,6 +128,10 @@ func (s *ResourceStreamer) handleStreamActions(
 	)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
+		return
+	}
+	// TODO must be implemented select a video from client, at now if services has not any videos, return
+	if len(videos) < 1 {
 		return
 	}
 
@@ -187,12 +191,12 @@ func (s *ResourceStreamer) sendStopStreamMessage(conn *websocket.Conn) error {
 	return nil
 }
 
-func (s *ResourceStreamer) sendChunkStreamMessage(chunk *dto.Chunk, conn *websocket.Conn) error {
-	if chunk.Err != nil {
-		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.Err.Error()))
+func (s *ResourceStreamer) sendChunkStreamMessage(chunk dto.Chunk, conn *websocket.Conn) error {
+	if chunk.GetError() != nil {
+		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.GetError().Error()))
 	}
 
-	if err := conn.WriteMessage(websocket.BinaryMessage, chunk.Data); err != nil {
+	if err := conn.WriteMessage(websocket.BinaryMessage, chunk.GetData()); err != nil {
 		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
 
@@ -216,7 +220,7 @@ func (s *ResourceStreamer) streamResource(resource entity.Resource, conn *websoc
 		s.logger.Info(
 			fmt.Sprintf(
 				"[%v]: wrote %d bytes of '%v' to websocket",
-				conn.RemoteAddr(), chunk.Len, resource.Name,
+				conn.RemoteAddr(), chunk.GetLen(), resource.Name,
 			),
 		)
 	}

@@ -2,6 +2,7 @@ package video
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/service"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
@@ -11,17 +12,20 @@ import (
 const DeletePath = "/video/{id}"
 
 type DeleteVideoController struct {
+	logger   logger.Logger
 	builder  builder.Video
 	service  service.Video
 	response response.Responder
 }
 
 func NewDeleteVideoController(
+	logger logger.Logger,
 	builder builder.Video,
 	service service.Video,
 	response response.Responder,
 ) *DeleteVideoController {
 	return &DeleteVideoController{
+		logger:   logger,
 		builder:  builder,
 		service:  service,
 		response: response,
@@ -29,14 +33,14 @@ func NewDeleteVideoController(
 }
 
 func (c *DeleteVideoController) Delete(w http.ResponseWriter, r *http.Request) {
-	videoDto, err := c.builder.BuildDeleteRequestDtoFromRequest(r)
+	videoDto, err := c.builder.BuildDeleteRequestDTOFromRequest(r)
 	if err != nil {
-		c.response.Respond(w, err)
+		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
 	if err = c.service.Delete(videoDto); err != nil {
-		c.response.Respond(w, err)
+		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 

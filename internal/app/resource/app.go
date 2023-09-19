@@ -74,39 +74,40 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// connect to target mongodb database
 	db := mongoClient.Database(app.cfg.MongoDb)
 
-	// init. request param. resolver
+	// request param. resolver
 	reqParamsExtractor := request.NewParametersExtractor()
 
-	// init. response service
+	// response service
 	responseService := response.NewResponseService(loggerService)
 
-	// init. video repository
+	// video repository
 	videoRepository := mongodb.NewVideoRepository(db, loggerService, time.Minute)
 
-	// init. video validator
-	videoValidator := validator.NewVideoValidator(ctx, videoRepository)
-
-	// init. Resource repository
+	// resource repository
 	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
 
-	// init. video builder
-	videoBuilder := builder.NewVideoBuilder(ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository)
-
-	// init. video service
-	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
-
-	// init. filesystem storage
-	filesystemStorage := storage.NewFilesystemStorage(loggerService)
-
-	// init. native uploader
-	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
-
-	// init. of the Resource builder
-	resourceBuilder := builder.NewResourceBuilder(loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
-
-	// init. resource validator
+	// resource validator
 	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
 
+	// video validator
+	videoValidator := validator.NewVideoValidator(ctx, loggerService, resourceValidator, videoRepository, resourceRepository)
+
+	// video builder
+	videoBuilder := builder.NewVideoBuilder(ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository)
+
+	// video service
+	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
+
+	// filesystem storage
+	filesystemStorage := storage.NewFilesystemStorage(loggerService)
+
+	// native uploader service
+	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
+
+	// resource builder
+	resourceBuilder := builder.NewResourceBuilder(loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
+
+	// resource service
 	resourceService := service.NewResourceService(ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository)
 
 	wg.Add(1)
@@ -118,56 +119,22 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		app.cfg.ApiVersionPrefix,
 		app.cfg.RenderVersionPrefix,
 		app.cfg.StaticVersionPrefix,
-		// rest api controllers
-		[]controller.Controller{
-			// resource
-			resource.NewUploadResourceController(
-				loggerService,
-				resourceBuilder,
-				resourceService,
-				responseService,
-			),
-			// video
-			video.NewCreateController(
-				videoBuilder,
-				videoService,
-				responseService,
-			),
-			video.NewDeleteVideoController(
-				videoBuilder,
-				videoService,
-				responseService,
-			),
-			video.NewGetVideoController(
-				videoBuilder,
-				videoService,
-				responseService,
-			),
-			video.NewListVideoController(
-				videoBuilder,
-				videoService,
-				responseService,
-			),
-			video.NewUpdateVideoController(
-				videoBuilder,
-				videoService,
-				responseService,
-			),
-			// audio
-			audio.NewCreateController(),
-			audio.NewDeleteVideoController(),
-			audio.NewGetVideoController(),
-			audio.NewListVideoController(),
-			audio.NewUpdateVideoController(),
-		},
-		// native rendering controllers
-		[]controller.Controller{
-			render.NewIndexController(),
-		},
-		// static serving controllers
-		[]controller.Controller{
-			static.NewResourceController(),
-		},
+		app.InitRestApiControllers(
+			loggerService,
+			responseService,
+			resourceBuilder,
+			resourceService,
+			videoBuilder,
+			videoService,
+		),
+		app.InitNativeRenderingControllers(
+			loggerService,
+			responseService,
+		),
+		app.InitStaticServingControllers(
+			loggerService,
+			responseService,
+		),
 		loggerService,
 		reqParamsExtractor,
 	).Listen(ctx, wg)
@@ -175,4 +142,80 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
 	<-stopCh
+}
+
+func (app *ResourcesApp) InitRestApiControllers(
+	loggerService *logger.StdOutLogger,
+	responseService response.Responder,
+	// resource deps.
+	resourceBuilder builder.Resource,
+	resourceService service.Resource,
+	// video deps.
+	videoBuilder builder.Video,
+	videoService service.Video,
+) []controller.Controller {
+	return []controller.Controller{
+		// resource
+		resource.NewUploadResourceController(
+			loggerService,
+			resourceBuilder,
+			resourceService,
+			responseService,
+		),
+		// video
+		video.NewCreateController(
+			loggerService,
+			videoBuilder,
+			videoService,
+			responseService,
+		),
+		video.NewDeleteVideoController(
+			loggerService,
+			videoBuilder,
+			videoService,
+			responseService,
+		),
+		video.NewGetVideoController(
+			loggerService,
+			videoBuilder,
+			videoService,
+			responseService,
+		),
+		video.NewListVideoController(
+			loggerService,
+			videoBuilder,
+			videoService,
+			responseService,
+		),
+		video.NewUpdateVideoController(
+			loggerService,
+			videoBuilder,
+			videoService,
+			responseService,
+		),
+		// audio
+		audio.NewCreateController(),
+		audio.NewDeleteVideoController(),
+		audio.NewGetVideoController(),
+		audio.NewListVideoController(),
+		audio.NewUpdateVideoController(),
+	}
+}
+
+func (app *ResourcesApp) InitNativeRenderingControllers(
+	loggerService *logger.StdOutLogger,
+	responseService response.Responder,
+) []controller.Controller {
+	return []controller.Controller{
+		render.NewIndexController(loggerService, responseService),
+	}
+}
+
+func (app *ResourcesApp) InitStaticServingControllers(
+	loggerService *logger.StdOutLogger,
+	responseService response.Responder,
+) []controller.Controller {
+	return []controller.Controller{
+		static.NewResourceController(loggerService, responseService),
+	}
 }

@@ -30,11 +30,11 @@ const (
 )
 
 type VideoBuilder struct {
-	logger    logger.Logger
-	ctx       context.Context
-	extractor request.Extractor
-	video     repository.Video
-	resource  repository.Resource
+	logger             logger.Logger
+	ctx                context.Context
+	extractor          request.Extractor
+	videoRepository    repository.Video
+	resourceRepository repository.Resource
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
@@ -42,30 +42,30 @@ func NewVideoBuilder(
 	ctx context.Context,
 	logger logger.Logger,
 	extractor request.Extractor,
-	video repository.Video,
-	resource repository.Resource,
+	videoRepository repository.Video,
+	resourceRepository repository.Resource,
 ) *VideoBuilder {
 	return &VideoBuilder{
-		ctx:       ctx,
-		logger:    logger,
-		extractor: extractor,
-		video:     video,
-		resource:  resource,
+		ctx:                ctx,
+		logger:             logger,
+		extractor:          extractor,
+		videoRepository:    videoRepository,
+		resourceRepository: resourceRepository,
 	}
 }
 
-// BuildCreateRequestDtoFromRequest - build a dto.VideoCreateRequestDto from raw *http.Request
-func (b *VideoBuilder) BuildCreateRequestDtoFromRequest(r *http.Request) (*dto.VideoCreateRequestDto, error) {
-	v := &dto.VideoCreateRequestDto{}
+// BuildCreateRequestDTOFromRequest - build a dto.CreateRequest from raw *http.Request
+func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.VideoCreateRequestDTO, error) {
+	v := &dto.VideoCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 	return v, nil
 }
 
-// BuildAggFromCreateRequestDto - build an agg.Video from dto.CreateRequest
-func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg.Video, error) {
-	resource, err := b.resource.Find(b.ctx, dto.GetResourceID())
+// BuildAggFromCreateRequestDTO - build an agg.Video from dto.CreateRequest
+func (b *VideoBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateRequest) (*agg.Video, error) {
+	resource, err := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -82,9 +82,9 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDto(dto dto.CreateRequest) (*agg
 	}, nil
 }
 
-// BuildUpdateRequestDtoFromRequest - build a dto.VideoUpdateRequestDto from raw *http.Request
-func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.VideoUpdateRequestDto, error) {
-	videoDto := &dto.VideoUpdateRequestDto{}
+// BuildUpdateRequestDTOFromRequest - build a dto.UpdateRequest from raw *http.Request
+func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.VideoUpdateRequestDTO, error) {
+	videoDto := &dto.VideoUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&videoDto); err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -102,9 +102,9 @@ func (b *VideoBuilder) BuildUpdateRequestDtoFromRequest(r *http.Request) (*dto.V
 	return videoDto, nil
 }
 
-// BuildAggFromUpdateRequestDto - build an agg.Video from dto.UpdateRequest
-func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg.Video, error) {
-	video, err := b.video.Find(b.ctx, dto.GetId())
+// BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateRequest
+func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateRequest) (*agg.Video, error) {
+	video, err := b.videoRepository.Find(b.ctx, dto.GetId())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -118,6 +118,16 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 		video.Description = dto.GetDescription()
 		changes++
 	}
+	if !dto.GetResourceID().Value.IsZero() {
+		resource, ferr := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
+		if ferr != nil {
+			return nil, b.logger.LogPropagate(ferr)
+		}
+		if video.Resource.ID.Value != resource.Resource.ID.Value {
+			video.Resource = resource.Resource
+			changes++
+		}
+	}
 	if changes > 0 {
 		video.Timestamp.UpdatedAt = time.Now()
 	}
@@ -125,9 +135,9 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDto(dto dto.UpdateRequest) (*agg
 	return video, nil
 }
 
-// BuildGetRequestDtoFromRequest - build a dto.GetRequest from raw *http.Request
-func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.VideoGetRequestDto, error) {
-	videoDto := &dto.VideoGetRequestDto{}
+// BuildGetRequestDTOFromRequest - build a dto.GetRequest from raw *http.Request
+func (b *VideoBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.VideoGetRequestDTO, error) {
+	videoDto := &dto.VideoGetRequestDTO{}
 
 	hexId, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
@@ -142,9 +152,9 @@ func (b *VideoBuilder) BuildGetRequestDtoFromRequest(r *http.Request) (*dto.Vide
 	return videoDto, nil
 }
 
-// BuildListRequestDtoFromRequest - build a dto.ListRequest from raw *http.Request
-func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.VideoListRequestDto, error) {
-	videoDto := &dto.VideoListRequestDto{}
+// BuildListRequestDTOFromRequest - build a dto.ListRequest from raw *http.Request
+func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.VideoListRequestDTO, error) {
+	videoDto := &dto.VideoListRequestDTO{}
 
 	if b.extractor.HasParameter(nameField, r) {
 		if nm, err := b.extractor.GetParameter(nameField, r); err == nil {
@@ -205,9 +215,9 @@ func (b *VideoBuilder) BuildListRequestDtoFromRequest(r *http.Request) (*dto.Vid
 	return videoDto, nil
 }
 
-// BuildDeleteRequestDtoFromRequest - build a dto.DeleteRequest from raw *http.Request
-func (b *VideoBuilder) BuildDeleteRequestDtoFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error) {
-	videoGetDto, err := b.BuildGetRequestDtoFromRequest(r)
+// BuildDeleteRequestDTOFromRequest - build a dto.DeleteRequest from raw *http.Request
+func (b *VideoBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error) {
+	videoGetDto, err := b.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
