@@ -2,9 +2,10 @@ package http
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/domain/api/request"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
 	"github.com/gorilla/mux"
 	"net"
@@ -12,8 +13,6 @@ import (
 	"sync"
 	"time"
 )
-
-const UniqueRequestIdKey = "UniqueRequestId"
 
 type Server struct {
 	ctx context.Context
@@ -31,7 +30,7 @@ type Server struct {
 	staticControllers []controller.Controller
 
 	logger             logger.Logger
-	reqParamsExtractor request.Extractor
+	reqParamsExtractor *request.ParametersExtractor
 }
 
 func NewHttpServer(
@@ -46,7 +45,7 @@ func NewHttpServer(
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
-	reqParamsExtractor request.Extractor,
+	reqParamsExtractor *request.ParametersExtractor,
 ) *Server {
 	return &Server{
 		ctx:                 ctx,
@@ -151,17 +150,11 @@ func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			requestInfo := struct {
-				Date       time.Time         `json:"date"`
-				RequestId  string            `json:"requestID"`
-				Method     string            `json:"method"`
-				URL        string            `json:"URL"`
-				Header     http.Header       `json:"header"`
-				RemoteAddr string            `json:"remoteAddr"`
-				Params     map[string]string `json:"params"`
-			}{
+
+			requestData := &request.LoggableData{
 				Date:       time.Now(),
-				RequestId:  ruid.RequestUniqueID(r),
+				ReqID:      ruid.RequestUniqueID(r),
+				Type:       request.LogType,
 				Method:     r.Method,
 				URL:        r.URL.String(),
 				Header:     r.Header,
@@ -169,9 +162,9 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 				Params:     s.reqParamsExtractor.Parameters(r),
 			}
 			// request logging
-			s.logger.LogRequestInfo(requestInfo)
+			s.logger.LogData(requestData)
 			// pass the requestId through entire app.
-			s.logger.SetContext(context.WithValue(s.ctx, UniqueRequestIdKey, requestInfo.RequestId))
+			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIdKey, requestData.ReqID))
 			// service the next layer
 			handler.ServeHTTP(w, r)
 		},
