@@ -11,7 +11,7 @@ type Resource interface {
 
 type Video interface {
 	Get(req dto.GetRequest) (*agg.Video, error)
-	List(req dto.ListRequest) ([]*agg.Video, error)
+	List(req dto.ListRequest) (list []*agg.Video, total int64, err error)
 	Create(req dto.CreateRequest) (*agg.Video, error)
 	Update(req dto.UpdateRequest) (*agg.Video, error)
 	Delete(req dto.DeleteRequest) error

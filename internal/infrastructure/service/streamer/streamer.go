@@ -117,7 +117,7 @@ func (s *ResourceStreamer) handleStreamActions(
 		wg.Done()
 	}()
 
-	videos, err := s.videoRepository.FindList(
+	videos, total, err := s.videoRepository.FindList(
 		s.ctx,
 		&dto.VideoListRequestDTO{
 			PaginationRequestDTO: dto.PaginationRequestDTO{
@@ -135,8 +135,8 @@ func (s *ResourceStreamer) handleStreamActions(
 		return
 	}
 
-	l := len(videos) - 1
-	c := 0
+	l := total - 1
+	var c int64
 	for action := range actionCh {
 		switch action {
 		case Start:

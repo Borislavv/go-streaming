@@ -57,7 +57,14 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	return video, nil
 }
 
-func (r *VideoRepository) FindList(ctx context.Context, dto dto.ListRequest) ([]*agg.Video, error) {
+func (r *VideoRepository) FindList(
+	ctx context.Context,
+	dto dto.ListRequest,
+) (
+	list []*agg.Video,
+	total int64,
+	err error,
+) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -90,21 +97,41 @@ func (r *VideoRepository) FindList(ctx context.Context, dto dto.ListRequest) ([]
 		SetSkip((int64(dto.GetPage()) - 1) * int64(dto.GetLimit())).
 		SetLimit(int64(dto.GetLimit()))
 
-	videos := []*agg.Video{}
-	cursor, err := r.db.Find(qCtx, filter, opts)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return videos, nil
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	list = []*agg.Video{}
+	go func() {
+		defer wg.Done()
+
+		c, e := r.db.Find(qCtx, filter, opts)
+		if e != nil && e != mongo.ErrNoDocuments {
+			r.logger.Error(e)
+			return
 		}
-		return nil, r.logger.ErrorPropagate(err)
-	}
-	defer func() { _ = cursor.Close(qCtx) }()
+		defer func() { _ = c.Close(qCtx) }()
 
-	if err = cursor.All(qCtx, &videos); err != nil {
-		return nil, r.logger.ErrorPropagate(err)
-	}
+		if e = c.All(qCtx, &list); e != nil {
+			r.logger.Error(e)
+		}
+	}()
 
-	return videos, nil
+	total = 0
+	go func() {
+		defer wg.Done()
+
+		c, e := r.db.CountDocuments(qCtx, filter)
+		if err != nil {
+			r.logger.Error(e)
+			return
+		}
+
+		total = c
+	}()
+
+	wg.Wait()
+
+	return list, total, nil
 }
 
 func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Video, error) {
@@ -141,7 +168,7 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 	return video, nil
 }
 
-func (r *VideoRepository) FindByName(ctx context.Context, name string) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByName(ctx context.Context, name string) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -156,7 +183,7 @@ func (r *VideoRepository) FindByName(ctx context.Context, name string) (*agg.Vid
 	return video, nil
 }
 
-func (r *VideoRepository) FindByResourceId(ctx context.Context, resourceID vo.ID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByResourceId(ctx context.Context, resourceID vo.ID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
