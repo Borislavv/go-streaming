@@ -6,10 +6,11 @@
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
     <title>Streaming Video Player</title>
     <style>
+        /* Scroll removed */
         body::-webkit-scrollbar {
-            width: 0.5em;
+            width: 0;
         }
-
+        /* Scroll are invisible */
         body::-webkit-scrollbar-thumb {
             background-color: transparent;
         }
@@ -74,13 +75,13 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 100px;
         }
 
         .dropdown-content {
-            position: absolute;
+            position: relative;
             overflow-wrap: break-word;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.78);
             border-radius: 10px;
             overflow-y: auto;
             z-index: 1;
@@ -88,8 +89,9 @@
             width: calc(100% - 40px);
             left: 50%;
             transform: translateX(-50%);
-            transition: bottom 0.3s ease;
-            margin: 10px 0;
+            transition: bottom 0.5s ease;
+            margin-top: 0;
+            margin-bottom: calc(100% - 95%);
         }
 
         .dropdown-content.active {
@@ -98,7 +100,7 @@
 
         /* Скрываем полосу прокрутки */
         .dropdown-content::-webkit-scrollbar {
-            width: 0.5em;
+            width: 0;
         }
 
         .dropdown-content::-webkit-scrollbar-thumb {
@@ -107,8 +109,8 @@
 
         .dropdown-content ul {
             list-style: none;
-            padding: 0;
-            margin: 0;
+            padding: 1px;
+            margin: 15px;
         }
 
         .dropdown-content li {
