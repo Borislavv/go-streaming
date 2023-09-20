@@ -92,7 +92,7 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	}
 
 	// video validation by name which must be unique
-	video, err := v.videoRepository.FindByName(v.ctx, agg.Name)
+	video, err := v.videoRepository.FindOneByName(v.ctx, agg.Name)
 	if err != nil {
 		if !errs.IsNotFoundError(err) {
 			return v.logger.LogPropagate(err)
@@ -108,7 +108,7 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	}
 
 	// video validation by resource.id which must be unique too
-	video, err = v.videoRepository.FindByResourceId(v.ctx, agg.Resource.ID)
+	video, err = v.videoRepository.FindOneByResourceId(v.ctx, agg.Resource.ID)
 	if err != nil {
 		if !errs.IsNotFoundError(err) {
 			return v.logger.LogPropagate(err)
