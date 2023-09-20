@@ -48,18 +48,18 @@ func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
 	return video, nil
 }
 
-func (s *VideoService) List(req dto.ListRequest) ([]*agg.Video, error) {
+func (s *VideoService) List(req dto.ListRequest) (list []*agg.Video, total int64, err error) {
 	// validation of input request
-	if err := s.validator.ValidateListRequestDTO(req); err != nil {
-		return nil, s.logger.LogPropagate(err)
+	if err = s.validator.ValidateListRequestDTO(req); err != nil {
+		return nil, 0, s.logger.LogPropagate(err)
 	}
 
-	videos, err := s.repository.FindList(s.ctx, req)
+	list, total, err = s.repository.FindList(s.ctx, req)
 	if err != nil {
-		return nil, s.logger.LogPropagate(err)
+		return nil, 0, s.logger.LogPropagate(err)
 	}
 
-	return videos, err
+	return list, total, err
 }
 
 func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
