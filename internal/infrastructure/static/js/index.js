@@ -1,20 +1,33 @@
 const listBtn = document.getElementById('list-btn');
-const listDdwn = document.getElementById('video-list');
+const videoList = document.getElementById('video-list');
+
+videoList.style.width = `${videoPlayer.clientWidth}px`;
 
 listBtn.addEventListener('click', function () {
-    // Загрузка списка видео через HTTP запрос
     loadVideoList();
 });
 
-// Функция для загрузки списка видео
+// Обработчик события для кнопки "Список"
+listBtn.addEventListener('click', function (event) {
+    event.stopPropagation(); // Предотвращение всплытия события до document
+    videoList.style.display = (videoList.style.display === 'block') ? 'none' : 'block';
+});
+
+// Обработчик события для document, чтобы скрыть список при щелчке за его пределами
+document.addEventListener('click', function (event) {
+    if (event.target !== listBtn) {
+        videoList.style.display = 'none';
+    }
+});
+
 function loadVideoList() {
-    const limit = 25; // Количество видео на странице
-    const page = 1; // Номер страницы (начнем с первой)
+    const page = 1;
+    const limit = 25;
 
     // Очищаем предыдущий список видео
-    listDdwn.innerHTML = '';
+    const ul = document.querySelector('.dropdown-content ul');
+    ul.innerHTML = '';
 
-    // Отправляем HTTP GET запрос для получения списка видео
     fetch(`http://0.0.0.0:8000/api/v1/video?limit=${limit}&page=${page}`)
         .then(response => response.json())
         .then(data => {
@@ -30,17 +43,16 @@ function loadVideoList() {
                     videoList.appendChild(listItem);
                 });
 
-                listDdwn.appendChild(videoList);
+                ul.appendChild(videoList);
 
-                const paginationInfo = document.createElement('div');
+                const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
                 paginationInfo.textContent = `Страница ${data.pagination.page} из ${data.pagination.total}`;
-                listDdwn.appendChild(paginationInfo);
             } else {
-                listDdwn.textContent = 'Нет доступных видео.';
+                ul.textContent = 'Нет доступных видео.';
             }
         })
         .catch(error => {
             console.error('Ошибка при загрузке списка видео:', error);
-            listDdwn.textContent = 'Ошибка при загрузке списка видео.';
+            ul.textContent = 'Ошибка при загрузке списка видео.';
         });
 }

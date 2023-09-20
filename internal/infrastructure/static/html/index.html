@@ -6,6 +6,14 @@
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
     <title>Streaming Video Player</title>
     <style>
+        body::-webkit-scrollbar {
+            width: 0.5em;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background-color: transparent;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -17,7 +25,6 @@
             background-color: #333;
             color: #fff;
             text-align: center;
-            padding: 10px; /* Уменьшили высоту шапки */
             margin-bottom: 20px;
         }
 
@@ -27,6 +34,7 @@
             padding: 20px;
             background-color: rgba(0, 0, 0, 0.8);
             border-radius: 10px;
+            position: relative;
         }
 
         video {
@@ -66,6 +74,51 @@
             bottom: 0;
             left: 0;
             width: 100%;
+            margin-top: 10px;
+        }
+
+        .dropdown-content {
+            position: absolute;
+            overflow-wrap: break-word;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            overflow-y: auto;
+            z-index: 1;
+            display: none;
+            width: calc(100% - 40px);
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 0.3s ease;
+            margin: 10px 0;
+        }
+
+        .dropdown-content.active {
+            bottom: calc(100% + 15px); /* Увеличиваем отступ снизу до 15px */
+        }
+
+        /* Скрываем полосу прокрутки */
+        .dropdown-content::-webkit-scrollbar {
+            width: 0.5em;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb {
+            background-color: #666;
+        }
+
+        .dropdown-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .dropdown-content li {
+            padding: 5px 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .dropdown-content li:hover {
+            background-color: #555;
         }
     </style>
 </head>
@@ -82,15 +135,29 @@
         <button id="list-btn" class="button">Список</button>
         <button id="next-btn" class="button">Следующее</button>
     </div>
-    <div id="video-list" class="dropdown-content"></div>
+</div>
 
-    <script src="http://0.0.0.0:8000/static/js/index.js"></script>
-    <script src="http://0.0.0.0:8000/static/js/socket.js"></script>
+<div id="video-list" class="dropdown-content">
+    <ul></ul>
+    <div class="pagination-info"></div>
 </div>
 
 <footer>
     &copy; 2023 Streaming Video Player | github.com/Borislavv/streaming
 </footer>
-</body>
 
+<script src="http://0.0.0.0:8000/static/js/index.js"></script>
+<script src="http://0.0.0.0:8000/static/js/socket.js"></script>
+<script>
+    const listBtn = document.getElementById('list-btn');
+    const videoList = document.getElementById('video-list');
+    const container = document.querySelector('.container');
+
+    listBtn.addEventListener('click', function () {
+        videoList.classList.toggle('active');
+        container.classList.toggle('with-list');
+    });
+</script>
+
+</body>
 </html>
