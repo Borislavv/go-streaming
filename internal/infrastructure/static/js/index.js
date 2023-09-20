@@ -2,6 +2,56 @@ const videoPlayer = document.getElementById('videoPlayer');
 const nextBtn = document.getElementById('next-btn');
 const prevBtn = document.getElementById('prev-btn');
 const listBtn = document.getElementById('list-btn');
+const listDdwn = document.getElementById('video-list');
+
+listBtn.addEventListener('click', function () {
+    // Загрузка списка видео через HTTP запрос
+    loadVideoList();
+});
+
+// Функция для загрузки списка видео
+function loadVideoList() {
+    const limit = 25; // Количество видео на странице
+    const page = 1; // Номер страницы (начнем с первой)
+
+    // Очищаем предыдущий список видео
+    listDdwn.innerHTML = '';
+
+    // Отправляем HTTP GET запрос для получения списка видео
+    fetch(`http://0.0.0.0:8000/api/v1/video?limit=${limit}&page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+            let list = data.data
+            let pagination = data.pagination
+
+            // Обработка полученных данных (предполагается, что сервер возвращает список видео)
+            if (list && list.length > 0) {
+                // Создаем элементы списка видео и добавляем их в выпадающий список
+                const videoList = document.createElement('ul');
+                videoList.className = 'video-list';
+
+                list.forEach(video => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = video.name; // Предположим, что у видео есть свойство title
+                    videoList.appendChild(listItem);
+                });
+
+                listDdwn.appendChild(videoList);
+
+                // Добавляем пагинацию (предполагается, что сервер также возвращает информацию о пагинации)
+                const paginationInfo = document.createElement('div');
+                paginationInfo.textContent = `Страница ${pagination.page} из ${pagination.total}`; // Предположим, что есть информация о страницах
+                listDdwn.appendChild(paginationInfo);
+            } else {
+                listDdwn.textContent = 'Нет доступных видео.';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке списка видео:', error);
+            listDdwn.textContent = 'Ошибка при загрузке списка видео.';
+        });
+}
+
 const socket = new WebSocket('ws://0.0.0.0:9988/');
 
 socket.binaryType = 'arraybuffer';
