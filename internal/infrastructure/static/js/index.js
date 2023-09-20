@@ -7,13 +7,11 @@ listBtn.addEventListener('click', function () {
     loadVideoList();
 });
 
-// Обработчик события для кнопки "Список"
 listBtn.addEventListener('click', function (event) {
     event.stopPropagation(); // Предотвращение всплытия события до document
     videoList.style.display = (videoList.style.display === 'block') ? 'none' : 'block';
 });
 
-// Обработчик события для document, чтобы скрыть список при щелчке за его пределами
 document.addEventListener('click', function (event) {
     if (event.target !== listBtn) {
         videoList.style.display = 'none';
@@ -24,7 +22,7 @@ function loadVideoList() {
     const page = 1;
     const limit = 25;
 
-    // Очищаем предыдущий список видео
+    // clear the previous video list
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
 
@@ -46,13 +44,13 @@ function loadVideoList() {
                 ul.appendChild(videoList);
 
                 const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
-                paginationInfo.textContent = `Страница ${data.pagination.page} из ${data.pagination.total}`;
+                paginationInfo.textContent = `Page ${data.pagination.page} of ${data.pagination.total}`;
             } else {
-                ul.textContent = 'Нет доступных видео.';
+                ul.textContent = 'There are not available videos';
             }
         })
         .catch(error => {
             console.error('Ошибка при загрузке списка видео:', error);
-            ul.textContent = 'Ошибка при загрузке списка видео.';
+            ul.textContent = 'Sorry, there is error occurred while loading a video list';
         });
 }
