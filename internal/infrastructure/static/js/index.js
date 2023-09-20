@@ -1,3 +1,4 @@
+const container = document.querySelector('.container');
 const listBtn = document.getElementById('list-btn');
 const videoList = document.getElementById('video-list');
 
@@ -10,6 +11,8 @@ listBtn.addEventListener('click', function () {
 listBtn.addEventListener('click', function (event) {
     event.stopPropagation(); // Предотвращение всплытия события до document
     videoList.style.display = (videoList.style.display === 'block') ? 'none' : 'block';
+    videoList.classList.toggle('active');
+    container.classList.toggle('with-list');
 });
 
 document.addEventListener('click', function (event) {
