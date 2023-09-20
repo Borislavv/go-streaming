@@ -1,173 +1,173 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
-    <title>Streaming Video Player</title>
-    <style>
-        /* Scroll removed */
-        body::-webkit-scrollbar {
-            width: 0;
-        }
-        /* Scroll are invisible */
-        body::-webkit-scrollbar-thumb {
-            background-color: transparent;
-        }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
+        <title>Streaming Video Player</title>
+        <style>
+            /* Scroll removed */
+            body::-webkit-scrollbar {
+                width: 0;
+            }
+            /* Scroll are invisible */
+            body::-webkit-scrollbar-thumb {
+                background-color: transparent;
+            }
 
-        body {
-            color: #c7c7c7;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #757575;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* Тень текста */
-        }
+            body {
+                color: #c7c7c7;
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                background-color: #757575;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* Тень текста */
+            }
 
-        header {
-            background-color: #333;
-            color: #c7c7c7;
-            text-align: center;
-            margin-bottom: 45px;
-            box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
-            padding-top: 5px;
-            padding-bottom: 5px;
-        }
+            header {
+                background-color: #333;
+                color: #c7c7c7;
+                text-align: center;
+                margin-bottom: 45px;
+                box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
 
-        footer {
-            background-color: #333;
-            color: #c7c7c7;
-            text-align: center;
-            padding: 5px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            margin-top: 100px;
-            box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
-        }
+            footer {
+                background-color: #333;
+                color: #c7c7c7;
+                text-align: center;
+                padding: 5px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                margin-top: 100px;
+                box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
+            }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            position: relative;
-        }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: rgba(0, 0, 0, 0.8);
+                border-radius: 10px;
+                position: relative;
+            }
 
-        video {
-            width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto 20px;
-            border-radius: 10px;
-        }
+            video {
+                width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto 20px;
+                border-radius: 10px;
+            }
 
-        .buttons {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-        }
+            .buttons {
+                display: flex;
+                justify-content: space-around;
+                margin-top: 10px;
+            }
 
-        .button {
-            background-color: #444;
-            color: #c7c7c7;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            border-radius: 5px;
-            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3); /* Тень */
-        }
+            .button {
+                background-color: #444;
+                color: #c7c7c7;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                border-radius: 5px;
+                box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3); /* Тень */
+            }
 
-        .button:hover {
-            background-color: #666;
-        }
+            .button:hover {
+                background-color: #666;
+            }
 
-        .dropdown-content {
-            position: relative;
-            overflow-wrap: break-word;
-            background-color: rgba(0, 0, 0, 0.78);
-            border-radius: 10px;
-            overflow-y: auto;
-            z-index: 1;
-            display: none;
-            width: calc(100% - 40px);
-            left: 50%;
-            transform: translateX(-50%);
-            transition: bottom 0.5s ease;
-            margin-top: 0;
-            margin-bottom: calc(100% - 95%);
-        }
+            .dropdown-content {
+                position: relative;
+                overflow-wrap: break-word;
+                background-color: rgba(0, 0, 0, 0.78);
+                border-radius: 10px;
+                overflow-y: auto;
+                z-index: 1;
+                display: none;
+                width: calc(100% - 40px);
+                left: 50%;
+                transform: translateX(-50%);
+                transition: bottom 0.5s ease;
+                margin-top: 0;
+                margin-bottom: calc(100% - 95%);
+            }
 
-        .dropdown-content.active {
-            bottom: calc(100% + 15px); /* Увеличиваем отступ снизу до 15px */
-        }
+            .dropdown-content.active {
+                bottom: calc(100% + 15px); /* Увеличиваем отступ снизу до 15px */
+            }
 
-        /* Скрываем полосу прокрутки */
-        .dropdown-content::-webkit-scrollbar {
-            width: 0;
-        }
+            /* Скрываем полосу прокрутки */
+            .dropdown-content::-webkit-scrollbar {
+                width: 0;
+            }
 
-        .dropdown-content::-webkit-scrollbar-thumb {
-            background-color: #666;
-        }
+            .dropdown-content::-webkit-scrollbar-thumb {
+                background-color: #666;
+            }
 
-        .dropdown-content ul {
-            list-style: none;
-            padding: 1px;
-            margin: 15px;
-        }
+            .dropdown-content ul {
+                list-style: none;
+                padding: 1px;
+                margin: 15px;
+            }
 
-        .dropdown-content li {
-            padding: 5px 10px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
+            .dropdown-content li {
+                padding: 5px 10px;
+                cursor: pointer;
+                white-space: nowrap;
+            }
 
-        .dropdown-content li:hover {
-            background-color: #555;
-            border-radius: 5px;
-        }
+            .dropdown-content li:hover {
+                background-color: #555;
+                border-radius: 5px;
+            }
 
-        .container, .dropdown-content {
-            box-shadow: 0 0 7px rgba(0, 0, 0, 0.7);
-        }
+            .container, .dropdown-content {
+                box-shadow: 0 0 7px rgba(0, 0, 0, 0.7);
+            }
 
-        .pagination-info {
-            color: #7e7e7e;
-            padding-left: 25px;
-            padding-bottom: 15px;
-        }
-    </style>
-</head>
-<body>
-<header>
-    <h1>Streaming video player</h1>
-</header>
+            .pagination-info {
+                color: #7e7e7e;
+                padding-left: 25px;
+                padding-bottom: 15px;
+            }
+        </style>
+    </head>
 
-<div class="container">
-    <video id="videoPlayer" controls></video>
+    <body>
+        <header>
+            <h1>Streaming video player</h1>
+        </header>
 
-    <div class="buttons">
-        <button id="prev-btn" class="button">Предыдущее</button>
-        <button id="list-btn" class="button">Список</button>
-        <button id="next-btn" class="button">Следующее</button>
-    </div>
-</div>
+        <div class="container">
+            <video id="videoPlayer" controls></video>
 
-<div id="video-list" class="dropdown-content">
-    <ul></ul>
-    <div class="pagination-info"></div>
-</div>
+            <div class="buttons">
+                <button id="prev-btn" class="button">Предыдущее</button>
+                <button id="list-btn" class="button">Список</button>
+                <button id="next-btn" class="button">Следующее</button>
+            </div>
+        </div>
 
-<footer>
-    &copy; 2023 Streaming Video Player | github.com/Borislavv/streaming
-</footer>
+        <div id="video-list" class="dropdown-content">
+            <ul></ul>
+            <div class="pagination-info"></div>
+        </div>
 
-<script src="http://0.0.0.0:8000/static/js/index.js"></script>
-<script src="http://0.0.0.0:8000/static/js/socket.js"></script>
+        <footer>
+            &copy; 2023 Streaming Video Player | github.com/Borislavv/streaming
+        </footer>
 
-</body>
+        <script src="http://0.0.0.0:8000/static/js/index.js"></script>
+        <script src="http://0.0.0.0:8000/static/js/socket.js"></script>
+    </body>
 </html>
