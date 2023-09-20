@@ -33,19 +33,28 @@ func NewListVideoController(
 }
 
 func (c *ListVideoController) List(w http.ResponseWriter, r *http.Request) {
-	reqDto, err := c.builder.BuildListRequestDTOFromRequest(r)
+	reqDto, e := c.builder.BuildListRequestDTOFromRequest(r)
+	if e != nil {
+		c.response.Respond(w, c.logger.LogPropagate(e))
+		return
+	}
+
+	list, total, err := c.service.List(reqDto)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	videos, err := c.service.List(reqDto)
-	if err != nil {
-		c.response.Respond(w, c.logger.LogPropagate(err))
-		return
-	}
-
-	c.response.Respond(w, videos)
+	c.response.Respond(w,
+		map[string]interface{}{
+			"list": list,
+			"pagination": map[string]interface{}{
+				"page":  reqDto.Page,
+				"limit": reqDto.Limit,
+				"total": total,
+			},
+		},
+	)
 }
 
 func (c *ListVideoController) AddRoute(router *mux.Router) {
