@@ -67,15 +67,19 @@ prevBtn.addEventListener('click', function() {
     socket.send("prev")
 });
 
-//
+let prevID = '';
 document.addEventListener('click', function (event) {
     let ul = document.querySelector('.video-list');
     if (ul !== null) {
         let lis = ul.getElementsByTagName('li');
         Array.from(lis).forEach(function (el) {
-            if (event.target === el) {
+            if (prevID === '') {
+                prevID = el.id
+            }
+            if (event.target === el && prevID !== el.id) {
                 // requesting the prev video/audio from server
                 socket.send("nextID:" + el.id)
+                prevID = el.id;
             }
         });
     }
