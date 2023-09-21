@@ -3,6 +3,7 @@ package streamer
 import (
 	"context"
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -143,40 +144,34 @@ func (s *ResourceStreamer) handleStreamActions(
 		wg.Done()
 	}()
 
-	videos, total, err := s.videoRepository.FindList(
-		s.ctx,
-		&dto.VideoListRequestDTO{
-			PaginationRequestDTO: dto.PaginationRequestDTO{
-				Page:  1,
-				Limit: 10,
-			},
-		},
-	)
-	if err != nil {
-		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
-		return
-	}
-	// TODO must be implemented select a video from client, at now if services has not any videos, return
-	if len(videos) < 1 {
-		return
-	}
-
-	l := total - 1
-	var c int64
+	v := &agg.Video{}
 	for action := range actionCh {
 		// todo must be moved in the strategies of actions
 		switch action.do {
 		case Start:
 			s.logger.Info(fmt.Sprintf("[%v]: action 'start' received", conn.RemoteAddr()))
-		case Next:
-			if c < l {
-				c++
+			list, _, err := s.videoRepository.FindList(
+				s.ctx,
+				&dto.VideoListRequestDTO{
+					PaginationRequestDTO: dto.PaginationRequestDTO{
+						Page:  1,
+						Limit: 1,
+					},
+				},
+			)
+			if err != nil {
+				s.logger.Log(err)
+				continue
 			}
+			if len(list) < 1 {
+				continue
+			}
+			v = list[0]
+		case Next:
+			// todo must be implemented
 			s.logger.Info(fmt.Sprintf("[%v]: action 'next' received", conn.RemoteAddr()))
 		case Previous:
-			if c >= 1 {
-				c--
-			}
+			// todo must be implemented
 			s.logger.Info(fmt.Sprintf("[%v]: action 'previous' received", conn.RemoteAddr()))
 		case DecreaseBufferCap:
 			decrBuffCapCh <- struct{}{}
@@ -197,9 +192,8 @@ func (s *ResourceStreamer) handleStreamActions(
 			continue
 		}
 
-		resource := videos[c].Resource
-		s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", conn.RemoteAddr(), resource.Name))
-		s.streamResource(resource, conn)
+		s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", conn.RemoteAddr(), v.Resource.Name))
+		s.streamResource(v.Resource, conn)
 	}
 }
 
