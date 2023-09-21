@@ -11,17 +11,17 @@ let mediaSource;
 let chunks;
 let mediaSourceReady;
 
-// Socket events further
-
+//// socket events further
+// open
 socket.onopen = (event) => {
     console.log('WebSocket connection opened');
-    socket.send("start")
+    // socket.send("start")
 };
-
+// close
 socket.onclose = (event) => {
     console.log('WebSocket connection closed');
 };
-
+// error
 socket.onerror = (event) => {
     console.error('WebSocket error: ', event);
 };
@@ -54,31 +54,107 @@ videoPlayer.addEventListener('waiting', function() {
     socket.send("decrBuff")
 });
 
-// previous video handler
-nextBtn.addEventListener('click', function() {
-    // requesting new video/audio from server
-    socket.send("next")
+let currentVideoID = ''
+// initialization function
+function waitForVideoListWillBeRendered(selector, callback) {
+    const element = document.querySelector(selector);
+
+    if (element) {
+        callback(element);
+    } else {
+        const checkElement = () => {
+            const element = document.querySelector(selector);
+            if (element) {
+                callback(element);
+            } else {
+                requestAnimationFrame(checkElement);
+            }
+        };
+        requestAnimationFrame(checkElement);
+    }
+}
+
+// called init. function
+waitForVideoListWillBeRendered('.video-list', function () {
+    let UL = document.querySelector('.video-list');
+    if (UL !== null) {
+        let LIs = UL.getElementsByTagName('li');
+        let isSettingUp = false;
+        Array.from(LIs).forEach(function (li) {
+            if (!isSettingUp) {
+                currentVideoID = li.id;
+                isSettingUp = true;
+                socket.send("ID:" + currentVideoID) // requesting the first video by ID
+            }
+        });
+    }
 });
 
 // next video handler
-prevBtn.addEventListener('click', function() {
-    // requesting the prev video/audio from server
-    socket.send("prev")
+nextBtn.addEventListener('click', function() {
+    let UL = document.querySelector('.video-list');
+    let found = false
+    if (UL !== null) {
+        let LIs = UL.getElementsByTagName('li');
+        Array.from(LIs).forEach(function (li) {
+            if (found) {
+                socket.send("ID:" + li.id) // requesting the next video by ID
+                currentVideoID = li.id // updating the current video ID
+                found = false // skipping further iterations
+            } else {
+                if (currentVideoID === '') { // setting up the current ID if it wasn't set up
+                    currentVideoID = li.id
+                }
+                if (currentVideoID === li.id) { // setting up the flag which helps to determine
+                    found = true                // that current video was found, and we need to take the next ID
+                }
+            }
+        });
+    }
 });
 
-let prevID = '';
-document.addEventListener('click', function (event) {
-    let ul = document.querySelector('.video-list');
-    if (ul !== null) {
-        let lis = ul.getElementsByTagName('li');
-        Array.from(lis).forEach(function (el) {
-            if (prevID === '') {
-                prevID = el.id
+// previous video handler
+prevBtn.addEventListener('click', function(event) {
+    let UL = document.querySelector('.video-list');
+    if (UL !== null) {
+        let LIs             = UL.getElementsByTagName('li');
+        let found           = false
+        let previousVideoID = ''
+        Array.from(LIs).forEach(function (li) {
+            if (found) {
+                return; // skipping unnecessary iterations
             }
-            if (event.target === el && prevID !== el.id) {
+            if (currentVideoID === '') { // setting up the current ID if it's empty
+                currentVideoID = li.id
+            }
+            if (previousVideoID === '') { // setting up the previous ID if it's empty
+                previousVideoID = li.id
+            }
+            if (currentVideoID === li.id) { // checking up that we found the target video
+                currentVideoID = previousVideoID // updating the actual video ID
                 // requesting the prev video/audio from server
-                socket.send("nextID:" + el.id)
-                prevID = el.id;
+                socket.send("ID:" + currentVideoID) // requesting the target (previous) video
+                found = true // setting up the var. for skipp unnecessary iterations
+            } else {
+                previousVideoID = li.id // updating the previous video ID
+            }
+        });
+    }
+});
+
+// by id video handler
+document.addEventListener('click', function (event) {
+    let UL = document.querySelector('.video-list');
+    if (UL !== null) {
+        let LIs = UL.getElementsByTagName('li');
+        Array.from(LIs).forEach(function (li) {
+            if (currentVideoID === '') { // setting up the current video ID if it wasn't set up
+                currentVideoID = li.id
+            }
+            if (event.target === li && currentVideoID !== li.id) { // check the target video ID is not equals with the current
+                // requesting the prev video/audio from server
+                socket.send("ID:" + li.id) // requesting the target video by ID
+                currentVideoID = li.id; // updating the current video ID
             }
         });
     }

@@ -30,11 +30,8 @@ func (a ActionEnum) String() string {
 
 var (
 	availableActionsMap = map[ActionEnum]struct{}{
-		Start:             {},
-		Next:              {},
-		NextByID:          {},
-		Previous:          {},
-		Stop:              {},
+		StreamByID:        {},
+		StopStream:        {},
 		DecreaseBufferCap: {},
 	}
 )
@@ -42,11 +39,8 @@ var (
 const (
 	ProtoSeparator string = ":"
 
-	Start             ActionEnum = "start"
-	Next              ActionEnum = "next"
-	NextByID          ActionEnum = "nextID"
-	Previous          ActionEnum = "prev"
-	Stop              ActionEnum = "stop"
+	StreamByID        ActionEnum = "ID"
+	StopStream        ActionEnum = "stop"
 	DecreaseBufferCap ActionEnum = "decrBuff"
 )
 
@@ -143,45 +137,10 @@ func (s *ResourceStreamer) handleStreamActions(
 		wg.Done()
 	}()
 
-	videos, total, err := s.videoRepository.FindList(
-		s.ctx,
-		&dto.VideoListRequestDTO{
-			PaginationRequestDTO: dto.PaginationRequestDTO{
-				Page:  1,
-				Limit: 10,
-			},
-		},
-	)
-	if err != nil {
-		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
-		return
-	}
-	// TODO must be implemented select a video from client, at now if services has not any videos, return
-	if len(videos) < 1 {
-		return
-	}
-
-	l := total - 1
-	var c int64
 	for action := range actionCh {
 		// todo must be moved in the strategies of actions
 		switch action.do {
-		case Start:
-			s.logger.Info(fmt.Sprintf("[%v]: action 'start' received", conn.RemoteAddr()))
-		case Next:
-			if c < l {
-				c++
-			}
-			s.logger.Info(fmt.Sprintf("[%v]: action 'next' received", conn.RemoteAddr()))
-		case Previous:
-			if c >= 1 {
-				c--
-			}
-			s.logger.Info(fmt.Sprintf("[%v]: action 'previous' received", conn.RemoteAddr()))
-		case DecreaseBufferCap:
-			decrBuffCapCh <- struct{}{}
-			continue
-		case NextByID:
+		case StreamByID:
 			oid, e := primitive.ObjectIDFromHex(action.data)
 			if e != nil {
 				s.logger.Log(e)
@@ -194,12 +153,10 @@ func (s *ResourceStreamer) handleStreamActions(
 			}
 			s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", conn.RemoteAddr(), v.Resource.Name))
 			s.streamResource(v.Resource, conn)
+		case DecreaseBufferCap:
+			decrBuffCapCh <- struct{}{}
 			continue
 		}
-
-		resource := videos[c].Resource
-		s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", conn.RemoteAddr(), resource.Name))
-		s.streamResource(resource, conn)
 	}
 }
 
@@ -210,7 +167,7 @@ func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn
 	}
 
 	b := strings.Builder{}
-	b.WriteString(Start.String()) // writing init. message identifier
+	b.WriteString("start") // writing init. message identifier
 	b.WriteString(ProtoSeparator)
 	b.WriteString(audioCodec)
 	b.WriteString(ProtoSeparator)
@@ -226,7 +183,7 @@ func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn
 }
 
 func (s *ResourceStreamer) sendStopStreamMessage(conn *websocket.Conn) error {
-	if err := conn.WriteMessage(websocket.TextMessage, []byte(Stop.String())); err != nil {
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(StopStream.String())); err != nil {
 		return s.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
 	return nil
