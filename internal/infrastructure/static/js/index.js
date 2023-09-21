@@ -2,12 +2,6 @@ const container = document.querySelector('.container');
 const listBtn = document.getElementById('list-btn');
 const videoList = document.getElementById('video-list');
 
-let prevPage = 1;
-let prevLimit = 25;
-
-let currentPage = 1;
-let currentLimit = 25;
-
 videoList.style.width = `${videoPlayer.clientWidth}px`;
 
 listBtn.addEventListener('click', function (event) {
@@ -52,32 +46,40 @@ function loadVideoList(page = 1, limit = 25) {
     fetch(`http://0.0.0.0:8000/api/v1/video?limit=${limit}&page=${page}`)
         .then(response => response.json())
         .then(data => {
-            data = data.data
-
-            if (data.list && data.list.length > 0) {
-                const videoList = document.createElement('ul');
-                videoList.className = 'video-list';
-
-                data.list.forEach(video => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'list-item';
-                    listItem.textContent = video.name;
-                    listItem.id = video.id
-                    videoList.appendChild(listItem);
-                });
-
-                ul.appendChild(videoList);
-
-                const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
-                paginationInfo.textContent = `Page ${currentPage} of ${Math.ceil(data.pagination.total / currentLimit)}`;
-            } else {
-                ul.textContent = 'There are no available videos';
-            }
+            // render list of videos
+            renderList(data.data)
         })
         .catch(error => {
             console.error('Error occurred while loading a video list:', error);
             ul.textContent = 'Sorry, there is an error occurred while loading a video list';
         });
+}
+
+function renderList(data) {
+    // clear the previous video list
+    const ul = document.querySelector('.dropdown-content ul');
+    ul.innerHTML = '';
+
+    if (data.list && data.list.length > 0) {
+        const videoList = document.createElement('ul');
+        videoList.className = 'video-list';
+
+        data.list.forEach(video => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-item';
+            listItem.textContent = video.name;
+            listItem.id = video.id
+            videoList.appendChild(listItem);
+        });
+
+        ul.appendChild(videoList);
+
+        const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
+        paginationInfo.textContent = `Page ${currentPage} of ${Math.ceil(data.pagination.total / currentLimit)}`;
+    } else {
+        ul.textContent = 'There are no available videos';
+        ul.style = 'align: center';
+    }
 }
 
 // handling limit 'select' box
@@ -102,4 +104,9 @@ reqBtn.addEventListener('click', function () {
     }
 });
 
+// init. default data
+let currentLimit = parseInt(limitSelect.value, 10);
+let currentPage  = parseInt(pageSelect.value, 10);
+let prevPage     = currentPage;
+let prevLimit    = currentLimit;
 loadVideoList(currentPage, currentLimit);
