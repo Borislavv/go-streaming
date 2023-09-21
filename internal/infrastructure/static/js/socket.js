@@ -38,7 +38,6 @@ socket.onmessage = (event) => {
         closeMediaResource()
     }
 
-    console.log(data)
     if (typeof data === 'string' && data.startsWith('start')) {
         console.log("Starting new video...")
         let dataParts = data.split(':')
@@ -47,7 +46,7 @@ socket.onmessage = (event) => {
     }
 };
 
-// Event listener for when the video is waiting for data (buffering)
+// todo need to make a ticker which will count the awaiting time if it's more than N then send decrease buffer action
 videoPlayer.addEventListener('waiting', function() {
     console.warn('Video playback is waiting for data (buffering)');
 
@@ -55,14 +54,34 @@ videoPlayer.addEventListener('waiting', function() {
     socket.send("decrBuff")
 });
 
+// previous video handler
 nextBtn.addEventListener('click', function() {
     // requesting new video/audio from server
     socket.send("next")
 });
 
+// next video handler
 prevBtn.addEventListener('click', function() {
     // requesting the prev video/audio from server
     socket.send("prev")
+});
+
+let prevID = '';
+document.addEventListener('click', function (event) {
+    let ul = document.querySelector('.video-list');
+    if (ul !== null) {
+        let lis = ul.getElementsByTagName('li');
+        Array.from(lis).forEach(function (el) {
+            if (prevID === '') {
+                prevID = el.id
+            }
+            if (event.target === el && prevID !== el.id) {
+                // requesting the prev video/audio from server
+                socket.send("nextID:" + el.id)
+                prevID = el.id;
+            }
+        });
+    }
 });
 
 function addNextChunk() {
@@ -77,16 +96,22 @@ function addNextChunk() {
                 }
             }
         ).catch(
-        function (e) {
-            console.error("unable to awaiting", e)
-        }
-    )
+            function (e) {
+                console.error("unable to awaiting", e)
+            }
+        )
 }
 
 async function awaiting() {
     while(!mediaSourceReady || buffer.updating || chunks.length === 0) {
-        console.log("Awaiting...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
-        await new Promise(r => setTimeout(r, 250));
+        console.log(
+            "Awaiting data: " +
+            "media resource is not ready yet -", mediaSourceReady, ", " +
+            "buffer is still updating -", buffer.updating,", " +
+            "chunks awaiting -", chunks.length === 0,
+            "(len:", chunks.length, ")"
+        )
+        await new Promise(r => setTimeout(r, 1));
     }
 }
 
@@ -110,8 +135,13 @@ function closeMediaResource() {
 
 async function awaitingClose() {
     while(buffer.updating || chunks.length > 0) {
-        console.log("Awaiting closing...", mediaSourceReady, !buffer.updating, chunks.length !== 0)
-        await new Promise(r => setTimeout(r, 250));
+        console.log(
+            "Awaiting closing: " +
+            "buffer is still updating -", buffer.updating,", " +
+            "chunks is not empty -", chunks.length > 0,
+                "(len:", chunks.length, ")"
+        )
+        await new Promise(r => setTimeout(r, 1));
     }
 }
 
@@ -179,3 +209,4 @@ function makeMediaResource(audioCodec, videoCodec) {
         mediaSourceReady = true;
     }, false);
 }
+

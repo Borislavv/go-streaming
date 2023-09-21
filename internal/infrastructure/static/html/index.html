@@ -140,6 +140,21 @@
                 padding-left: 25px;
                 padding-bottom: 15px;
             }
+            .pagination-control {
+                color: #7e7e7e;
+                padding-left: 25px;
+                padding-bottom: 15px;
+            }
+            .pagination-page-control {
+                color: #7e7e7e;
+                padding-left: 25px;
+                padding-bottom: 15px;
+            }
+            .pagination-request-button {
+                color: #7e7e7e;
+                padding-left: 25px;
+                padding-bottom: 15px;
+            }
         </style>
     </head>
 
@@ -161,6 +176,27 @@
         <div id="video-list" class="dropdown-content">
             <ul></ul>
             <div class="pagination-info"></div>
+
+            <div class="pagination-control">
+                <select id="limit-select" class="button">
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+
+                <select id="page-select" class="button">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+
+                <button style="margin-left: 88%; border: 1px black; padding-right: 20px;" id="request-btn" class="button">
+                    Get it
+                </button>
+            </div>
         </div>
 
         <footer>

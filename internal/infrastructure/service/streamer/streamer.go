@@ -8,25 +8,46 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/vansante/go-ffprobe.v2"
 	"os"
 	"strings"
 	"sync"
 )
 
-type Action string
+type Action struct {
+	do   ActionEnum
+	data string
+}
 
-func (a Action) String() string {
+type ActionEnum string
+
+func (a ActionEnum) String() string {
 	return string(a)
 }
 
+var (
+	availableActionsMap = map[ActionEnum]struct{}{
+		Start:             {},
+		Next:              {},
+		NextByID:          {},
+		Previous:          {},
+		Stop:              {},
+		DecreaseBufferCap: {},
+	}
+)
+
 const (
-	Start             Action = "start"
-	Stop              Action = "stop"
-	Next              Action = "next"
-	Previous          Action = "prev"
-	DecreaseBufferCap Action = "decrBuff"
+	ProtoSeparator string = ":"
+
+	Start             ActionEnum = "start"
+	Next              ActionEnum = "next"
+	NextByID          ActionEnum = "nextID"
+	Previous          ActionEnum = "prev"
+	Stop              ActionEnum = "stop"
+	DecreaseBufferCap ActionEnum = "decrBuff"
 )
 
 type ResourceStreamer struct {
@@ -85,7 +106,12 @@ func (s *ResourceStreamer) listenClient(wg *sync.WaitGroup, conn *websocket.Conn
 			return
 		}
 		if t == websocket.TextMessage {
-			actionsCh <- Action(b)
+			do, data := s.parseMessage(b)
+			if _, exists := availableActionsMap[do]; exists {
+				actionsCh <- Action{do: do, data: data}
+			} else {
+				s.logger.Critical(fmt.Sprintf("do: %+v, data: %+v received unsupport action", do, data))
+			}
 		}
 	}
 }
@@ -138,7 +164,8 @@ func (s *ResourceStreamer) handleStreamActions(
 	l := total - 1
 	var c int64
 	for action := range actionCh {
-		switch action {
+		// todo must be moved in the strategies of actions
+		switch action.do {
 		case Start:
 			s.logger.Info(fmt.Sprintf("[%v]: action 'start' received", conn.RemoteAddr()))
 		case Next:
@@ -153,6 +180,20 @@ func (s *ResourceStreamer) handleStreamActions(
 			s.logger.Info(fmt.Sprintf("[%v]: action 'previous' received", conn.RemoteAddr()))
 		case DecreaseBufferCap:
 			decrBuffCapCh <- struct{}{}
+			continue
+		case NextByID:
+			oid, e := primitive.ObjectIDFromHex(action.data)
+			if e != nil {
+				s.logger.Log(e)
+				continue
+			}
+			v, e := s.videoRepository.Find(s.ctx, vo.ID{Value: oid})
+			if e != nil {
+				s.logger.Log(e)
+				continue
+			}
+			s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", conn.RemoteAddr(), v.Resource.Name))
+			s.streamResource(v.Resource, conn)
 			continue
 		}
 
@@ -170,9 +211,9 @@ func (s *ResourceStreamer) sendStartStreamMessage(resource entity.Resource, conn
 
 	b := strings.Builder{}
 	b.WriteString(Start.String()) // writing init. message identifier
-	b.WriteString(":")
+	b.WriteString(ProtoSeparator)
 	b.WriteString(audioCodec)
-	b.WriteString(":")
+	b.WriteString(ProtoSeparator)
 	b.WriteString(videoCodec)
 	initMessage := b.String()
 
@@ -229,6 +270,14 @@ func (s *ResourceStreamer) streamResource(resource entity.Resource, conn *websoc
 		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
+}
+
+func (s *ResourceStreamer) parseMessage(b []byte) (do ActionEnum, data string) {
+	p := strings.Split(string(b), ProtoSeparator)
+	if len(p) > 1 {
+		return ActionEnum(p[0]), p[1]
+	}
+	return ActionEnum(p[0]), ""
 }
 
 // codecs will determine video and audio stream codecs of target resource
