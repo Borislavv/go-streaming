@@ -21,10 +21,7 @@ document.addEventListener('click', function (event) {
     }
 });
 
-function loadVideoList() {
-    const page = 1;
-    const limit = 25;
-
+function loadVideoList(page = 1, limit = 25) {
     // clear the previous video list
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
@@ -41,19 +38,35 @@ function loadVideoList() {
                 data.list.forEach(video => {
                     const listItem = document.createElement('li');
                     listItem.textContent = video.name;
+                    listItem.id = video.id
                     videoList.appendChild(listItem);
                 });
 
                 ul.appendChild(videoList);
 
                 const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
-                paginationInfo.textContent = `Page ${data.pagination.page} of ${data.pagination.total}`;
+
+                // Displaying pagination info
+                const currentPage = data.pagination.page;
+                const totalPages = data.pagination.total;
+
+                paginationInfo.textContent = `Page ${currentPage} of ${totalPages}`;
             } else {
-                ul.textContent = 'There are not available videos';
+                ul.textContent = 'There are no available videos';
             }
         })
         .catch(error => {
-            console.error('Ошибка при загрузке списка видео:', error);
-            ul.textContent = 'Sorry, there is error occurred while loading a video list';
+            console.error('Error occurred while loading a video list:', error);
+            ul.textContent = 'Sorry, there is an error occurred while loading a video list';
         });
 }
+
+// Обработчик выбора лимита элементов
+const limitSelect = document.getElementById('limit-select');
+limitSelect.addEventListener('change', () => {
+    const selectedLimit = parseInt(limitSelect.value, 10);
+    loadVideoList(1, selectedLimit);
+});
+
+// Загрузка списка с лимитом по умолчанию при загрузке страницы
+loadVideoList();
