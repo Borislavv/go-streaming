@@ -38,7 +38,6 @@ socket.onmessage = (event) => {
         closeMediaResource()
     }
 
-    console.log(data)
     if (typeof data === 'string' && data.startsWith('start')) {
         console.log("Starting new video...")
         let dataParts = data.split(':')
@@ -109,10 +108,10 @@ async function awaiting() {
             "Awaiting data: " +
             "media resource is not ready yet -", mediaSourceReady, ", " +
             "buffer is still updating -", buffer.updating,", " +
-            "chunks awaiting -", chunks.length === 0, +
-            "(len: " + chunks.length + ")"
+            "chunks awaiting -", chunks.length === 0,
+            "(len:", chunks.length, ")"
         )
-        await new Promise(r => setTimeout(r, 250));
+        await new Promise(r => setTimeout(r, 1));
     }
 }
 
@@ -139,10 +138,10 @@ async function awaitingClose() {
         console.log(
             "Awaiting closing: " +
             "buffer is still updating -", buffer.updating,", " +
-            "chunks is not empty -", chunks.length > 0, +
-            "(len: " + chunks.length + ")"
+            "chunks is not empty -", chunks.length > 0,
+                "(len:", chunks.length, ")"
         )
-        await new Promise(r => setTimeout(r, 250));
+        await new Promise(r => setTimeout(r, 1));
     }
 }
 
