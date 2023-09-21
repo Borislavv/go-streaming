@@ -2,21 +2,44 @@ const container = document.querySelector('.container');
 const listBtn = document.getElementById('list-btn');
 const videoList = document.getElementById('video-list');
 
+let prevPage = 1;
+let prevLimit = 25;
+
+let currentPage = 1;
+let currentLimit = 25;
+
 videoList.style.width = `${videoPlayer.clientWidth}px`;
 
-listBtn.addEventListener('click', function () {
-    loadVideoList();
-});
-
 listBtn.addEventListener('click', function (event) {
-    event.stopPropagation(); // Предотвращение всплытия события до document
+    event.stopPropagation();
     videoList.style.display = (videoList.style.display === 'block') ? 'none' : 'block';
     videoList.classList.toggle('active');
     container.classList.toggle('with-list');
 });
 
+const paginationInfo = document.querySelector('.pagination-info')
+const paginationControl = document.querySelector('.pagination-control')
 document.addEventListener('click', function (event) {
-    if (event.target !== listBtn) {
+    let matched = false
+    let ul = document.querySelector('.video-list');
+    if (ul !== null) {
+        let lis = ul.getElementsByTagName('li');
+        Array.from(lis).forEach(function (el) {
+            if (event.target === el) {
+                matched = true
+            }
+        });
+    }
+
+    if (
+        (event.target !== videoList &&
+        event.target !== paginationInfo &&
+        event.target !== paginationControl &&
+        event.target !== limitSelect &&
+        event.target !== pageSelect &&
+        event.target !== reqBtn) &&
+        matched === false
+    ) {
         videoList.style.display = 'none';
     }
 });
@@ -37,6 +60,7 @@ function loadVideoList(page = 1, limit = 25) {
 
                 data.list.forEach(video => {
                     const listItem = document.createElement('li');
+                    listItem.className = 'list-item';
                     listItem.textContent = video.name;
                     listItem.id = video.id
                     videoList.appendChild(listItem);
@@ -45,12 +69,7 @@ function loadVideoList(page = 1, limit = 25) {
                 ul.appendChild(videoList);
 
                 const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
-
-                // Displaying pagination info
-                const currentPage = data.pagination.page;
-                const totalPages = data.pagination.total;
-
-                paginationInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                paginationInfo.textContent = `Page ${currentPage} of ${Math.ceil(data.pagination.total / currentLimit)}`;
             } else {
                 ul.textContent = 'There are no available videos';
             }
@@ -61,12 +80,26 @@ function loadVideoList(page = 1, limit = 25) {
         });
 }
 
-// Обработчик выбора лимита элементов
+// handling limit 'select' box
 const limitSelect = document.getElementById('limit-select');
 limitSelect.addEventListener('change', () => {
-    const selectedLimit = parseInt(limitSelect.value, 10);
-    loadVideoList(1, selectedLimit);
+    prevLimit    = currentLimit
+    currentLimit = parseInt(limitSelect.value, 10);
 });
 
-// Загрузка списка с лимитом по умолчанию при загрузке страницы
-loadVideoList();
+// handling page 'select' box
+const pageSelect = document.getElementById('page-select');
+pageSelect.addEventListener('change', () => {
+    prevPage    = currentPage
+    currentPage = parseInt(pageSelect.value, 10);
+});
+
+// handling list request btn
+const reqBtn = document.getElementById('request-btn');
+reqBtn.addEventListener('click', function () {
+    if (currentPage !== prevPage || currentLimit !== prevLimit) {
+        loadVideoList(currentPage, currentLimit);
+    }
+});
+
+loadVideoList(currentPage, currentLimit);
