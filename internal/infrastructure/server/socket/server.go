@@ -21,7 +21,7 @@ type Server struct {
 	logger   logger.Logger
 }
 
-func NewSocketServer(
+func NewWebSocketServer(
 	host string,
 	port string,
 	transportProto string,
