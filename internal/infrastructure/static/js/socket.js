@@ -28,21 +28,37 @@ socket.onerror = (event) => {
 
 socket.onmessage = (event) => {
     const data = event.data;
+
+    console.log("Some data received...", data)
+
+    if (typeof data === 'string' && (
+        data.startsWith('start') ||
+        data.startsWith('error') ||
+        data.startsWith('stop')
+    )) {
+        console.log('Data is action: ' + data)
+
+        if (data.startsWith('start')) {
+            console.log("Starting new video...")
+            let dataParts = data.split(':')
+            console.log(dataParts)
+            makeMediaResource(dataParts[1], dataParts[2])
+        } else if (data.startsWith('error')) {
+            let dataParts = data.split(':')
+            console.log("Server error occurred: " + dataParts[1])
+            showAlert( dataParts[1])
+        } else if (data === 'stop') {
+            console.log("Stopping playing...")
+            closeMediaResource()
+        }
+
+        return;
+    }
+
     if (data instanceof ArrayBuffer) {
-        console.log("Chunk received");
+        console.log('Data is chunk, adding to buffer...')
         chunks.push(data)
         addNextChunk()
-    }
-
-    if (data === 'stop') {
-        closeMediaResource()
-    }
-
-    if (typeof data === 'string' && data.startsWith('start')) {
-        console.log("Starting new video...")
-        let dataParts = data.split(':')
-        console.log(dataParts)
-        makeMediaResource(dataParts[1], dataParts[2])
     }
 };
 
@@ -84,6 +100,7 @@ waitForVideoListWillBeRendered('.video-list', function () {
             if (!isSettingUp) {
                 currentVideoID = li.id;
                 isSettingUp = true;
+                console.log('Requesting the first video ' + "ID:" + currentVideoID)
                 socket.send("ID:" + currentVideoID) // requesting the first video by ID
             }
         });
@@ -98,6 +115,7 @@ nextBtn.addEventListener('click', function() {
         let LIs = UL.getElementsByTagName('li');
         Array.from(LIs).forEach(function (li) {
             if (found) {
+                console.log('Requesting the next video ' + "ID:" + li.id)
                 socket.send("ID:" + li.id) // requesting the next video by ID
                 currentVideoID = li.id // updating the current video ID
                 found = false // skipping further iterations
@@ -132,6 +150,7 @@ prevBtn.addEventListener('click', function(event) {
             }
             if (currentVideoID === li.id) { // checking up that we found the target video
                 currentVideoID = previousVideoID // updating the actual video ID
+                console.log('Requesting the previous video ' + "ID:" + currentVideoID)
                 // requesting the prev video/audio from server
                 socket.send("ID:" + currentVideoID) // requesting the target (previous) video
                 found = true // setting up the var. for skipp unnecessary iterations
@@ -203,10 +222,10 @@ function closeMediaResource() {
                 }
             }
         ).catch(
-        function (e) {
-            console.error("unable to awaiting closing", e)
-        }
-    )
+            function (e) {
+                console.error("unable to awaiting closing", e)
+            }
+        )
 }
 
 async function awaitingClose() {
@@ -286,3 +305,19 @@ function makeMediaResource(audioCodec, videoCodec) {
     }, false);
 }
 
+function showAlert(message) {
+    const alertContainer = document.getElementById('custom-alert');
+    const alertMessage   = document.getElementById('alert-message');
+    const closeButton    = document.getElementById('close-alert');
+
+    alertMessage.textContent     = message;
+    alertContainer.style.display = 'flex';
+
+    closeButton.addEventListener('click', () => {
+        alertContainer.style.display = 'none';
+    });
+
+    setTimeout(() => {
+        alertContainer.style.display = 'none';
+    }, 5000);
+}

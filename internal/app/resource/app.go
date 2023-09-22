@@ -90,13 +90,19 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
 
 	// video validator
-	videoValidator := validator.NewVideoValidator(ctx, loggerService, resourceValidator, videoRepository, resourceRepository)
+	videoValidator := validator.NewVideoValidator(
+		ctx, loggerService, resourceValidator, videoRepository, resourceRepository,
+	)
 
 	// video builder
-	videoBuilder := builder.NewVideoBuilder(ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository)
+	videoBuilder := builder.NewVideoBuilder(
+		ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository,
+	)
 
 	// video service
-	videoService := service.NewVideoService(ctx, loggerService, videoBuilder, videoValidator, videoRepository)
+	videoService := service.NewVideoService(
+		ctx, loggerService, videoBuilder, videoValidator, videoRepository,
+	)
 
 	// filesystem storage
 	filesystemStorage := storage.NewFilesystemStorage(loggerService)
@@ -105,10 +111,14 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
 
 	// resource builder
-	resourceBuilder := builder.NewResourceBuilder(loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
+	resourceBuilder := builder.NewResourceBuilder(
+		loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold,
+	)
 
 	// resource service
-	resourceService := service.NewResourceService(ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository)
+	resourceService := service.NewResourceService(
+		ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository,
+	)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -139,9 +149,13 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		reqParamsExtractor,
 	).Listen(ctx, wg)
 
+	<-app.shutdown()
+}
+
+func (app *ResourcesApp) shutdown() chan os.Signal {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
-	<-stopCh
+	return stopCh
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
