@@ -12,7 +12,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log"
 	"sync"
 )
 
@@ -146,9 +145,7 @@ func (s *ResourceStreamer) handleStreamActions(
 				if errs.IsNotFoundError(err) {
 					if err = s.proto.Error(err, conn); err != nil {
 						s.logger.Log(err)
-						log.Println(" -------------------------------====== NOT FOUND ERROR (ERROR) -------------------------------======")
 					}
-					log.Println(" -------------------------------====== NOT FOUND ERROR -------------------------------======")
 					continue
 				}
 				continue

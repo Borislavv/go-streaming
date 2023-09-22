@@ -5,7 +5,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/gorilla/websocket"
-	"log"
 	"strings"
 )
 
@@ -71,8 +70,6 @@ func (w *WebSocketProto) Error(err error, conn *websocket.Conn) error {
 	if e := conn.WriteMessage(websocket.TextMessage, msg); e != nil {
 		return w.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), e.Error()))
 	}
-
-	log.Println(" -------------------------------====== ERROR SEND! -------------------------------======", fmt.Sprintf("%v:%v", errMsgPref, err.Error()))
 
 	return nil
 }
