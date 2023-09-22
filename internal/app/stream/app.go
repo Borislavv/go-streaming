@@ -68,20 +68,27 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	// resource reader service
 	readerService := reader.NewReaderService(loggerService)
 
-	// resource streaming service
-	streamingService := streamer.NewStreamingService(ctx, loggerService, readerService, videoRepository)
+	// custom websocket communication protocol
+	wsCommunicator := streamer.NewWebSocketProto(loggerService)
 
-	// websocket server
+	// resource codecs determiner
+	resourceCodecsDeterminer := streamer.NewResourceCodecs(ctx, loggerService)
+
+	// resource streaming service
+	streamingService := streamer.NewStreamingService(
+		ctx, loggerService, readerService, videoRepository, wsCommunicator, resourceCodecsDeterminer,
+	)
+
 	wg.Add(1)
-	go socket.NewSocketServer(
-		app.cfg.Host,
-		app.cfg.Port,
-		app.cfg.Transport,
-		streamingService,
-		loggerService,
+	go socket.NewWebSocketServer( // websocket server
+		app.cfg.Host, app.cfg.Port, app.cfg.Transport, streamingService, loggerService,
 	).Listen(ctx, wg)
 
+	<-app.shutdown()
+}
+
+func (app *StreamingApp) shutdown() chan os.Signal {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
-	<-stopCh
+	return stopCh
 }
