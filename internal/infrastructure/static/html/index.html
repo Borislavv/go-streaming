@@ -155,6 +155,40 @@
                 padding-left: 25px;
                 padding-bottom: 15px;
             }
+
+            /* Стили для алерта */
+            .custom-alert {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+
+            .alert-content {
+                background-color: #333; /* Цвет фона, подходящий к остальному приложению */
+                padding: 20px;
+                border-radius: 5px;
+                text-align: center;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+                width: 250px; /* Увеличение ширины алерта до 250px */
+                color: #c7c7c7; /* Цвет текста, подходящий к остальному приложению */
+            }
+
+            #close-alert {
+                margin-top: 10px;
+                padding: 5px 10px;
+                background-color: #0074D9;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
         </style>
     </head>
 
@@ -164,12 +198,19 @@
         </header>
 
         <div class="container">
+            <div id="custom-alert" class="custom-alert">
+                <div class="alert-content">
+                    <p id="alert-message"></p>
+                    <button id="close-alert">Close</button>
+                </div>
+            </div>
+
             <video id="videoPlayer" controls></video>
 
             <div class="buttons">
-                <button id="prev-btn" class="button">Предыдущее</button>
-                <button id="list-btn" class="button">Список</button>
-                <button id="next-btn" class="button">Следующее</button>
+                <button id="prev-btn" class="button">Previous</button>
+                <button id="list-btn" class="button">List</button>
+                <button id="next-btn" class="button">Next</button>
             </div>
         </div>
 
