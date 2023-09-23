@@ -15,19 +15,32 @@ const (
 	startMsgPref string = "start"
 	errMsgPref   string = "error"
 	stopMsgPref  string = "stop"
+
+	streamByID ActionEnum = "ID"
 )
 
-type WebSocketProto struct {
+type Action struct {
+	do   ActionEnum
+	data string
+}
+
+type ActionEnum string
+
+func (a ActionEnum) String() string {
+	return string(a)
+}
+
+type WebSocketCommunicator struct {
 	logger logger.Logger
 }
 
-func NewWebSocketProto(logger logger.Logger) *WebSocketProto {
-	return &WebSocketProto{
+func NewWebSocketCommunicator(logger logger.Logger) *WebSocketCommunicator {
+	return &WebSocketCommunicator{
 		logger: logger,
 	}
 }
 
-func (w *WebSocketProto) Start(audioCodec string, videoCodec string, conn *websocket.Conn) error {
+func (w *WebSocketCommunicator) Start(audioCodec string, videoCodec string, conn *websocket.Conn) error {
 	b := strings.Builder{}
 	b.WriteString(startMsgPref)
 	b.WriteString(protoSeparator)
@@ -44,7 +57,7 @@ func (w *WebSocketProto) Start(audioCodec string, videoCodec string, conn *webso
 	return nil
 }
 
-func (w *WebSocketProto) Send(chunk dto.Chunk, conn *websocket.Conn) error {
+func (w *WebSocketCommunicator) Send(chunk dto.Chunk, conn *websocket.Conn) error {
 	if chunk.GetError() != nil {
 		return w.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.GetError().Error()))
 	}
@@ -56,7 +69,7 @@ func (w *WebSocketProto) Send(chunk dto.Chunk, conn *websocket.Conn) error {
 	return nil
 }
 
-func (w *WebSocketProto) Parse(bytes []byte) (action ActionEnum, data string) {
+func (w *WebSocketCommunicator) Parse(bytes []byte) (action ActionEnum, data string) {
 	p := strings.Split(string(bytes), protoSeparator)
 	if len(p) > 1 {
 		return ActionEnum(p[0]), p[1]
@@ -64,7 +77,7 @@ func (w *WebSocketProto) Parse(bytes []byte) (action ActionEnum, data string) {
 	return ActionEnum(p[0]), ""
 }
 
-func (w *WebSocketProto) Error(err error, conn *websocket.Conn) error {
+func (w *WebSocketCommunicator) Error(err error, conn *websocket.Conn) error {
 	msg := []byte(fmt.Sprintf("%v:%v", errMsgPref, err.Error()))
 
 	if e := conn.WriteMessage(websocket.TextMessage, msg); e != nil {
@@ -74,7 +87,7 @@ func (w *WebSocketProto) Error(err error, conn *websocket.Conn) error {
 	return nil
 }
 
-func (w *WebSocketProto) Stop(conn *websocket.Conn) error {
+func (w *WebSocketCommunicator) Stop(conn *websocket.Conn) error {
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(stopMsgPref)); err != nil {
 		return w.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 	}
