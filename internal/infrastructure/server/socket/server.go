@@ -97,5 +97,5 @@ func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 
 	s.logger.Info(fmt.Sprintf("[%v]: accpted a new connection", conn.RemoteAddr()))
 
-	s.streamer.Stream(conn)
+	s.streamer.HandleConn(conn)
 }

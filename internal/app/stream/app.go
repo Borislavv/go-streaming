@@ -69,15 +69,21 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	readerService := reader.NewReaderService(loggerService)
 
 	// custom websocket communication protocol
-	wsCommunicator := streamer.NewWebSocketProto(loggerService)
+	wsCommunicator := streamer.NewWebSocketCommunicator(loggerService)
 
 	// resource codecs determiner
-	resourceCodecsDeterminer := streamer.NewResourceCodecs(ctx, loggerService)
+	resourceCodecsDetector := streamer.NewResourceCodecInfo(ctx, loggerService)
+
+	// websocket actions listener
+	actionsListener := streamer.NewWebSocketActionsListener(loggerService, wsCommunicator)
+
+	// websocket actions handler
+	actionsHandler := streamer.NewWebSocketActionsHandler(
+		ctx, loggerService, readerService, videoRepository, wsCommunicator, resourceCodecsDetector,
+	)
 
 	// resource streaming service
-	streamingService := streamer.NewStreamingService(
-		ctx, loggerService, readerService, videoRepository, wsCommunicator, resourceCodecsDeterminer,
-	)
+	streamingService := streamer.NewStreamingService(loggerService, actionsListener, actionsHandler)
 
 	wg.Add(1)
 	go socket.NewWebSocketServer( // websocket server
