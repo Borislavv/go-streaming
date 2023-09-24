@@ -2,10 +2,9 @@ package validator
 
 import (
 	"context"
-	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
@@ -15,6 +14,15 @@ const (
 	nameField       = "name"
 	resourceIDField = "resourceID"
 )
+
+type Video interface {
+	ValidateGetRequestDTO(req dto.GetRequest) error
+	ValidateListRequestDTO(req dto.ListRequest) error
+	ValidateCreateRequestDTO(req dto.CreateRequest) error
+	ValidateUpdateRequestDTO(req dto.UpdateRequest) error
+	ValidateDeleteRequestDTO(req dto.DeleteRequest) error
+	ValidateAggregate(agg *agg.Video) error
+}
 
 type VideoValidator struct {
 	ctx                context.Context
@@ -42,27 +50,27 @@ func NewVideoValidator(
 
 func (v *VideoValidator) ValidateGetRequestDTO(req dto.GetRequest) error {
 	if req.GetId().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError(idField)
+		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateListRequestDTO(req dto.ListRequest) error {
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
-		return errs.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
+		return errors.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
 	if !req.GetCreatedAt().IsZero() && (!req.GetFrom().IsZero() || !req.GetTo().IsZero()) {
-		return errs.NewValidationError("field 'from' or 'to' cannot be passed with 'createdAt'")
+		return errors.NewInternalValidationError("field 'from' or 'to' cannot be passed with 'createdAt'")
 	}
 	return nil
 }
 
 func (v *VideoValidator) ValidateCreateRequestDTO(req dto.CreateRequest) error {
 	if req.GetName() == "" {
-		return errs.NewFieldCannotBeEmptyError(nameField)
+		return errors.NewFieldCannotBeEmptyError(nameField)
 	}
 	if req.GetResourceID().Value.IsZero() {
-		return errs.NewFieldCannotBeEmptyError(resourceIDField)
+		return errors.NewFieldCannotBeEmptyError(resourceIDField)
 	}
 	return nil
 }
@@ -81,9 +89,9 @@ func (v *VideoValidator) ValidateDeleteRequestDTO(req dto.DeleteRequest) error {
 func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	// video fields validation
 	if agg.Name == "" {
-		return errors.New("'name' cannot be empty")
+		return errors.NewInternalValidationError("'name' cannot be empty")
 	} else if agg.Resource.ID.Value.IsZero() {
-		return errors.New("'resource.id' cannot be empty")
+		return errors.NewInternalValidationError("'resource.id' cannot be empty")
 	}
 
 	// resource fields validation
@@ -94,32 +102,32 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	// video validation by name which must be unique
 	video, err := v.videoRepository.FindOneByName(v.ctx, agg.Name)
 	if err != nil {
-		if !errs.IsNotFoundError(err) {
+		if !errors.IsEntityNotFoundError(err) {
 			return v.logger.LogPropagate(err)
 		}
 	} else {
 		if !agg.ID.Value.IsZero() {
 			if video.ID.Value != agg.ID.Value {
-				return errs.NewUniquenessCheckFailedError(nameField)
+				return errors.NewUniquenessCheckFailedError(nameField)
 			}
 		} else {
-			return errs.NewUniquenessCheckFailedError(nameField)
+			return errors.NewUniquenessCheckFailedError(nameField)
 		}
 	}
 
 	// video validation by resource.id which must be unique too
 	video, err = v.videoRepository.FindOneByResourceId(v.ctx, agg.Resource.ID)
 	if err != nil {
-		if !errs.IsNotFoundError(err) {
+		if !errors.IsEntityNotFoundError(err) {
 			return v.logger.LogPropagate(err)
 		}
 	} else {
 		if !agg.ID.Value.IsZero() {
 			if video.ID.Value != agg.ID.Value {
-				return errs.NewUniquenessCheckFailedError(resourceIDField)
+				return errors.NewUniquenessCheckFailedError(resourceIDField)
 			}
 		} else {
-			return errs.NewUniquenessCheckFailedError(resourceIDField)
+			return errors.NewUniquenessCheckFailedError(resourceIDField)
 		}
 	}
 
