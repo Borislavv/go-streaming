@@ -2,10 +2,9 @@ package mongodb
 
 import (
 	"context"
-	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,11 +18,11 @@ import (
 const VideosCollection = "videos"
 
 var (
-	VideoNotFoundByIdError         = errs.NewNotFoundError("video", "id")
-	VideoNotFoundByNameError       = errs.NewNotFoundError("video", "name")
-	VideoNotFoundByResourceIdError = errs.NewNotFoundError("video", "resource.id")
-	VideoInsertingFailedError      = errors.New("unable to store 'video' or retrieve inserted 'id'")
-	VideoWasNotDeletedError        = errors.New("video was not deleted")
+	VideoNotFoundByIdError         = errors.NewEntityNotFoundError("video", "id")
+	VideoNotFoundByNameError       = errors.NewEntityNotFoundError("video", "name")
+	VideoNotFoundByResourceIdError = errors.NewEntityNotFoundError("video", "resource.id")
+	VideoInsertingFailedError      = errors.NewInternalValidationError("unable to store 'video' or retrieve inserted 'id'")
+	VideoWasNotDeletedError        = errors.NewInternalValidationError("video was not deleted")
 )
 
 type VideoRepository struct {

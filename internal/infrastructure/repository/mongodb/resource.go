@@ -2,9 +2,8 @@ package mongodb
 
 import (
 	"context"
-	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,8 +17,8 @@ import (
 const ResourcesCollection = "resources"
 
 var (
-	ResourceNotFoundByIdError    = errs.NewNotFoundError("resource", "id")
-	ResourceInsertingFailedError = errors.New("unable to store 'resource' or retrieve inserted 'id'")
+	ResourceNotFoundByIdError    = errors.NewEntityNotFoundError("resource", "id")
+	ResourceInsertingFailedError = errors.NewInternalRepositoryError("unable to store 'resource' or retrieve inserted 'id'")
 )
 
 type ResourceRepository struct {
