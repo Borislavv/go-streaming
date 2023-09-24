@@ -10,6 +10,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
+type Resource interface {
+	Upload(req dto.UploadRequest) (*agg.Resource, error)
+}
+
 type ResourceService struct {
 	ctx        context.Context
 	logger     logger.Logger
