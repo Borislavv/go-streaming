@@ -13,7 +13,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
@@ -44,7 +44,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. loggerService and close func.
-	loggerService, cls := logger.NewStdOutLogger(ctx, 10, 10)
+	loggerService, cls := stdout.NewLogger(ctx, 10, 10)
 	defer func() {
 		cancel()
 		wg.Wait()
@@ -159,7 +159,7 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
-	loggerService *logger.StdOutLogger,
+	loggerService *stdout.Logger,
 	responseService response.Responder,
 	// resource deps.
 	resourceBuilder builder.Resource,
@@ -217,7 +217,7 @@ func (app *ResourcesApp) InitRestApiControllers(
 }
 
 func (app *ResourcesApp) InitNativeRenderingControllers(
-	loggerService *logger.StdOutLogger,
+	loggerService *stdout.Logger,
 	responseService response.Responder,
 ) []controller.Controller {
 	return []controller.Controller{
@@ -226,7 +226,7 @@ func (app *ResourcesApp) InitNativeRenderingControllers(
 }
 
 func (app *ResourcesApp) InitStaticServingControllers(
-	loggerService *logger.StdOutLogger,
+	loggerService *stdout.Logger,
 	responseService response.Responder,
 ) []controller.Controller {
 	return []controller.Controller{

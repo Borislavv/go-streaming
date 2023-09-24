@@ -1,8 +1,7 @@
 package request
 
 import (
-	"errors"
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -42,10 +41,10 @@ func (e *ParametersExtractor) HasParameter(param string, req *http.Request) bool
 // GetParameter - checking if the param. is existing in request, it will be returned
 func (e *ParametersExtractor) GetParameter(param string, req *http.Request) (string, error) {
 	if param == "" {
-		return "", errs.NewFieldCannotBeEmptyError(param)
+		return "", errors.NewFieldCannotBeEmptyError(param)
 	}
 	if v, ok := e.Parameters(req)[param]; ok {
 		return v, nil
 	}
-	return "", errors.New("parameter '" + param + "' not found into query or path")
+	return "", errors.NewInternalServerError("parameter '" + param + "' not found into query or path")
 }

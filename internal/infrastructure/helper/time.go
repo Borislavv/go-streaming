@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"time"
 )
 
@@ -19,5 +19,5 @@ func ParseTime(date string) (time.Time, error) {
 		}
 		return parsed, nil
 	}
-	return time.Time{}, errs.NewTimeParsingValidationError(date)
+	return time.Time{}, errors.NewTimeParsingValidationError(date)
 }

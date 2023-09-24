@@ -1,4 +1,4 @@
-package errs
+package errors
 
 import (
 	"fmt"
@@ -12,15 +12,17 @@ const (
 	publicUploadErrStatus = http.StatusBadRequest
 )
 
-type ResourceAlreadyExistsError struct{ errored }
+type ResourceAlreadyExistsError struct{ publicError }
 
 func NewResourceAlreadyExistsError(name string) *ResourceAlreadyExistsError {
 	return &ResourceAlreadyExistsError{
-		errored{
-			ErrorMessage: fmt.Sprintf("the resource '%v' being loaded already exists", name),
-			ErrorType:    uploadErrType,
-			errorStatus:  publicUploadErrStatus,
-			errorLevel:   publicUploadErrLevel,
+		publicError{
+			errored{
+				ErrorMessage: fmt.Sprintf("the resource '%v' being loaded already exists", name),
+				ErrorType:    uploadErrType,
+				errorStatus:  publicUploadErrStatus,
+				errorLevel:   publicUploadErrLevel,
+			},
 		},
 	}
 }

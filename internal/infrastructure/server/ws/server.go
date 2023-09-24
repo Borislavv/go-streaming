@@ -1,10 +1,10 @@
-package socket
+package ws
 
 import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -17,7 +17,7 @@ type Server struct {
 	port           string // example: "9988"
 	transportProto string // example: "tcp"
 
-	streamer service.Streamer
+	streamer streamer.Streamer
 	logger   logger.Logger
 }
 
@@ -25,7 +25,7 @@ func NewWebSocketServer(
 	host string,
 	port string,
 	transportProto string,
-	streamer service.Streamer,
+	streamer streamer.Streamer,
 	logger logger.Logger,
 ) *Server {
 	return &Server{

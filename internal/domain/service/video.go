@@ -10,6 +10,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
+type Video interface {
+	Get(req dto.GetRequest) (*agg.Video, error)
+	List(req dto.ListRequest) (list []*agg.Video, total int64, err error)
+	Create(req dto.CreateRequest) (*agg.Video, error)
+	Update(req dto.UpdateRequest) (*agg.Video, error)
+	Delete(req dto.DeleteRequest) error
+}
+
 type VideoService struct {
 	ctx        context.Context
 	logger     logger.Logger

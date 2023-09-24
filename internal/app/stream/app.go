@@ -2,11 +2,16 @@ package stream
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/logger"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/server/socket"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/codec"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener"
+	ws2 "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/ws"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -33,7 +38,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. logger and close func.
-	loggerService, cls := logger.NewStdOutLogger(ctx, 10, 10)
+	loggerService, cls := stdout.NewLogger(ctx, 10, 10)
 	defer func() {
 		cancel()
 		wg.Wait()
@@ -69,24 +74,30 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	readerService := reader.NewReaderService(loggerService)
 
 	// custom websocket communication protocol
-	wsCommunicator := streamer.NewWebSocketCommunicator(loggerService)
+	wsCommunicator := ws2.NewWebSocketCommunicator(loggerService)
 
 	// resource codecs determiner
-	resourceCodecsDetector := streamer.NewResourceCodecInfo(ctx, loggerService)
+	codecsDetector := codec.NewResourceCodecInfo(ctx, loggerService)
 
 	// websocket actions listener
-	actionsListener := streamer.NewWebSocketActionsListener(loggerService, wsCommunicator)
+	actionsListener := listener.NewWebSocketActionsListener(loggerService, wsCommunicator)
 
 	// websocket actions handler
-	actionsHandler := streamer.NewWebSocketActionsHandler(
-		ctx, loggerService, readerService, videoRepository, wsCommunicator, resourceCodecsDetector,
+	actionsHandler := handler.NewWebSocketActionsHandler(
+		ctx,
+		loggerService,
+		[]strategy.ActionStrategy{
+			strategy.NewStreamByIDActionStrategy(
+				ctx, loggerService, videoRepository, readerService, codecsDetector, wsCommunicator,
+			),
+		},
 	)
 
 	// resource streaming service
 	streamingService := streamer.NewStreamingService(loggerService, actionsListener, actionsHandler)
 
 	wg.Add(1)
-	go socket.NewWebSocketServer( // websocket server
+	go ws.NewWebSocketServer( // websocket server
 		app.cfg.Host, app.cfg.Port, app.cfg.Transport, streamingService, loggerService,
 	).Listen(ctx, wg)
 

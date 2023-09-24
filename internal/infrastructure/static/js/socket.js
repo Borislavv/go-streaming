@@ -11,21 +11,20 @@ let mediaSource;
 let chunks;
 let mediaSourceReady;
 
-//// socket events further
-// open
+// ws event: open
 socket.onopen = (event) => {
     console.log('WebSocket connection opened');
-    // socket.send("start")
 };
-// close
+// ws event: close
 socket.onclose = (event) => {
     console.log('WebSocket connection closed');
 };
-// error
+// ws event: error
 socket.onerror = (event) => {
     console.error('WebSocket error: ', event);
 };
 
+// ws event: on message
 socket.onmessage = (event) => {
     const data = event.data;
 

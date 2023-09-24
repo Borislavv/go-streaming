@@ -2,7 +2,7 @@ package response
 
 import (
 	"encoding/json"
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
 	"net/http"
@@ -43,7 +43,7 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 	err, isErr := dataOrErr.(error)
 	if isErr {
 		r.logger.Log(err)
-		publicErr, isPublicErr := err.(errs.PublicError)
+		publicErr, isPublicErr := err.(errors.PublicError)
 		if isPublicErr {
 			// handle the case when write is http.ResponseWriter
 			if httpWriter, ok := w.(http.ResponseWriter); ok {
@@ -66,7 +66,7 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 			if _, err = w.Write(
 				r.toBytes(
 					NewErrorResponse(
-						errs.NewInternalServerError(),
+						errors.NewInternalServerError(""),
 					),
 				),
 			); err != nil {

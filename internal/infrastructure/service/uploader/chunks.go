@@ -1,14 +1,17 @@
 package uploader
 
-import "net/http"
+import (
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
+)
 
-type ChunksUploader struct {
+type ChunkUploader struct {
 }
 
-func NewChunkUploader() *ChunksUploader {
-	return &ChunksUploader{}
+func NewChunkUploader() *ChunkUploader {
+	return &ChunkUploader{}
 }
 
-func (u *ChunksUploader) Upload(r *http.Request) (resourceId string, err error) {
-	return "", nil
+func (u *ChunkUploader) Upload(req dto.UploadRequest) (err error) {
+	// todo must be implemented
+	return nil
 }
