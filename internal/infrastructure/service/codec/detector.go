@@ -1,4 +1,4 @@
-package streamer
+package codec
 
 import (
 	"context"
