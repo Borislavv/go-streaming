@@ -3,14 +3,9 @@ package uploader
 import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errs"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/service"
-)
-
-const (
-	maxFileSize  = 100 << 20 // 100mb.
-	formFilename = "resource"
 )
 
 // NativeUploader is a service which represents functionality
@@ -31,7 +26,7 @@ func NewNativeUploader(
 }
 
 // Upload method will be store a file on a disk and calculate a new hashed name. Request DTO mutation!
-func (u *NativeUploader) Upload(req dto.UploadRequest) (er error) {
+func (u *NativeUploader) Upload(req dto.UploadRequest) (err error) {
 	// logging the uploaded file info
 	u.logger.Info(
 		fmt.Sprintf(
@@ -51,7 +46,7 @@ func (u *NativeUploader) Upload(req dto.UploadRequest) (er error) {
 		return u.logger.LogPropagate(err)
 	}
 	if has { // if being uploading resource is already exists, then throw an error
-		return u.logger.LogPropagate(errs.NewResourceAlreadyExistsError(req.GetHeader().Filename))
+		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(req.GetHeader().Filename))
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
