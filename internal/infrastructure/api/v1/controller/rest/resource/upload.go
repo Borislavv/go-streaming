@@ -3,7 +3,7 @@ package resource
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -14,14 +14,14 @@ const UploadPath = "/resource"
 type UploadResourceController struct {
 	logger    logger.Logger
 	builder   builder.Resource
-	service   service.Resource
+	service   resource.CRUD
 	responder response.Responder
 }
 
-func NewUploadResourceController(
+func NewUploadController(
 	logger logger.Logger,
 	builder builder.Resource,
-	service service.Resource,
+	service resource.CRUD,
 	responer response.Responder,
 ) *UploadResourceController {
 	return &UploadResourceController{
@@ -33,19 +33,19 @@ func NewUploadResourceController(
 }
 
 func (c *UploadResourceController) Upload(w http.ResponseWriter, r *http.Request) {
-	req, err := c.builder.BuildUploadRequestDTOFromRequest(r)
+	reqDTO, err := c.builder.BuildUploadRequestDTOFromRequest(r)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	agg, err := c.service.Upload(req)
+	resourceAgg, err := c.service.Upload(reqDTO)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	c.responder.Respond(w, agg)
+	c.responder.Respond(w, resourceAgg)
 }
 
 func (c *UploadResourceController) AddRoute(router *mux.Router) {

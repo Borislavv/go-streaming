@@ -5,19 +5,19 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/service/storage"
 )
 
 // NativeUploader is a service which represents functionality
 // for uploader a full file from *http.Request into storage.
 type NativeUploader struct {
 	logger  logger.Logger
-	storage service.Storage
+	storage storage.Storage
 }
 
 func NewNativeUploader(
 	logger logger.Logger,
-	storage service.Storage,
+	storage storage.Storage,
 ) *NativeUploader {
 	return &NativeUploader{
 		logger:  logger,
