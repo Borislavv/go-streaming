@@ -38,7 +38,10 @@ document.addEventListener('click', function (event) {
     }
 });
 
-function loadVideoList(page = 1, limit = 25) {
+function loadVideoList() {
+    let limit = parseInt(limitSelect.value, 10);
+    let page  = parseInt(pageSelect.value, 10);
+
     // clear the previous video list
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
@@ -60,6 +63,12 @@ function renderList(data) {
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
 
+    const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
+
+    // clear the previous pages list
+    const pageSelect = document.getElementById('page-select');
+    pageSelect.innerHTML = '';
+
     if (data.list && data.list.length > 0) {
         const videoList = document.createElement('ul');
         videoList.className = 'video-list';
@@ -74,39 +83,63 @@ function renderList(data) {
 
         ul.appendChild(videoList);
 
-        const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
-        paginationInfo.textContent = `Page ${currentPage} of ${Math.ceil(data.pagination.total / currentLimit)}`;
+        let totalPages = Math.ceil(data.pagination.total / currentLimit);
+
+        paginationInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+        // available pages list building
+        for (let i = 1; i <= totalPages; i++) {
+            const pageListItem = document.createElement('option');
+            pageListItem.textContent = `Page ${i}`;
+            pageListItem.value = `${i}`;
+            pageSelect.appendChild(pageListItem);
+        }
+
     } else {
         ul.textContent = 'There are no available videos';
         ul.style = 'align: center';
+
+        paginationInfo.innerHTML = '';
     }
 }
 
 // handling limit 'select' box
 const limitSelect = document.getElementById('limit-select');
 limitSelect.addEventListener('change', () => {
-    prevLimit    = currentLimit
-    currentLimit = parseInt(limitSelect.value, 10);
+    let chosenLimit = parseInt(limitSelect.value, 10)
+
+    if (chosenLimit !== currentLimit) {
+        previousLimit = currentLimit;
+        currentLimit  = chosenLimit;
+    }
 });
 
 // handling page 'select' box
 const pageSelect = document.getElementById('page-select');
 pageSelect.addEventListener('change', () => {
-    prevPage    = currentPage
-    currentPage = parseInt(pageSelect.value, 10);
+    let chosenPage = parseInt(pageSelect.value, 10);
+
+    if (chosenPage !== currentPage) {
+        previousPage = currentPage;
+        currentPage  = chosenPage;
+    }
 });
 
 // handling list request btn
 const reqBtn = document.getElementById('request-btn');
 reqBtn.addEventListener('click', function () {
-    if (currentPage !== prevPage || currentLimit !== prevLimit) {
-        loadVideoList(currentPage, currentLimit);
+    if (previousPage !== currentPage || previousLimit !== currentLimit) {
+        loadVideoList();
+        previousLimit = currentLimit;
+        previousPage  = currentPage;
+    } else {
+        showAlert('There are no changes in page or limit');
     }
 });
 
 // init. default data
-let currentLimit = parseInt(limitSelect.value, 10);
-let currentPage  = parseInt(pageSelect.value, 10);
-let prevPage     = currentPage;
-let prevLimit    = currentLimit;
-loadVideoList(currentPage, currentLimit);
+let currentLimit    = parseInt(limitSelect.value, 10);
+let currentPage     = parseInt(pageSelect.value, 10);
+let previousLimit   = currentLimit;
+let previousPage    = currentPage;
+loadVideoList();

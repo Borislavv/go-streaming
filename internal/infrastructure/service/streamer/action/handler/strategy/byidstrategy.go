@@ -88,9 +88,11 @@ func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websoc
 			break
 		}
 
-		s.logger.Info(fmt.Sprintf("[%v]: wrote %d bytes of '%v' to websocket",
-			conn.RemoteAddr(), chunk.GetLen(), resource.Name,
-		))
+		s.logger.Info(
+			fmt.Sprintf("[%v]: wrote %d bytes of '%v' to websocket",
+				conn.RemoteAddr(), chunk.GetLen(), resource.Name,
+			),
+		)
 	}
 
 	if err = s.communicator.Stop(conn); err != nil {
