@@ -1,4 +1,4 @@
-package service
+package video
 
 import (
 	"context"
@@ -10,15 +10,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
-type Video interface {
-	Get(req dto.GetRequest) (*agg.Video, error)
-	List(req dto.ListRequest) (list []*agg.Video, total int64, err error)
-	Create(req dto.CreateRequest) (*agg.Video, error)
-	Update(req dto.UpdateRequest) (*agg.Video, error)
-	Delete(req dto.DeleteRequest) error
-}
-
-type VideoService struct {
+type CRUDService struct {
 	ctx        context.Context
 	logger     logger.Logger
 	builder    builder.Video
@@ -26,14 +18,14 @@ type VideoService struct {
 	repository repository.Video
 }
 
-func NewVideoService(
+func NewCRUDService(
 	ctx context.Context,
 	logger logger.Logger,
 	builder builder.Video,
 	validator validator.Video,
 	repository repository.Video,
-) *VideoService {
-	return &VideoService{
+) *CRUDService {
+	return &CRUDService{
 		ctx:        ctx,
 		logger:     logger,
 		builder:    builder,
@@ -42,7 +34,7 @@ func NewVideoService(
 	}
 }
 
-func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
+func (s *CRUDService) Get(req dto.GetRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, err
@@ -56,7 +48,7 @@ func (s *VideoService) Get(req dto.GetRequest) (*agg.Video, error) {
 	return video, nil
 }
 
-func (s *VideoService) List(req dto.ListRequest) (list []*agg.Video, total int64, err error) {
+func (s *CRUDService) List(req dto.ListRequest) (list []*agg.Video, total int64, err error) {
 	// validation of input request
 	if err = s.validator.ValidateListRequestDTO(req); err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
@@ -70,33 +62,33 @@ func (s *VideoService) List(req dto.ListRequest) (list []*agg.Video, total int64
 	return list, total, err
 }
 
-func (s *VideoService) Create(req dto.CreateRequest) (*agg.Video, error) {
+func (s *CRUDService) Create(videoDTO dto.CreateRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDTO(req); err != nil {
+	if err := s.validator.ValidateCreateRequestDTO(videoDTO); err != nil {
 		return nil, err
 	}
 
 	// building an aggregate
-	video, err := s.builder.BuildAggFromCreateRequestDTO(req)
+	videoAgg, err := s.builder.BuildAggFromCreateRequestDTO(videoDTO)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// validation of an aggregate
-	if err = s.validator.ValidateAggregate(video); err != nil {
+	if err = s.validator.ValidateAggregate(videoAgg); err != nil {
 		return nil, s.logger.ErrorPropagate(err)
 	}
 
 	// saving an aggregate into storage
-	video, err = s.repository.Insert(s.ctx, video)
+	videoAgg, err = s.repository.Insert(s.ctx, videoAgg)
 	if err != nil {
 		return nil, s.logger.ErrorPropagate(err)
 	}
 
-	return video, nil
+	return videoAgg, nil
 }
 
-func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
+func (s *CRUDService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -122,20 +114,20 @@ func (s *VideoService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	return videoAgg, nil
 }
 
-func (s *VideoService) Delete(req dto.DeleteRequest) error {
+func (s *CRUDService) Delete(reqDTO dto.DeleteRequest) error {
 	// validation of input request
-	if err := s.validator.ValidateDeleteRequestDTO(req); err != nil {
+	if err := s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
 		return err
 	}
 
 	// fetching a video which will be deleted
-	video, err := s.repository.Find(s.ctx, req.GetId())
+	videoAgg, err := s.repository.Find(s.ctx, reqDTO.GetId())
 	if err != nil {
 		return s.logger.ErrorPropagate(err)
 	}
 
 	// video removing
-	if err = s.repository.Remove(s.ctx, video); err != nil {
+	if err = s.repository.Remove(s.ctx, videoAgg); err != nil {
 		return s.logger.ErrorPropagate(err)
 	}
 
