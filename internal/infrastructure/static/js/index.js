@@ -65,6 +65,10 @@ function renderList(data) {
 
     const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
 
+    // clear the previous pages list
+    const pageSelect = document.getElementById('page-select');
+    pageSelect.innerHTML = '';
+
     if (data.list && data.list.length > 0) {
         const videoList = document.createElement('ul');
         videoList.className = 'video-list';
@@ -79,7 +83,18 @@ function renderList(data) {
 
         ul.appendChild(videoList);
 
-        paginationInfo.textContent = `Page ${currentPage} of ${Math.ceil(data.pagination.total / currentLimit)}`;
+        let totalPages = Math.ceil(data.pagination.total / currentLimit);
+
+        paginationInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+        // available pages list building
+        for (let i = 1; i <= totalPages; i++) {
+            const pageListItem = document.createElement('option');
+            pageListItem.textContent = `Page ${i}`;
+            pageListItem.value = `${i}`;
+            pageSelect.appendChild(pageListItem);
+        }
+
     } else {
         ul.textContent = 'There are no available videos';
         ul.style = 'align: center';
