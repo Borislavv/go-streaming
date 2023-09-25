@@ -63,6 +63,8 @@ function renderList(data) {
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
 
+    const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
+
     if (data.list && data.list.length > 0) {
         const videoList = document.createElement('ul');
         videoList.className = 'video-list';
@@ -77,11 +79,12 @@ function renderList(data) {
 
         ul.appendChild(videoList);
 
-        const paginationInfo = document.querySelector('.dropdown-content .pagination-info');
         paginationInfo.textContent = `Page ${currentPage} of ${Math.ceil(data.pagination.total / currentLimit)}`;
     } else {
         ul.textContent = 'There are no available videos';
         ul.style = 'align: center';
+
+        paginationInfo.innerHTML = '';
     }
 }
 
