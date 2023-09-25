@@ -3,7 +3,8 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	resource2 "github.com/Borislavv/video-streaming/internal/domain/service/resource"
+	video2 "github.com/Borislavv/video-streaming/internal/domain/service/video"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
@@ -100,7 +101,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	// video service
-	videoService := service.NewVideoService(
+	videoService := video2.NewCRUDService(
 		ctx, loggerService, videoBuilder, videoValidator, videoRepository,
 	)
 
@@ -116,7 +117,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	// resource service
-	resourceService := service.NewResourceService(
+	resourceService := resource2.NewResourceService(
 		ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository,
 	)
 
@@ -163,14 +164,14 @@ func (app *ResourcesApp) InitRestApiControllers(
 	responseService response.Responder,
 	// resource deps.
 	resourceBuilder builder.Resource,
-	resourceService service.Resource,
+	resourceService resource2.CRUD,
 	// video deps.
 	videoBuilder builder.Video,
-	videoService service.Video,
+	videoService video2.CRUD,
 ) []controller.Controller {
 	return []controller.Controller{
 		// resource
-		resource.NewUploadResourceController(
+		resource.NewUploadController(
 			loggerService,
 			resourceBuilder,
 			resourceService,
@@ -183,25 +184,25 @@ func (app *ResourcesApp) InitRestApiControllers(
 			videoService,
 			responseService,
 		),
-		video.NewDeleteVideoController(
+		video.NewDeleteController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewGetVideoController(
+		video.NewGetController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewListVideoController(
+		video.NewListController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewUpdateVideoController(
+		video.NewUpdateController(
 			loggerService,
 			videoBuilder,
 			videoService,
@@ -209,10 +210,10 @@ func (app *ResourcesApp) InitRestApiControllers(
 		),
 		// audio
 		audio.NewCreateController(),
-		audio.NewDeleteVideoController(),
-		audio.NewGetVideoController(),
-		audio.NewListVideoController(),
-		audio.NewUpdateVideoController(),
+		audio.NewDeleteController(),
+		audio.NewGetController(),
+		audio.NewListController(),
+		audio.NewUpdateController(),
 	}
 }
 
