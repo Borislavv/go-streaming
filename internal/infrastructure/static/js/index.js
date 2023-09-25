@@ -110,17 +110,10 @@ pageSelect.addEventListener('change', () => {
 // handling list request btn
 const reqBtn = document.getElementById('request-btn');
 reqBtn.addEventListener('click', function () {
-    console.log(
-        previousPage,
-        currentPage,
-        previousLimit,
-        currentLimit,
-        previousPage !== currentPage,
-        previousLimit !== currentLimit,
-        previousPage !== currentPage || previousLimit !== currentLimit
-    )
     if (previousPage !== currentPage || previousLimit !== currentLimit) {
         loadVideoList();
+        previousLimit = currentLimit;
+        previousPage  = currentPage;
     } else {
         showAlert('There are no changes in page or limit');
     }
