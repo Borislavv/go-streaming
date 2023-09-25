@@ -1,4 +1,4 @@
-package service
+package uploader
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"

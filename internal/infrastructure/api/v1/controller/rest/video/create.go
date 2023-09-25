@@ -3,7 +3,7 @@ package video
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service"
+	"github.com/Borislavv/video-streaming/internal/domain/service/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -14,14 +14,14 @@ const CreatePath = "/video"
 type CreateVideoController struct {
 	logger   logger.Logger
 	builder  builder.Video
-	service  service.Video
+	service  video.CRUD
 	response response.Responder
 }
 
 func NewCreateController(
 	logger logger.Logger,
 	builder builder.Video,
-	service service.Video,
+	service video.CRUD,
 	response response.Responder,
 ) *CreateVideoController {
 	return &CreateVideoController{
@@ -33,19 +33,19 @@ func NewCreateController(
 }
 
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
-	dto, err := c.builder.BuildCreateRequestDTOFromRequest(r)
+	videoDTO, err := c.builder.BuildCreateRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	video, err := c.service.Create(dto)
+	videoAgg, err := c.service.Create(videoDTO)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	c.response.Respond(w, video)
+	c.response.Respond(w, videoAgg)
 	w.WriteHeader(http.StatusCreated)
 }
 
