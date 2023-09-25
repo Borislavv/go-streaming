@@ -1,4 +1,4 @@
-package service
+package resource
 
 import (
 	"context"
@@ -7,17 +7,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	Uploader2 "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
-type Resource interface {
-	Upload(req dto.UploadRequest) (*agg.Resource, error)
-}
-
-type ResourceService struct {
+type CRUDService struct {
 	ctx        context.Context
 	logger     logger.Logger
-	uploader   Uploader
+	uploader   Uploader2.Uploader
 	validator  validator.Resource
 	builder    builder.Resource
 	repository repository.Resource
@@ -26,12 +23,12 @@ type ResourceService struct {
 func NewResourceService(
 	ctx context.Context,
 	logger logger.Logger,
-	uploader Uploader,
+	uploader Uploader2.Uploader,
 	validator validator.Resource,
 	builder builder.Resource,
 	repository repository.Resource,
-) *ResourceService {
-	return &ResourceService{
+) *CRUDService {
+	return &CRUDService{
 		ctx:        ctx,
 		logger:     logger,
 		uploader:   uploader,
@@ -41,7 +38,7 @@ func NewResourceService(
 	}
 }
 
-func (s *ResourceService) Upload(req dto.UploadRequest) (*agg.Resource, error) {
+func (s *CRUDService) Upload(req dto.UploadRequest) (*agg.Resource, error) {
 	if err := s.validator.ValidateUploadRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
