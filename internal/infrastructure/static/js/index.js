@@ -38,7 +38,10 @@ document.addEventListener('click', function (event) {
     }
 });
 
-function loadVideoList(page = 1, limit = 25) {
+function loadVideoList() {
+    let limit = parseInt(limitSelect.value, 10);
+    let page  = parseInt(pageSelect.value, 10);
+
     // clear the previous video list
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
@@ -85,28 +88,47 @@ function renderList(data) {
 // handling limit 'select' box
 const limitSelect = document.getElementById('limit-select');
 limitSelect.addEventListener('change', () => {
-    prevLimit    = currentLimit
-    currentLimit = parseInt(limitSelect.value, 10);
+    let chosenLimit = parseInt(limitSelect.value, 10)
+
+    if (chosenLimit !== currentLimit) {
+        previousLimit = currentLimit;
+        currentLimit  = chosenLimit;
+    }
 });
 
 // handling page 'select' box
 const pageSelect = document.getElementById('page-select');
 pageSelect.addEventListener('change', () => {
-    prevPage    = currentPage
-    currentPage = parseInt(pageSelect.value, 10);
+    let chosenPage = parseInt(pageSelect.value, 10);
+
+    if (chosenPage !== currentPage) {
+        previousPage = currentPage;
+        currentPage  = chosenPage;
+    }
 });
 
 // handling list request btn
 const reqBtn = document.getElementById('request-btn');
 reqBtn.addEventListener('click', function () {
-    if (currentPage !== prevPage || currentLimit !== prevLimit) {
-        loadVideoList(currentPage, currentLimit);
+    console.log(
+        previousPage,
+        currentPage,
+        previousLimit,
+        currentLimit,
+        previousPage !== currentPage,
+        previousLimit !== currentLimit,
+        previousPage !== currentPage || previousLimit !== currentLimit
+    )
+    if (previousPage !== currentPage || previousLimit !== currentLimit) {
+        loadVideoList();
+    } else {
+        showAlert('There are no changes in page or limit');
     }
 });
 
 // init. default data
-let currentLimit = parseInt(limitSelect.value, 10);
-let currentPage  = parseInt(pageSelect.value, 10);
-let prevPage     = currentPage;
-let prevLimit    = currentLimit;
-loadVideoList(currentPage, currentLimit);
+let currentLimit    = parseInt(limitSelect.value, 10);
+let currentPage     = parseInt(pageSelect.value, 10);
+let previousLimit   = currentLimit;
+let previousPage    = currentPage;
+loadVideoList();
