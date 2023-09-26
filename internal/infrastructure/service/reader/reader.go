@@ -1,6 +1,8 @@
 package reader
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -15,10 +17,14 @@ const (
 
 type ResourceReader struct {
 	logger logger.Logger
+	cache  map[string][]dto.Chunk
 }
 
 func NewReaderService(logger logger.Logger) *ResourceReader {
-	return &ResourceReader{logger: logger}
+	return &ResourceReader{
+		logger: logger,
+		cache:  map[string][]dto.Chunk{},
+	}
 }
 
 // Read will read a resource and send file as butches of bytes
@@ -80,4 +86,21 @@ func (r *ResourceReader) sendChunk(chunk *dto.ChunkDTO, chunksCh chan dto.Chunk)
 		r.logger.Info(fmt.Sprintf("%d bytes read and sent", chunk.Len))
 		chunksCh <- chunk
 	}
+}
+
+func (r *ResourceReader) cached(resource dto.Resource) ([]dto.Chunk, error) {
+	hash := md5.New()
+	if _, err := hash.Write([]byte(resource.GetFilepath())); err != nil {
+		r.logger.Emergency(err)
+		return nil, err
+	}
+	key := hex.EncodeToString(hash.Sum(nil))
+
+	if data, found := r.cache[key]; found {
+		return data, nil
+	}
+
+	r.cache[key] =
+
+	return nil, nil
 }
