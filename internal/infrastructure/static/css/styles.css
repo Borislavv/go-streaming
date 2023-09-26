@@ -137,16 +137,6 @@ video {
     padding-left: 25px;
     padding-bottom: 15px;
 }
-.pagination-page-control {
-    color: #7e7e7e;
-    padding-left: 25px;
-    padding-bottom: 15px;
-}
-.pagination-request-button {
-    color: #7e7e7e;
-    padding-left: 25px;
-    padding-bottom: 15px;
-}
 
 /* Стили для алерта */
 .custom-alert {
