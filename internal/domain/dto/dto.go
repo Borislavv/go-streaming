@@ -55,6 +55,7 @@ type Resource interface {
 }
 
 type Chunk interface {
+	GetNum() int
 	GetLen() int
 	SetLen(len int)
 	GetData() []byte
