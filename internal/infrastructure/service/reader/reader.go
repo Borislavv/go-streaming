@@ -7,23 +7,26 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"io"
+	"math"
 	"os"
+	"sync"
 )
 
 const (
-	ChunkSize    = 1024 * 1024 * 2.5 // 2.5MB
-	ChunksBuffer = 4
+	ChunkSize      = 1024 * 1024 * 1 // 1MB
+	ChunksBuffer   = 4
+	ReadingThreads = 4
 )
 
 type ResourceReader struct {
 	logger logger.Logger
-	cache  map[string][]dto.Chunk
+	cache  map[string]map[int]dto.Chunk
 }
 
 func NewReaderService(logger logger.Logger) *ResourceReader {
 	return &ResourceReader{
 		logger: logger,
-		cache:  map[string][]dto.Chunk{},
+		cache:  map[string]map[int]dto.Chunk{},
 	}
 }
 
@@ -43,20 +46,25 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chu
 		r.logger.Info(fmt.Sprintf("recourse '%v' reading finished", resource.GetFilepath()))
 	}()
 
+	//chunkedFile, err := r.cached(resource)
+	//if err != nil {
+	//	r.logger.Emergency(err)
+	//	return
+	//}
+	//
+	//for _, chunk := range chunkedFile {
+	//	r.sendChunk(chunk, chunksCh)
+	//}
+
 	file, err := os.Open(resource.GetFilepath())
 	if err != nil {
 		r.logger.Error(err)
 		return
 	}
-	defer func() {
-		if err = file.Close(); err != nil {
-			r.logger.Error(err)
-			return
-		}
-	}()
+	defer func() { _ = file.Close() }()
 
 	for {
-		chunk := dto.NewChunk(ChunkSize)
+		chunk := dto.NewChunk(ChunkSize, 0)
 
 		chunk.Len, err = file.Read(chunk.Data)
 		if err != nil {
@@ -71,24 +79,106 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chu
 	}
 }
 
-func (r *ResourceReader) sendChunk(chunk *dto.ChunkDTO, chunksCh chan dto.Chunk) {
-	if chunk.Len == 0 {
+func (r *ResourceReader) sendChunk(chunk dto.Chunk, chunksCh chan dto.Chunk) {
+	if chunk.GetLen() == 0 {
 		return
 	}
 
-	if chunk.Len < ChunkSize {
-		lastChunk := make([]byte, chunk.Len)
-		lastChunk = chunk.Data[:chunk.Len]
-		chunk.Data = lastChunk
+	if chunk.GetLen() < ChunkSize {
+		lastChunk := make([]byte, chunk.GetLen())
+		lastChunk = chunk.GetData()[:chunk.GetLen()]
+		chunk.SetData(lastChunk)
 	}
 
-	if chunk.Len > 0 {
-		r.logger.Info(fmt.Sprintf("%d bytes read and sent", chunk.Len))
+	if chunk.GetLen() > 0 {
+		r.logger.Info(fmt.Sprintf("%d bytes read and sent", chunk.GetLen()))
 		chunksCh <- chunk
 	}
 }
 
-func (r *ResourceReader) cached(resource dto.Resource) ([]dto.Chunk, error) {
+func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
+	file, err := os.Open(resource.GetFilepath())
+	if err != nil {
+		r.logger.Error(err)
+		return nil
+	}
+	defer func() { _ = file.Close() }()
+
+	info, err := file.Stat()
+	if err != nil {
+		r.logger.Error(err)
+		return nil
+	}
+	// computing number of chunks for read full file
+	chunksNum := int(math.Ceil(float64(info.Size()) / float64(ChunkSize)))
+	// computing number of active reading threads
+	threads := ReadingThreads
+	if chunksNum < ReadingThreads {
+		threads = chunksNum
+	}
+
+	// initialize cache blocks
+	cache := map[int]dto.Chunk{}
+
+	wgThreads := &sync.WaitGroup{}
+	offsetCh := make(chan int, threads)
+
+	wgThreads.Add(1)
+	go func() {
+		defer func() {
+			close(offsetCh)
+			wgThreads.Done()
+		}()
+		for chk := 0; chk < chunksNum; chk++ {
+			offsetCh <- ChunkSize * chk
+		}
+	}()
+
+	chunksCh := make(chan dto.Chunk, threads)
+	wgThreads.Add(threads)
+	for thr := 0; thr < threads; thr++ {
+		go func() {
+			defer wgThreads.Done()
+
+			for offset := range offsetCh {
+				// computing current chunk number
+				chkNum := offset / ChunkSize
+				// building a new chunk
+				chunk := dto.NewChunk(ChunkSize, chkNum)
+				// reading with offset
+				chunk.Len, err = file.ReadAt(chunk.Data, int64(offset))
+				if err != nil {
+					if err == io.EOF {
+						return
+					}
+					r.logger.Error(err)
+					return
+				}
+				// multithreading safety due to use of work provider
+				chunksCh <- chunk
+			}
+		}()
+	}
+
+	wgConsume := &sync.WaitGroup{}
+	wgConsume.Add(1)
+	go func() {
+		defer wgConsume.Done()
+
+		for chunk := range chunksCh {
+			cache[chunk.GetNum()] = chunk
+		}
+	}()
+
+	wgThreads.Wait()
+	close(chunksCh)
+	wgConsume.Wait()
+
+	// store to cache
+	return cache
+}
+
+func (r *ResourceReader) cached(resource dto.Resource) (map[int]dto.Chunk, error) {
 	hash := md5.New()
 	if _, err := hash.Write([]byte(resource.GetFilepath())); err != nil {
 		r.logger.Emergency(err)
@@ -96,11 +186,13 @@ func (r *ResourceReader) cached(resource dto.Resource) ([]dto.Chunk, error) {
 	}
 	key := hex.EncodeToString(hash.Sum(nil))
 
+	// if data is found
 	if data, found := r.cache[key]; found {
 		return data, nil
 	}
+	// if data is not found
+	data := r.read(resource)
+	r.cache[key] = data
 
-	r.cache[key] =
-
-	return nil, nil
+	return data, nil
 }
