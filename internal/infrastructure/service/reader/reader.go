@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ChunkSize      = 1024 * 1024 * 2.5 // 1MB
+	ChunkSize      = 1024 * 1024 * 1 // 1MB
 	ChunksBuffer   = 4
 	ReadingThreads = 4
 )
@@ -32,7 +32,7 @@ func NewReaderService(logger logger.Logger) *ResourceReader {
 
 // Read will read a resource and send file as butches of bytes
 func (r *ResourceReader) Read(resource dto.Resource) chan dto.Chunk {
-	r.logger.Info(fmt.Sprintf("recourse '%v' reading started", resource.GetFilepath()))
+	r.logger.Info(fmt.Sprintf("recourse '%v' reading started", resource.GetName()))
 
 	chunksCh := make(chan dto.Chunk, ChunksBuffer)
 	go r.handleRead(resource, chunksCh)
@@ -43,7 +43,7 @@ func (r *ResourceReader) Read(resource dto.Resource) chan dto.Chunk {
 func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chunk) {
 	defer func() {
 		close(chunksCh)
-		r.logger.Info(fmt.Sprintf("recourse '%v' reading finished", resource.GetFilepath()))
+		r.logger.Info(fmt.Sprintf("recourse '%v' reading finished", resource.GetName()))
 	}()
 
 	chunkedFile, err := r.cached(resource)
@@ -52,10 +52,11 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chu
 		return
 	}
 
-	for _, chunk := range chunkedFile {
-		r.sendChunk(chunk, chunksCh)
+	for i := 0; i < len(chunkedFile); i++ {
+		r.sendChunk(chunkedFile[i], chunksCh)
 	}
 
+	// todo must be separated to own native: single thread strategy
 	//file, err := os.Open(resource.GetFilepath())
 	//if err != nil {
 	//	r.logger.Error(err)
@@ -80,10 +81,6 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chu
 }
 
 func (r *ResourceReader) sendChunk(chunk dto.Chunk, chunksCh chan dto.Chunk) {
-	if chunk.GetLen() == 0 {
-		return
-	}
-
 	if chunk.GetLen() < ChunkSize {
 		lastChunk := make([]byte, chunk.GetLen())
 		lastChunk = chunk.GetData()[:chunk.GetLen()]
@@ -91,14 +88,8 @@ func (r *ResourceReader) sendChunk(chunk dto.Chunk, chunksCh chan dto.Chunk) {
 	}
 
 	if chunk.GetLen() > 0 {
-		r.logger.Info(fmt.Sprintf("%d bytes read and sent", chunk.GetLen()))
 		chunksCh <- chunk
 	}
-}
-
-type ChunkOffset struct {
-	Number int
-	Offset int64
 }
 
 func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
@@ -120,6 +111,11 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 	threads := ReadingThreads
 	if chunksNum < ReadingThreads {
 		threads = chunksNum
+	}
+
+	type ChunkOffset struct {
+		Number int
+		Offset int64
 	}
 
 	// initialize cache blocks
@@ -155,6 +151,10 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 				chunk.Len, err = file.ReadAt(chunk.Data, offset.Offset)
 				if err != nil {
 					if err == io.EOF {
+						// sent the last chunk, if it is not empty
+						if chunk.GetLen() > 0 {
+							chunksCh <- chunk
+						}
 						return
 					}
 					r.logger.Error(err)
@@ -184,6 +184,7 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 	return cache
 }
 
+// TODO must be implemented: cache eviction!
 func (r *ResourceReader) cached(resource dto.Resource) (map[int]dto.Chunk, error) {
 	hash := md5.New()
 	if _, err := hash.Write([]byte(resource.GetFilepath())); err != nil {
@@ -194,11 +195,15 @@ func (r *ResourceReader) cached(resource dto.Resource) (map[int]dto.Chunk, error
 
 	// if data is found
 	if data, found := r.cache[key]; found {
+		r.logger.Info(fmt.Sprintf("resource '%v' was fetched from cache", resource.GetName()))
 		return data, nil
 	}
+
 	// if data is not found
 	data := r.read(resource)
 	r.cache[key] = data
+
+	r.logger.Info(fmt.Sprintf("resource '%v' was fetched from file storage", resource.GetName()))
 
 	return data, nil
 }
