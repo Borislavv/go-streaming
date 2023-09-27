@@ -160,7 +160,7 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 					r.logger.Error(err)
 					return
 				}
-				// multithreading safety due to use of work provider
+				// thread safety due to use of work provider
 				chunksCh <- chunk
 			}
 		}()
