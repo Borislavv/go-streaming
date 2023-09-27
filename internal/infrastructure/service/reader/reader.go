@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ChunkSize      = 1024 * 1024 * 1 // 1MB
+	ChunkSize      = 1024 * 1024 * 2.5 // 1MB
 	ChunksBuffer   = 4
 	ReadingThreads = 4
 )
@@ -46,37 +46,37 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chu
 		r.logger.Info(fmt.Sprintf("recourse '%v' reading finished", resource.GetFilepath()))
 	}()
 
-	//chunkedFile, err := r.cached(resource)
-	//if err != nil {
-	//	r.logger.Emergency(err)
-	//	return
-	//}
-	//
-	//for _, chunk := range chunkedFile {
-	//	r.sendChunk(chunk, chunksCh)
-	//}
-
-	file, err := os.Open(resource.GetFilepath())
+	chunkedFile, err := r.cached(resource)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Emergency(err)
 		return
 	}
-	defer func() { _ = file.Close() }()
 
-	for {
-		chunk := dto.NewChunk(ChunkSize, 0)
-
-		chunk.Len, err = file.Read(chunk.Data)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			r.logger.Error(err)
-			return
-		}
-
+	for _, chunk := range chunkedFile {
 		r.sendChunk(chunk, chunksCh)
 	}
+
+	//file, err := os.Open(resource.GetFilepath())
+	//if err != nil {
+	//	r.logger.Error(err)
+	//	return
+	//}
+	//defer func() { _ = file.Close() }()
+	//
+	//for {
+	//	chunk := dto.NewChunk(ChunkSize, 0)
+	//
+	//	chunk.Len, err = file.Read(chunk.Data)
+	//	if err != nil {
+	//		if err == io.EOF {
+	//			break
+	//		}
+	//		r.logger.Error(err)
+	//		return
+	//	}
+	//
+	//	r.sendChunk(chunk, chunksCh)
+	//}
 }
 
 func (r *ResourceReader) sendChunk(chunk dto.Chunk, chunksCh chan dto.Chunk) {
@@ -96,6 +96,11 @@ func (r *ResourceReader) sendChunk(chunk dto.Chunk, chunksCh chan dto.Chunk) {
 	}
 }
 
+type ChunkOffset struct {
+	Number int
+	Offset int64
+}
+
 func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 	file, err := os.Open(resource.GetFilepath())
 	if err != nil {
@@ -110,7 +115,7 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 		return nil
 	}
 	// computing number of chunks for read full file
-	chunksNum := int(math.Ceil(float64(info.Size()) / float64(ChunkSize)))
+	chunksNum := int(math.Ceil(float64(info.Size()) / ChunkSize))
 	// computing number of active reading threads
 	threads := ReadingThreads
 	if chunksNum < ReadingThreads {
@@ -121,7 +126,7 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 	cache := map[int]dto.Chunk{}
 
 	wgThreads := &sync.WaitGroup{}
-	offsetCh := make(chan int, threads)
+	offsetCh := make(chan ChunkOffset, threads)
 
 	wgThreads.Add(1)
 	go func() {
@@ -130,7 +135,10 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 			wgThreads.Done()
 		}()
 		for chk := 0; chk < chunksNum; chk++ {
-			offsetCh <- ChunkSize * chk
+			offsetCh <- ChunkOffset{
+				Number: chk,
+				Offset: int64(ChunkSize * chk),
+			}
 		}
 	}()
 
@@ -141,12 +149,10 @@ func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
 			defer wgThreads.Done()
 
 			for offset := range offsetCh {
-				// computing current chunk number
-				chkNum := offset / ChunkSize
 				// building a new chunk
-				chunk := dto.NewChunk(ChunkSize, chkNum)
+				chunk := dto.NewChunk(ChunkSize, offset.Number)
 				// reading with offset
-				chunk.Len, err = file.ReadAt(chunk.Data, int64(offset))
+				chunk.Len, err = file.ReadAt(chunk.Data, offset.Offset)
 				if err != nil {
 					if err == io.EOF {
 						return
