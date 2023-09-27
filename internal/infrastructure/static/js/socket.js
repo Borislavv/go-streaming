@@ -66,7 +66,7 @@ videoPlayer.addEventListener('waiting', function() {
     console.warn('Video playback is waiting for data (buffering)');
 
     // requesting decrease the buffer
-    socket.send("decrBuff")
+    // socket.send("decrBuff") // not implemented yet
 });
 
 let currentVideoID = ''
