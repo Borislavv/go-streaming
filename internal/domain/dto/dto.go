@@ -48,10 +48,7 @@ type PaginatedRequest interface {
 
 type Resource interface {
 	GetFilepath() string
-	//GetName() string
-	//GetFilename() string
-	//GetFilesize() int64
-	//GetFileMIME() textproto.MIMEHeader
+	GetName() string
 }
 
 type Chunk interface {

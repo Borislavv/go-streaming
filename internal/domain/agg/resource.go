@@ -10,6 +10,9 @@ type Resource struct {
 	Timestamp       vo.Timestamp `json:"timestamp" bson:",inline"`
 }
 
+func (r *Resource) GetName() string {
+	return r.Name
+}
 func (r *Resource) GetFilepath() string {
 	return r.Filepath
 }
