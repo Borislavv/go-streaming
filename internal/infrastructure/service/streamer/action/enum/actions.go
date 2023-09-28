@@ -1,7 +1,8 @@
 package enum
 
 const (
-	StreamByID Actions = "ID"
+	StreamByID           Actions = "ID"
+	StreamByIDWithOffset Actions = "ID_WITH_OFFSET"
 )
 
 type Actions string
