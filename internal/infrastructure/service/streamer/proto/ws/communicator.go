@@ -1,11 +1,14 @@
 package ws
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
 	"github.com/gorilla/websocket"
+	"strconv"
 	"strings"
 )
 
@@ -57,12 +60,35 @@ func (w *Communicator) Send(chunk dto.Chunk, conn *websocket.Conn) error {
 	return nil
 }
 
-func (w *Communicator) Parse(bytes []byte) (action enum.Actions, data string) {
+func (w *Communicator) Parse(bytes []byte) (action enum.Actions, data interface{}, err error) {
 	p := strings.Split(string(bytes), protoSeparator)
-	if len(p) > 1 {
-		return enum.Actions(p[0]), p[1]
+	if len(p) == 0 {
+		return "", nil, errors.New("unable to parse message due to empty message was passed")
 	}
-	return enum.Actions(p[0]), ""
+
+	switch enum.Actions(p[0]) {
+	case enum.StreamByID:
+		return enum.Actions(p[0]), model.StreamByIdData{ID: p[1]}, nil
+	case enum.StreamByIDWithOffset:
+		from, ferr := strconv.ParseFloat(p[2], 64)
+		if ferr != nil {
+			return "", nil, ferr
+		}
+		duration, derr := strconv.ParseFloat(p[3], 64)
+		if derr != nil {
+			return "", nil, derr
+		}
+
+		return enum.Actions(p[0]), model.StreamByIdWithOffsetData{
+			ID:       p[1],
+			From:     from,
+			Duration: duration,
+		}, nil
+	default:
+		return "", nil, fmt.Errorf(
+			"unable to parse message because received unknown action '%v'", p[0],
+		)
+	}
 }
 
 func (w *Communicator) Error(err error, conn *websocket.Conn) error {
