@@ -7,6 +7,6 @@ import (
 
 type Action struct {
 	Do   enum.Actions
-	Data string
+	Data interface{}
 	Conn *websocket.Conn
 }
