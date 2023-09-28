@@ -15,13 +15,16 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 )
+
+const zeroOffset = 0
 
 type StreamByIDActionStrategy struct {
 	ctx             context.Context
 	logger          logger.Logger
 	videoRepository repository.Video
-	reader          reader.Reader
+	reader          reader.FileReader
 	codecInfo       codec.Detector
 	communicator    proto.Communicator
 }
@@ -30,7 +33,7 @@ func NewStreamByIDActionStrategy(
 	ctx context.Context,
 	logger logger.Logger,
 	videoRepository repository.Video,
-	reader reader.Reader,
+	reader reader.FileReader,
 	codecInfo codec.Detector,
 	communicator proto.Communicator,
 ) *StreamByIDActionStrategy {
@@ -49,10 +52,20 @@ func (s *StreamByIDActionStrategy) IsAppropriate(action model.Action) bool {
 }
 
 func (s *StreamByIDActionStrategy) Do(action model.Action) error {
-	oid, err := primitive.ObjectIDFromHex(action.Data)
+	// check the data is eligible
+	data, ok := action.Data.(model.StreamByIdData)
+	if !ok {
+		return s.logger.CriticalPropagate(
+			fmt.Errorf("'by id' strategy cannot handle the given data '%+v'", data),
+		)
+	}
+
+	// parse the given resource identifier
+	oid, err := primitive.ObjectIDFromHex(data.ID)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
+	// find the target resource
 	v, err := s.videoRepository.Find(s.ctx, vo.ID{Value: oid})
 	if err != nil {
 		if errors.IsEntityNotFoundError(err) {
@@ -64,25 +77,36 @@ func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	}
 	s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", action.Conn.RemoteAddr(), v.Resource.Name))
 
+	// start streaming the target resource
 	s.stream(v.Resource, action.Conn)
 
 	return nil
 }
 
-// todo need to think about ctx for stream for to be able stop it and skip current action
 func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websocket.Conn) {
+	// detect the audio and video codecs
 	audioCodec, videoCodec, err := s.codecInfo.Detect(resource)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
 
+	// send the initializing message to client side
 	if err = s.communicator.Start(audioCodec, videoCodec, conn); err != nil {
 		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
 
-	for chunk := range s.reader.Read(resource) {
+	// open the target resource file
+	file, err := os.Open(resource.GetFilepath())
+	if err != nil {
+		s.logger.Critical(fmt.Sprintf("[%v]: error resource opening: %v", conn.RemoteAddr(), err.Error()))
+		return
+	}
+	defer func() { _ = file.Close() }()
+
+	// read the target file by chunks from zero offset
+	for chunk := range s.reader.ReadByChunks(file, zeroOffset) {
 		if err = s.communicator.Send(chunk, conn); err != nil {
 			s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 			break
@@ -95,6 +119,7 @@ func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websoc
 		)
 	}
 
+	// stop the streaming by sending appropriate message to client side
 	if err = s.communicator.Stop(conn); err != nil {
 		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
