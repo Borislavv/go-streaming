@@ -15,14 +15,10 @@ const (
 
 type ResourceReader struct {
 	logger logger.Logger
-	cache  map[string]map[int]dto.Chunk
 }
 
 func NewReaderService(logger logger.Logger) *ResourceReader {
-	return &ResourceReader{
-		logger: logger,
-		cache:  map[string]map[int]dto.Chunk{},
-	}
+	return &ResourceReader{logger: logger}
 }
 
 // Read will read a resource and send file as butches of bytes
@@ -46,7 +42,7 @@ func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chu
 	defer func() { _ = file.Close() }()
 
 	for {
-		chunk := dto.NewChunk(ChunkSize, 0)
+		chunk := dto.NewChunk(ChunkSize)
 
 		length, err := file.Read(chunk.Data)
 		if err != nil {
