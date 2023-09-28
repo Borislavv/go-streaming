@@ -1,20 +1,20 @@
 package model
 
 type Chunk struct {
-	Len  int
+	Len  int64
 	Data []byte
 	Err  error
 }
 
-func NewChunk(size int) *Chunk {
+func NewChunk(size int64) *Chunk {
 	return &Chunk{Data: make([]byte, size)}
 }
 
-func (c *Chunk) GetLen() int {
+func (c *Chunk) GetLen() int64 {
 	return c.Len
 }
 
-func (c *Chunk) SetLen(len int) {
+func (c *Chunk) SetLen(len int64) {
 	c.Len = len
 }
 

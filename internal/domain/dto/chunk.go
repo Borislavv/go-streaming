@@ -3,7 +3,7 @@ package dto
 const DefaultChunkSize = 1024 * 1024 // 1MB
 
 type ChunkDTO struct {
-	Len  int
+	Len  int64
 	Data []byte
 	Err  error
 }
@@ -15,11 +15,11 @@ func NewChunk(size uint64) *ChunkDTO {
 	return &ChunkDTO{Data: make([]byte, size)}
 }
 
-func (c *ChunkDTO) GetLen() int {
+func (c *ChunkDTO) GetLen() int64 {
 	return c.Len
 }
 
-func (c *ChunkDTO) SetLen(len int) {
+func (c *ChunkDTO) SetLen(len int64) {
 	c.Len = len
 }
 
