@@ -1,209 +1,176 @@
 package reader
 
 import (
-	"crypto/md5"
-	"encoding/hex"
+	"context"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"io"
-	"math"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/model"
 	"os"
 	"sync"
 )
 
 const (
-	ChunkSize      = 1024 * 1024 * 1 // 1MB
-	ChunksBuffer   = 4
-	ReadingThreads = 4
+	chunksChBuffer = 1
+	readingThreads = 5
 )
 
-type ResourceReader struct {
-	logger logger.Logger
-	cache  map[string]map[int]dto.Chunk
+type FileReaderService struct {
+	ctx       context.Context
+	logger    logger.Logger
+	chunkSize int
 }
 
-func NewReaderService(logger logger.Logger) *ResourceReader {
-	return &ResourceReader{
-		logger: logger,
-		cache:  map[string]map[int]dto.Chunk{},
-	}
+func NewFileReaderService(ctx context.Context, logger logger.Logger, chunkSize int) *FileReaderService {
+	return &FileReaderService{ctx: ctx, logger: logger, chunkSize: chunkSize}
 }
 
-// Read will read a resource and send file as butches of bytes
-func (r *ResourceReader) Read(resource dto.Resource) chan dto.Chunk {
-	r.logger.Info(fmt.Sprintf("recourse '%v' reading started", resource.GetName()))
+// TODO Must be tested!
+// ReadAll - reads a whole file in a single chunk.
+func (r *FileReaderService) ReadAll(file *os.File) *model.Chunk {
+	r.logger.Info(fmt.Sprintf("reading all file '%v' started", file.Name()))
 
-	chunksCh := make(chan dto.Chunk, ChunksBuffer)
-	go r.handleRead(resource, chunksCh)
-
-	return chunksCh
-}
-
-func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chunk) {
-	defer func() {
-		close(chunksCh)
-		r.logger.Info(fmt.Sprintf("recourse '%v' reading finished", resource.GetName()))
-	}()
-
-	chunkedFile, err := r.cached(resource)
+	stat, err := file.Stat()
 	if err != nil {
-		r.logger.Emergency(err)
-		return
-	}
-
-	for i := 0; i < len(chunkedFile); i++ {
-		r.sendChunk(chunkedFile[i], chunksCh)
-	}
-
-	// todo must be separated to own native: single thread strategy
-	//file, err := os.Open(resource.GetFilepath())
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return
-	//}
-	//defer func() { _ = file.Close() }()
-	//
-	//for {
-	//	chunk := dto.NewChunk(ChunkSize, 0)
-	//
-	//	chunk.Len, err = file.Read(chunk.Data)
-	//	if err != nil {
-	//		if err == io.EOF {
-	//			break
-	//		}
-	//		r.logger.Error(err)
-	//		return
-	//	}
-	//
-	//	r.sendChunk(chunk, chunksCh)
-	//}
-}
-
-func (r *ResourceReader) sendChunk(chunk dto.Chunk, chunksCh chan dto.Chunk) {
-	if chunk.GetLen() < ChunkSize {
-		lastChunk := make([]byte, chunk.GetLen())
-		lastChunk = chunk.GetData()[:chunk.GetLen()]
-		chunk.SetData(lastChunk)
-	}
-
-	if chunk.GetLen() > 0 {
-		chunksCh <- chunk
-	}
-}
-
-func (r *ResourceReader) read(resource dto.Resource) map[int]dto.Chunk {
-	file, err := os.Open(resource.GetFilepath())
-	if err != nil {
-		r.logger.Error(err)
+		r.logger.Critical(fmt.Sprintf("reading all file '%v' error: %v", file.Name(), err))
 		return nil
 	}
-	defer func() { _ = file.Close() }()
 
-	info, err := file.Stat()
-	if err != nil {
-		r.logger.Error(err)
-		return nil
-	}
-	// computing number of chunks for read full file
-	chunksNum := int(math.Ceil(float64(info.Size()) / ChunkSize))
-	// computing number of active reading threads
-	threads := ReadingThreads
-	if chunksNum < ReadingThreads {
-		threads = chunksNum
+	// chunks number
+	chunks := stat.Size() / int64(r.chunkSize)
+	// reading threads number
+	threads := int64(readingThreads)
+	// check the num of chunks more than threads
+	if threads > chunks {
+		threads = chunks
 	}
 
-	type ChunkOffset struct {
-		Number int
-		Offset int64
-	}
+	wg := &sync.WaitGroup{}
 
-	// initialize cache blocks
-	cache := map[int]dto.Chunk{}
+	taskCh := make(chan *struct {
+		num    int64
+		offset int64
+		length int64
+	}, threads)
 
-	wgThreads := &sync.WaitGroup{}
-	offsetCh := make(chan ChunkOffset, threads)
-
-	wgThreads.Add(1)
+	// provider
+	wg.Add(1)
 	go func() {
-		defer func() {
-			close(offsetCh)
-			wgThreads.Done()
-		}()
-		for chk := 0; chk < chunksNum; chk++ {
-			offsetCh <- ChunkOffset{
-				Number: chk,
-				Offset: int64(ChunkSize * chk),
+		defer wg.Done()
+		defer close(taskCh)
+		// make a task for each chunk and send to consumers
+		for chk := int64(0); chk < chunks; chk++ {
+			offset := chk * int64(r.chunkSize)
+
+			length := int64(r.chunkSize)
+			if length > (stat.Size() - offset) {
+				length = stat.Size() - offset
+			}
+
+			taskCh <- &struct {
+				num    int64
+				offset int64
+				length int64
+			}{
+				num:    chk,
+				offset: offset,
+				length: length,
 			}
 		}
 	}()
 
-	chunksCh := make(chan dto.Chunk, threads)
-	wgThreads.Add(threads)
-	for thr := 0; thr < threads; thr++ {
-		go func() {
-			defer wgThreads.Done()
+	// map of file chunks by int64 serial number
+	fileMap := make(map[int64][]byte, chunks)
+	// make a mutex for concurrently write into the file map
+	mu := &sync.Mutex{}
 
-			for offset := range offsetCh {
-				// building a new chunk
-				chunk := dto.NewChunk(ChunkSize, offset.Number)
-				// reading with offset
-				chunk.Len, err = file.ReadAt(chunk.Data, offset.Offset)
-				if err != nil {
-					if err == io.EOF {
-						// sent the last chunk, if it is not empty
-						if chunk.GetLen() > 0 {
-							chunksCh <- chunk
-						}
+	// consumer
+	wg.Add(int(threads))
+	go func() {
+		for thrd := int64(0); thrd < threads; thrd++ {
+			go func(thrd int64) {
+				defer wg.Done()
+
+				for task := range taskCh {
+					buff := make([]byte, task.length)
+					_, err := file.ReadAt(buff, task.offset)
+					if err != nil {
+						r.logger.Critical(
+							fmt.Sprintf("reading all file '%v' error: %v at %d thread", file.Name(), err, thrd),
+						)
 						return
 					}
-					r.logger.Error(err)
-					return
+
+					mu.Lock()
+					fileMap[task.num] = buff
+					mu.Unlock()
 				}
-				// thread safety due to use of work provider
-				chunksCh <- chunk
-			}
-		}()
-	}
-
-	wgConsume := &sync.WaitGroup{}
-	wgConsume.Add(1)
-	go func() {
-		defer wgConsume.Done()
-
-		for chunk := range chunksCh {
-			cache[chunk.GetNum()] = chunk
+			}(thrd)
 		}
 	}()
 
-	wgThreads.Wait()
-	close(chunksCh)
-	wgConsume.Wait()
+	// awaiting while whole file will be read
+	wg.Wait()
 
-	// store to cache
-	return cache
+	// collect the entire file into one chunk
+	chunk := model.NewChunk(stat.Size())
+	for i := int64(0); i < int64(len(fileMap)); i++ {
+		chunk.Data = append(chunk.Data, fileMap[i]...)
+	}
+	return chunk
 }
 
-// TODO must be implemented: cache eviction!
-func (r *ResourceReader) cached(resource dto.Resource) (map[int]dto.Chunk, error) {
-	hash := md5.New()
-	if _, err := hash.Write([]byte(resource.GetFilepath())); err != nil {
-		r.logger.Emergency(err)
-		return nil, err
-	}
-	key := hex.EncodeToString(hash.Sum(nil))
+// ReadByChunks - reads a file by separated chunks
+// and passed it into the channel (chunk size is setting up through env. configuration).
+func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *model.Chunk {
+	r.logger.Info(fmt.Sprintf("reading file '%v' by chunks started", file.Name()))
 
-	// if data is found
-	if data, found := r.cache[key]; found {
-		r.logger.Info(fmt.Sprintf("resource '%v' was fetched from cache", resource.GetName()))
-		return data, nil
+	stat, err := file.Stat()
+	if err != nil {
+		r.logger.Info(fmt.Sprintf("reading file '%v' by chunks file stat with errors: %v", file.Name(), err))
+		return nil
 	}
 
-	// if data is not found
-	data := r.read(resource)
-	r.cache[key] = data
+	ch := make(chan *model.Chunk, chunksChBuffer)
+	go func(offset int64, size int64) {
+		defer close(ch)
+		for {
+			select {
+			case <-r.ctx.Done():
+				r.logger.Info(fmt.Sprintf("reading file '%v' by chunks interrupted", file.Name()))
+				return
+			default:
+				// compute the current chunk buffer
+				currentChunkSize := int64(r.chunkSize)
+				if currentChunkSize > (size - offset) {
+					currentChunkSize = size - offset
+					if currentChunkSize == 0 {
+						r.logger.Info(fmt.Sprintf("reading file '%v' by chunks finished properly", file.Name()))
+						return
+					}
+				}
 
-	r.logger.Info(fmt.Sprintf("resource '%v' was fetched from file storage", resource.GetName()))
+				// make a new chunk with appropriate buffer
+				chunk := model.NewChunk(currentChunkSize)
 
-	return data, nil
+				// read the current batch of bites
+				length, err := file.ReadAt(chunk.Data, offset)
+				if err != nil {
+					r.logger.Error(err)
+					r.logger.Info(fmt.Sprintf("reading file '%v' by chunks finished with errors", file.Name()))
+					return
+				}
+				chunk.SetLen(int64(length))
+				offset += chunk.GetLen()
+
+				// cut the last chunk to its real length
+				if chunk.GetLen() < int64(r.chunkSize) {
+					chunk.SetData(chunk.GetData()[:chunk.GetLen()])
+				}
+
+				// sent the chunk to consumer
+				ch <- chunk
+			}
+		}
+	}(offset, stat.Size())
+	return ch
 }

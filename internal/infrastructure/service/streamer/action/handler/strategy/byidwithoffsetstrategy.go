@@ -15,57 +15,56 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"math"
 	"os"
 )
 
-const zeroOffset = 0
-
-type StreamByIDActionStrategy struct {
+type StreamByIDWithOffsetActionStrategy struct {
 	ctx             context.Context
 	logger          logger.Logger
 	videoRepository repository.Video
 	reader          reader.FileReader
 	codecInfo       codec.Detector
 	communicator    proto.Communicator
+	chunkSize       int
 }
 
-func NewStreamByIDActionStrategy(
+func NewStreamByIDWithOffsetActionStrategy(
 	ctx context.Context,
 	logger logger.Logger,
 	videoRepository repository.Video,
 	reader reader.FileReader,
 	codecInfo codec.Detector,
 	communicator proto.Communicator,
-) *StreamByIDActionStrategy {
-	return &StreamByIDActionStrategy{
+	chunkSize int,
+) *StreamByIDWithOffsetActionStrategy {
+	return &StreamByIDWithOffsetActionStrategy{
 		ctx:             ctx,
 		logger:          logger,
 		videoRepository: videoRepository,
 		reader:          reader,
 		codecInfo:       codecInfo,
 		communicator:    communicator,
+		chunkSize:       chunkSize,
 	}
 }
 
-func (s *StreamByIDActionStrategy) IsAppropriate(action model.Action) bool {
-	return action.Do == enum.StreamByID
+func (s *StreamByIDWithOffsetActionStrategy) IsAppropriate(action model.Action) bool {
+	return action.Do == enum.StreamByIDWithOffset
 }
 
-func (s *StreamByIDActionStrategy) Do(action model.Action) error {
-	// check the data is eligible
-	data, ok := action.Data.(model.StreamByIdData)
+func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
+	data, ok := action.Data.(model.StreamByIdWithOffsetData)
 	if !ok {
 		return s.logger.CriticalPropagate(
-			fmt.Errorf("'by id' strategy cannot handle the given data '%+v'", data),
+			fmt.Errorf("'by id with offset' strategy cannot handle the given data '%+v'", data),
 		)
 	}
 
-	// parse the given resource identifier
 	oid, err := primitive.ObjectIDFromHex(data.ID)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
-	// find the target resource
 	v, err := s.videoRepository.Find(s.ctx, vo.ID{Value: oid})
 	if err != nil {
 		if errors.IsEntityNotFoundError(err) {
@@ -77,27 +76,27 @@ func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	}
 	s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", action.Conn.RemoteAddr(), v.Resource.Name))
 
-	// start streaming the target resource
-	s.stream(v.Resource, action.Conn)
+	s.stream(v.Resource, data, action.Conn)
 
 	return nil
 }
 
-func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websocket.Conn) {
-	// detect the audio and video codecs
+func (s *StreamByIDWithOffsetActionStrategy) stream(
+	resource entity.Resource,
+	data model.StreamByIdWithOffsetData,
+	conn *websocket.Conn,
+) {
 	audioCodec, videoCodec, err := s.codecInfo.Detect(resource)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
 
-	// send the initializing message to client side
 	if err = s.communicator.Start(audioCodec, videoCodec, conn); err != nil {
 		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return
 	}
 
-	// open the target resource file
 	file, err := os.Open(resource.GetFilepath())
 	if err != nil {
 		s.logger.Critical(fmt.Sprintf("[%v]: error resource opening: %v", conn.RemoteAddr(), err.Error()))
@@ -105,8 +104,21 @@ func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websoc
 	}
 	defer func() { _ = file.Close() }()
 
-	// read the target file by chunks from zero offset
-	for chunk := range s.reader.ReadByChunks(file, zeroOffset) {
+	stat, err := file.Stat()
+	if err != nil {
+		s.logger.Critical(fmt.Sprintf("[%v]: error receiving resource stat: %v", conn.RemoteAddr(), err.Error()))
+		return
+	}
+
+	totalChunks := stat.Size() / int64(s.chunkSize)
+
+	chunkDuration := data.Duration / float64(totalChunks)
+
+	targetChunk := math.Ceil(data.From / chunkDuration)
+
+	offset := int64((s.chunkSize * int(targetChunk)) - s.chunkSize)
+
+	for chunk := range s.reader.ReadByChunks(file, offset) {
 		if err = s.communicator.Send(chunk, conn); err != nil {
 			s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 			break
@@ -119,7 +131,6 @@ func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websoc
 		)
 	}
 
-	// stop the streaming by sending appropriate message to client side
 	if err = s.communicator.Stop(conn); err != nil {
 		s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
 		return

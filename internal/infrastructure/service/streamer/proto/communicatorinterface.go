@@ -9,7 +9,7 @@ import (
 type Communicator interface {
 	Start(audioCodec string, videoCodec string, conn *websocket.Conn) error
 	Send(chunk dto.Chunk, conn *websocket.Conn) error
-	Parse(bytes []byte) (action enum.Actions, data string)
+	Parse(bytes []byte) (action enum.Actions, data interface{}, err error)
 	Error(err error, conn *websocket.Conn) error
 	Stop(conn *websocket.Conn) error
 }

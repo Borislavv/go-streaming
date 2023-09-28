@@ -61,6 +61,12 @@ socket.onmessage = (event) => {
     }
 };
 
+videoPlayer.addEventListener('seeking', function (event) {
+    console.log("---> REQUEST FROM: ", event.currentTarget.currentTime, event.currentTarget.duration)
+
+    // socket.send("ID:"+currentVideoID+":FROM:"+event.currentTarget.currentTime+":TO:"+event.currentTarget.duration)
+});
+
 // todo need to make a ticker which will count the awaiting time if it's more than N then send decrease buffer action
 videoPlayer.addEventListener('waiting', function() {
     console.warn('Video playback is waiting for data (buffering)');

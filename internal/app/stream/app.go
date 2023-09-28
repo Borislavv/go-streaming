@@ -71,7 +71,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	videoRepository := mongodb.NewVideoRepository(db, loggerService, time.Minute)
 
 	// resource reader service
-	readerService := reader.NewReaderService(loggerService)
+	readerService := reader.NewFileReaderService(ctx, loggerService, app.cfg.ChunkSize)
 
 	// custom websocket communication protocol
 	wsCommunicator := ws2.NewWebSocketCommunicator(loggerService)

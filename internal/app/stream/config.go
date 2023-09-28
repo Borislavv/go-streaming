@@ -8,4 +8,6 @@ type config struct {
 	// database
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
 	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
+	// file reader
+	ChunkSize int `env:"FILE_READER_CHUNK_SIZE" envDefault:"1048576"` // by default: chunk size is 1mb.
 }
