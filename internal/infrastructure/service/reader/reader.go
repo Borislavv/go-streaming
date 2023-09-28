@@ -21,17 +21,17 @@ func NewFileReaderService(ctx context.Context, logger logger.Logger, chunkSize i
 }
 
 func (r *FileReaderService) ReadAll(file *os.File) *model.Chunk {
-	return model.NewChunk(0)
+
 }
 
 // ReadByChunks - reads a file by separated chunks
 // and passed it into the channel (chunk size is setting up through env. configuration).
 func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *model.Chunk {
-	r.logger.Info(fmt.Sprintf("file '%v' reading started", file.Name()))
+	r.logger.Info(fmt.Sprintf("file '%v' reading by chunks started", file.Name()))
 
 	stat, err := file.Stat()
 	if err != nil {
-		r.logger.Info(fmt.Sprintf("file '%v' reading file stat with errors: %v", file.Name(), err))
+		r.logger.Info(fmt.Sprintf("file '%v' reading by chunks file stat with errors: %v", file.Name(), err))
 		return nil
 	}
 
@@ -41,7 +41,7 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 		for {
 			select {
 			case <-r.ctx.Done():
-				r.logger.Info(fmt.Sprintf("file '%v' reading interrupted", file.Name()))
+				r.logger.Info(fmt.Sprintf("file '%v' reading by chunks interrupted", file.Name()))
 				return
 			default:
 				// compute the current chunk buffer
@@ -49,7 +49,7 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 				if int64(currentChunkSize) > (size - offset) {
 					currentChunkSize = int(size - offset)
 					if currentChunkSize == 0 {
-						r.logger.Info(fmt.Sprintf("file '%v' reading finished properly", file.Name()))
+						r.logger.Info(fmt.Sprintf("file '%v' reading by chunks finished properly", file.Name()))
 						return
 					}
 				}
@@ -61,7 +61,7 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 				chunk.Len, err = file.ReadAt(chunk.Data, offset)
 				if err != nil {
 					r.logger.Error(err)
-					r.logger.Info(fmt.Sprintf("file '%v' reading finished with errors", file.Name()))
+					r.logger.Info(fmt.Sprintf("file '%v' reading by chunks finished with errors", file.Name()))
 					return
 				}
 				offset += int64(chunk.Len)
