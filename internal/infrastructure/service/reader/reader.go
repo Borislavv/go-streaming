@@ -36,10 +36,7 @@ func (r *ResourceReader) Read(resource dto.Resource) chan dto.Chunk {
 }
 
 func (r *ResourceReader) handleRead(resource dto.Resource, chunksCh chan dto.Chunk) {
-	defer func() {
-		close(chunksCh)
-
-	}()
+	defer close(chunksCh)
 
 	file, ferr := os.Open(resource.GetFilepath())
 	if ferr != nil {
