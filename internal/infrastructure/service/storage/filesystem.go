@@ -57,9 +57,9 @@ func (s *Filesystem) Has(header *multipart.FileHeader) (has bool, e error) {
 	return false, nil
 }
 
-func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (fname string, fpath string, er error) {
+func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
 	// filename with extension
-	name, err := s.getFilename(header)
+	name, err = s.getFilename(header)
 	if err != nil {
 		return "", "", err
 	}
@@ -71,7 +71,7 @@ func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (f
 	}
 
 	// full qualified file path
-	path := fmt.Sprintf("%v%v", dir, name)
+	path = fmt.Sprintf("%v%v", dir, name)
 
 	// resource creating which will represented as a simple file at now
 	createdFile, err := os.Create(path)
