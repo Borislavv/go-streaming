@@ -45,7 +45,7 @@ socket.onmessage = (event) => {
         } else if (data.startsWith('error')) {
             let dataParts = data.split(':')
             console.log("Server error occurred: " + dataParts[1])
-            showAlert( dataParts[1])
+            showAlert(dataParts[1])
         } else if (data === 'stop') {
             console.log("Stopping playing...")
             closeMediaResource()
@@ -192,7 +192,7 @@ function addNextChunk() {
                     buffer.appendBuffer(chunks.shift())
                     console.log("Chunk successfully added to buffer")
                 } catch (error) {
-                    console.error("Chunk adding to buffer filed", error)
+                    console.error("Chunk adding to buffer failed", error)
                 }
             }
         ).catch(
@@ -293,11 +293,10 @@ function makeMediaResource(audioCodec, videoCodec) {
                 }
 
                 buffer = mediaSource.addSourceBuffer(codec);
+                console.log("Source buffer added", buffer);
             } else {
                 console.log("Type of codec is NOT supported: ", codec);
             }
-
-            console.log("Source buffer added");
         } catch (e) {
             console.error("Error adding source buffer:", e);
         }
