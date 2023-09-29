@@ -105,10 +105,23 @@ func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websoc
 	}
 	defer func() { _ = file.Close() }()
 
+	// read the whole target file
+	//chunk := s.reader.ReadAll(file)
+	//// send the received chunk which is contains whole file
+	//if err = s.communicator.Send(chunk, conn); err != nil {
+	//	s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err))
+	//	return
+	//}
+	//s.logger.Info(
+	//	fmt.Sprintf("[%v]: wrote %d bytes of '%v' to websocket",
+	//		conn.RemoteAddr(), chunk.GetLen(), resource.Name,
+	//	),
+	//)
+
 	// read the target file by chunks from zero offset
 	for chunk := range s.reader.ReadByChunks(file, zeroOffset) {
 		if err = s.communicator.Send(chunk, conn); err != nil {
-			s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
+			s.logger.Critical(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err))
 			break
 		}
 

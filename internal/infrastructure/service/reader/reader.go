@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/model"
+	"math"
 	"os"
 	"sync"
 )
@@ -24,7 +25,6 @@ func NewFileReaderService(ctx context.Context, logger logger.Logger, chunkSize i
 	return &FileReaderService{ctx: ctx, logger: logger, chunkSize: chunkSize}
 }
 
-// TODO Must be tested!
 // ReadAll - reads a whole file in a single chunk.
 func (r *FileReaderService) ReadAll(file *os.File) *model.Chunk {
 	r.logger.Info(fmt.Sprintf("reading all file '%v' started", file.Name()))
@@ -36,7 +36,7 @@ func (r *FileReaderService) ReadAll(file *os.File) *model.Chunk {
 	}
 
 	// chunks number
-	chunks := stat.Size() / int64(r.chunkSize)
+	chunks := int64(math.Ceil(float64(stat.Size()) / float64(r.chunkSize)))
 	// reading threads number
 	threads := int64(readingThreads)
 	// check the num of chunks more than threads
@@ -111,8 +111,10 @@ func (r *FileReaderService) ReadAll(file *os.File) *model.Chunk {
 	// awaiting while whole file will be read
 	wg.Wait()
 
-	// collect the entire file into one chunk
-	chunk := model.NewChunk(stat.Size())
+	defer r.logger.Info(fmt.Sprintf("reading all file '%v' finished properly", file.Name()))
+
+	// collect the entire file into the one chunk
+	chunk := model.NewChunk(0, stat.Size())
 	for i := int64(0); i < int64(len(fileMap)); i++ {
 		chunk.Data = append(chunk.Data, fileMap[i]...)
 	}
@@ -131,7 +133,7 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 	}
 
 	ch := make(chan *model.Chunk, chunksChBuffer)
-	go func(offset int64, size int64) {
+	go func() {
 		defer close(ch)
 		for {
 			select {
@@ -139,18 +141,18 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 				r.logger.Info(fmt.Sprintf("reading file '%v' by chunks interrupted", file.Name()))
 				return
 			default:
-				// compute the current chunk buffer
 				currentChunkSize := int64(r.chunkSize)
-				if currentChunkSize > (size - offset) {
-					currentChunkSize = size - offset
-					if currentChunkSize == 0 {
-						r.logger.Info(fmt.Sprintf("reading file '%v' by chunks finished properly", file.Name()))
-						return
-					}
+				currentLastDataSize := stat.Size() - offset
+				if currentChunkSize > currentLastDataSize {
+					currentChunkSize = currentLastDataSize
+				}
+				if currentChunkSize == 0 {
+					r.logger.Info(fmt.Sprintf("reading file '%v' by chunks finished properly", file.Name()))
+					return
 				}
 
 				// make a new chunk with appropriate buffer
-				chunk := model.NewChunk(currentChunkSize)
+				chunk := model.NewChunk(currentChunkSize, currentChunkSize)
 
 				// read the current batch of bites
 				length, err := file.ReadAt(chunk.Data, offset)
@@ -159,11 +161,10 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 					r.logger.Info(fmt.Sprintf("reading file '%v' by chunks finished with errors", file.Name()))
 					return
 				}
-				chunk.SetLen(int64(length))
-				offset += chunk.GetLen()
+				offset += int64(length)
 
 				// cut the last chunk to its real length
-				if chunk.GetLen() < int64(r.chunkSize) {
+				if chunk.GetLen() < r.chunkSize {
 					chunk.SetData(chunk.GetData()[:chunk.GetLen()])
 				}
 
@@ -171,6 +172,6 @@ func (r *FileReaderService) ReadByChunks(file *os.File, offset int64) chan *mode
 				ch <- chunk
 			}
 		}
-	}(offset, stat.Size())
+	}()
 	return ch
 }
