@@ -49,10 +49,12 @@ func NewStreamByIDWithOffsetActionStrategy(
 	}
 }
 
+// IsAppropriate - method will tell the service architect that the strategy is acceptable.
 func (s *StreamByIDWithOffsetActionStrategy) IsAppropriate(action model.Action) bool {
 	return action.Do == enum.StreamByIDWithOffset
 }
 
+// Do - will be streaming a target resource by ID from given offset.
 func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 	data, ok := action.Data.(model.StreamByIdWithOffsetData)
 	if !ok {
