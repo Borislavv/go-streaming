@@ -8,20 +8,20 @@ import (
 	"os"
 )
 
-type ResourceCodecInfo struct {
+type ResourceCodecDetector struct {
 	ctx    context.Context
 	logger logger.Logger
 }
 
-func NewResourceCodecInfo(ctx context.Context, logger logger.Logger) *ResourceCodecInfo {
-	return &ResourceCodecInfo{
+func NewResourceCodecInfo(ctx context.Context, logger logger.Logger) *ResourceCodecDetector {
+	return &ResourceCodecDetector{
 		ctx:    ctx,
 		logger: logger,
 	}
 }
 
 // Detect will determine video and audio stream codecs of target resource
-func (d *ResourceCodecInfo) Detect(
+func (d *ResourceCodecDetector) Detect(
 	resource entity.Resource,
 ) (
 	audioCodec string,
