@@ -47,10 +47,12 @@ func NewStreamByIDActionStrategy(
 	}
 }
 
+// IsAppropriate - method will tell the service architect that the strategy is acceptable.
 func (s *StreamByIDActionStrategy) IsAppropriate(action model.Action) bool {
 	return action.Do == enum.StreamByID
 }
 
+// Do - will be streaming a target resource by ID.
 func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	// check the data is eligible
 	data, ok := action.Data.(model.StreamByIdData)
