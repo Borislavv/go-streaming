@@ -1,10 +1,10 @@
-const socket = new WebSocket('ws://0.0.0.0:9988/');
+const websocket = new WebSocket('ws://0.0.0.0:9988/');
 
 const videoPlayer = document.getElementById('videoPlayer');
 const nextBtn = document.getElementById('next-btn');
 const prevBtn = document.getElementById('prev-btn');
 
-socket.binaryType = 'arraybuffer';
+websocket.binaryType = 'arraybuffer';
 
 let buffer;
 let mediaSource;
@@ -12,20 +12,20 @@ let chunks;
 let mediaSourceReady;
 
 // ws event: open
-socket.onopen = (event) => {
+websocket.onopen = (event) => {
     console.log('WebSocket connection opened');
 };
 // ws event: close
-socket.onclose = (event) => {
+websocket.onclose = (event) => {
     console.log('WebSocket connection closed');
 };
 // ws event: error
-socket.onerror = (event) => {
+websocket.onerror = (event) => {
     console.error('WebSocket error: ', event);
 };
 
 // ws event: on message
-socket.onmessage = (event) => {
+websocket.onmessage = (event) => {
     const data = event.data;
 
     console.log("Some data received...", data)
@@ -106,7 +106,7 @@ waitForVideoListWillBeRendered('.video-list', function () {
                 currentVideoID = li.id;
                 isSettingUp = true;
                 console.log('Requesting the first video ' + "ID:" + currentVideoID)
-                socket.send("ID:" + currentVideoID) // requesting the first video by ID
+                websocket.send("ID:" + currentVideoID) // requesting the first video by ID
             }
         });
     }
@@ -121,7 +121,7 @@ nextBtn.addEventListener('click', function() {
         Array.from(LIs).forEach(function (li) {
             if (found) {
                 console.log('Requesting the next video ' + "ID:" + li.id)
-                socket.send("ID:" + li.id) // requesting the next video by ID
+                websocket.send("ID:" + li.id) // requesting the next video by ID
                 currentVideoID = li.id // updating the current video ID
                 found = false // skipping further iterations
             } else {
@@ -157,7 +157,7 @@ prevBtn.addEventListener('click', function(event) {
                 currentVideoID = previousVideoID // updating the actual video ID
                 console.log('Requesting the previous video ' + "ID:" + currentVideoID)
                 // requesting the prev video/audio from server
-                socket.send("ID:" + currentVideoID) // requesting the target (previous) video
+                websocket.send("ID:" + currentVideoID) // requesting the target (previous) video
                 found = true // setting up the var. for skipp unnecessary iterations
             } else {
                 previousVideoID = li.id // updating the previous video ID
@@ -177,7 +177,7 @@ document.addEventListener('click', function (event) {
             }
             if (event.target === li && currentVideoID !== li.id) { // check the target video ID is not equals with the current
                 // requesting the prev video/audio from server
-                socket.send("ID:" + li.id) // requesting the target video by ID
+                websocket.send("ID:" + li.id) // requesting the target video by ID
                 currentVideoID = li.id; // updating the current video ID
             }
         });
