@@ -83,6 +83,7 @@ func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	return nil
 }
 
+// stream - the method which composed all useful work of really streaming.
 func (s *StreamByIDActionStrategy) stream(resource entity.Resource, conn *websocket.Conn) {
 	// detect the audio and video codecs
 	audioCodec, videoCodec, err := s.codecInfo.Detect(resource)
