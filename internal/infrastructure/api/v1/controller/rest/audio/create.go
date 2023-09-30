@@ -17,7 +17,7 @@ func NewCreateController() *CreateAudioController {
 }
 
 func (c *CreateAudioController) Create(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte("Hello world from POST method!")); err != nil {
+	if _, err := w.Write([]byte("Sorry, the route is not implemented yet :(")); err != nil {
 		log.Fatalln(err)
 	}
 }

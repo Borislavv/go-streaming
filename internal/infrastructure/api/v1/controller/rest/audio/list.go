@@ -17,7 +17,7 @@ func NewListController() *ListAudioController {
 }
 
 func (l *ListAudioController) List(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte("Hello world from GET:list method!")); err != nil {
+	if _, err := w.Write([]byte("Sorry, the route is not implemented yet :(")); err != nil {
 		log.Fatalln(err)
 	}
 }
