@@ -8,6 +8,7 @@ import (
 
 const CreatePath = "/audio"
 
+// CreateAudioController - not implemented yet.
 type CreateAudioController struct {
 }
 

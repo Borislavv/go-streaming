@@ -8,6 +8,7 @@ import (
 
 const GetPath = "/audio/{id}"
 
+// GetAudioController - not implemented yet.
 type GetAudioController struct {
 }
 

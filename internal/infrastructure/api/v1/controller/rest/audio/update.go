@@ -8,6 +8,7 @@ import (
 
 const UpdatePath = "/audio/{id}"
 
+// UpdateAudioController - not implemented yet.
 type UpdateAudioController struct {
 }
 

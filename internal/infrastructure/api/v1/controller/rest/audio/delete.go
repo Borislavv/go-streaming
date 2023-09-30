@@ -8,6 +8,7 @@ import (
 
 const DeletePath = "/audio/{id}"
 
+// DeleteAudioController - not implemented yet.
 type DeleteAudioController struct {
 }
 
