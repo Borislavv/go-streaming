@@ -90,6 +90,10 @@ func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (n
 	return name, path, nil
 }
 
+func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
+	
+}
+
 // getFilename - will return calculated filename with extension
 func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string, e error) {
 	hash := sha256.New()
