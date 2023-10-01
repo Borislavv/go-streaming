@@ -121,20 +121,48 @@ func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.Fi
 	chunksNumber := int64(math.Ceil(float64(fileSize / chunkSize)))
 
 	wg := &sync.WaitGroup{}
-	taskCh := make(chan *struct {
-		num    int64
-		offset int64
-	}, threads)
+	offsetsCh := make(chan int64, threads)
 
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
+		defer func() {
+			close(offsetsCh)
+			wg.Done()
+		}()
 
 		for i := int64(0); i < chunksNumber; i++ {
-			taskCh <- &struct {
-				num    int64
-				offset int64
-			}{num: i, offset: i * chunkSize}
+			offsetsCh <- i * chunkSize
+		}
+	}()
+
+	go func() {
+		for j := 0; j < threads; j++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for offset := range offsetsCh {
+					buff := make([]byte, 0, chunkSize)
+					rn, rerr := file.ReadAt(buff, offset)
+					if rerr != nil {
+						s.logger.Critical(rerr)
+						return
+					}
+					if rn == 0 {
+						return
+					}
+					wn, werr := createdFile.WriteAt(buff, offset)
+					if werr != nil {
+						s.logger.Critical(werr)
+						return
+					}
+					if wn != rn {
+						s.logger.Critical(
+							fmt.Sprintf("the len of writen bytes %d does not match the len of readed %d", wn, rn),
+						)
+						return
+					}
+				}
+			}()
 		}
 	}()
 
