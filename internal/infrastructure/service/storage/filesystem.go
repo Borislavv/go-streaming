@@ -60,6 +60,8 @@ func (s *Filesystem) Has(header *multipart.FileHeader) (has bool, e error) {
 }
 
 func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
+	defer func() { _ = file.Close() }()
+
 	// filename with extension
 	name, err = s.getFilename(header)
 	if err != nil {
@@ -93,6 +95,8 @@ func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (n
 }
 
 func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
+	defer func() { _ = file.Close() }()
+
 	// filename with extension
 	name, err = s.getFilename(header)
 	if err != nil {
@@ -166,12 +170,7 @@ func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.Fi
 		}
 	}()
 
-	n, err := file.ReadAt([]byte{}, 0)
-	if err != nil {
-		return "", "", err
-	}
-
-	createdFile.WriteAt()
+	return name, path, nil
 }
 
 // getFilename - will return calculated filename with extension
