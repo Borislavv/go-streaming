@@ -7,9 +7,11 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"io"
+	"math"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type Filesystem struct {
@@ -112,6 +114,36 @@ func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.Fi
 		return "", "", err
 	}
 	defer func() { _ = createdFile.Close() }()
+
+	threads := 5
+	fileSize := header.Size
+	chunkSize := int64(1024 * 1024 * 1) // 1mb.
+	chunksNumber := int64(math.Ceil(float64(fileSize / chunkSize)))
+
+	wg := &sync.WaitGroup{}
+	taskCh := make(chan *struct {
+		num    int64
+		offset int64
+	}, threads)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for i := int64(0); i < chunksNumber; i++ {
+			taskCh <- &struct {
+				num    int64
+				offset int64
+			}{num: i, offset: i * chunkSize}
+		}
+	}()
+
+	n, err := file.ReadAt([]byte{}, 0)
+	if err != nil {
+		return "", "", err
+	}
+
+	createdFile.WriteAt()
 }
 
 // getFilename - will return calculated filename with extension
