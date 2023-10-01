@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 )
 
@@ -119,56 +120,60 @@ func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.Fi
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	threads := 5
-	fileSize := header.Size
-	chunkSize := int64(1024 * 1024 * 1) // 1mb.
-	chunksNumber := int64(math.Ceil(float64(fileSize / chunkSize)))
+	chunkSize := int64(1024 * 1024 * 1)
+	chunksNumber := int64(math.Ceil(float64(header.Size / chunkSize)))
 
+	threads := int64(runtime.NumCPU() * 3)
+	if chunksNumber < threads {
+		threads = chunksNumber
+	}
+
+	mu := &sync.Mutex{}
 	wg := &sync.WaitGroup{}
-	offsetsCh := make(chan int64, threads)
 
-	wg.Add(1)
+	chunkNum := int64(0)
+
+	wg.Add(int(threads))
 	go func() {
-		defer func() {
-			close(offsetsCh)
-			wg.Done()
-		}()
-
-		for i := int64(0); i < chunksNumber; i++ {
-			offsetsCh <- i * chunkSize
-		}
-	}()
-
-	go func() {
-		for j := 0; j < threads; j++ {
-			wg.Add(1)
+		for j := int64(0); j < threads; j++ {
 			go func() {
 				defer wg.Done()
-				for offset := range offsetsCh {
-					buff := make([]byte, 0, chunkSize)
-					rn, rerr := file.ReadAt(buff, offset)
-					if rerr != nil {
-						s.logger.Critical(rerr)
-						return
-					}
-					if rn == 0 {
-						return
-					}
-					wn, werr := createdFile.WriteAt(buff, offset)
-					if werr != nil {
-						s.logger.Critical(werr)
-						return
-					}
-					if wn != rn {
-						s.logger.Critical(
-							fmt.Sprintf("the len of writen bytes %d does not match the len of readed %d", wn, rn),
-						)
-						return
-					}
+
+				mu.Lock()
+				offset := chunkNum * chunkSize
+				chunkNum += 1
+				mu.Unlock()
+
+				if offset > header.Size {
+					return
+				}
+
+				buff := make([]byte, chunkSize)
+				rn, rerr := file.ReadAt(buff, offset)
+				if rerr != nil {
+					s.logger.Critical(rerr)
+					return
+				}
+				if rn < int(chunkSize) {
+					buff = buff[:rn]
+					return
+				}
+				wn, werr := createdFile.WriteAt(buff, offset)
+				if werr != nil {
+					s.logger.Critical(werr)
+					return
+				}
+				if wn != rn {
+					s.logger.Critical(
+						fmt.Sprintf("the len of writen bytes %d does not match the len of readed %d", wn, rn),
+					)
+					return
 				}
 			}()
 		}
 	}()
+
+	wg.Wait()
 
 	return name, path, nil
 }
