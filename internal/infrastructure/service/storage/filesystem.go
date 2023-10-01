@@ -91,7 +91,27 @@ func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (n
 }
 
 func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
-	
+	// filename with extension
+	name, err = s.getFilename(header)
+	if err != nil {
+		return "", "", err
+	}
+
+	// resources files directory
+	dir, err := helper.ResourcesDir()
+	if err != nil {
+		return "", "", err
+	}
+
+	// full qualified file path
+	path = fmt.Sprintf("%v%v", dir, name)
+
+	// resource creating which will represented as a simple file at now
+	createdFile, err := os.Create(path)
+	if err != nil {
+		return "", "", err
+	}
+	defer func() { _ = createdFile.Close() }()
 }
 
 // getFilename - will return calculated filename with extension
