@@ -7,9 +7,12 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"io"
+	"math"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 )
 
 type Filesystem struct {
@@ -58,6 +61,8 @@ func (s *Filesystem) Has(header *multipart.FileHeader) (has bool, e error) {
 }
 
 func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
+	defer func() { _ = file.Close() }()
+
 	// filename with extension
 	name, err = s.getFilename(header)
 	if err != nil {
@@ -87,6 +92,89 @@ func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (n
 	}
 
 	// returning id of the created file, e.g. resourceId
+	return name, path, nil
+}
+
+func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
+	defer func() { _ = file.Close() }()
+
+	// filename with extension
+	name, err = s.getFilename(header)
+	if err != nil {
+		return "", "", err
+	}
+
+	// resources files directory
+	dir, err := helper.ResourcesDir()
+	if err != nil {
+		return "", "", err
+	}
+
+	// full qualified file path
+	path = fmt.Sprintf("%v%v", dir, name)
+
+	// resource creating which will represented as a simple file at now
+	createdFile, err := os.Create(path)
+	if err != nil {
+		return "", "", err
+	}
+	defer func() { _ = createdFile.Close() }()
+
+	chunkSize := int64(1024 * 1024 * 1)
+	chunksNumber := int64(math.Ceil(float64(header.Size / chunkSize)))
+
+	threads := int64(runtime.NumCPU() * 3)
+	if chunksNumber < threads {
+		threads = chunksNumber
+	}
+
+	mu := &sync.Mutex{}
+	wg := &sync.WaitGroup{}
+
+	chunkNum := int64(0)
+
+	wg.Add(int(threads))
+	go func() {
+		for j := int64(0); j < threads; j++ {
+			go func() {
+				defer wg.Done()
+
+				mu.Lock()
+				offset := chunkNum * chunkSize
+				chunkNum += 1
+				mu.Unlock()
+
+				if offset > header.Size {
+					return
+				}
+
+				buff := make([]byte, chunkSize)
+				rn, rerr := file.ReadAt(buff, offset)
+				if rerr != nil {
+					s.logger.Critical(rerr)
+					return
+				}
+				if rn < int(chunkSize) {
+					buff = buff[:rn]
+					return
+				}
+				wn, werr := createdFile.WriteAt(buff, offset)
+				if werr != nil {
+					s.logger.Critical(werr)
+					return
+				}
+				if wn != rn {
+					s.logger.Critical(
+						fmt.Sprintf("the len of writen bytes %d does not match the len of readed %d", wn, rn),
+					)
+					return
+				}
+			}()
+		}
+	}()
+
+	wg.Wait()
+
 	return name, path, nil
 }
 
