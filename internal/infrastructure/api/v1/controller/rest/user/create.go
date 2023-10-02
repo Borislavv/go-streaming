@@ -12,7 +12,7 @@ const CreatePath = "/user"
 type CreateUserController struct {
 }
 
-func NewCreateUserController() *CreateUserController {
+func NewCreateController() *CreateUserController {
 	return &CreateUserController{}
 }
 

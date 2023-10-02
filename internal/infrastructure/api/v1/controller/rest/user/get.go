@@ -12,7 +12,7 @@ const GetPath = "/user/{id}"
 type GetUserController struct {
 }
 
-func NewGetUserController() *GetUserController {
+func NewGetController() *GetUserController {
 	return &GetUserController{}
 }
 

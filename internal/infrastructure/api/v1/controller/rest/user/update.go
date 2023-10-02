@@ -8,21 +8,21 @@ import (
 
 const UpdatePath = "/audio/{id}"
 
-// UpdateUserController - not implemented yet.
-type UpdateUserController struct {
+// UpdateController - not implemented yet.
+type UpdateController struct {
 }
 
-func NewUpdateUserController() *UpdateUserController {
-	return &UpdateUserController{}
+func NewUpdateUserController() *UpdateController {
+	return &UpdateController{}
 }
 
-func (u *UpdateUserController) Update(w http.ResponseWriter, r *http.Request) {
+func (u *UpdateController) Update(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("Sorry, the route is not implemented yet :(")); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func (u *UpdateUserController) AddRoute(router *mux.Router) {
+func (u *UpdateController) AddRoute(router *mux.Router) {
 	router.
 		Path(UpdatePath).
 		HandlerFunc(u.Update).

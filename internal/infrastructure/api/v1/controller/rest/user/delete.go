@@ -12,7 +12,7 @@ const DeletePath = "/user/{id}"
 type DeleteUserController struct {
 }
 
-func NewDeleteUserController() *DeleteUserController {
+func NewDeleteController() *DeleteUserController {
 	return &DeleteUserController{}
 }
 
