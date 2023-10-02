@@ -18,7 +18,7 @@ type DeleteVideoController struct {
 	response response.Responder
 }
 
-func NewDeleteVideoController(
+func NewDeleteController(
 	logger logger.Logger,
 	builder builder.Video,
 	service video.CRUD,

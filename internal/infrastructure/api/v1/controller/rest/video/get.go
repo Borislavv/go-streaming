@@ -18,7 +18,7 @@ type GetVideoController struct {
 	response response.Responder
 }
 
-func NewGetVideoController(
+func NewGetController(
 	logger logger.Logger,
 	builder builder.Video,
 	service video.CRUD,

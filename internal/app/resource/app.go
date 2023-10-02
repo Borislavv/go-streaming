@@ -178,31 +178,31 @@ func (app *ResourcesApp) InitRestApiControllers(
 			responseService,
 		),
 		// video
-		video.NewCreateVideoController(
+		video.NewCreateController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewDeleteVideoController(
+		video.NewDeleteController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewGetVideoController(
+		video.NewGetController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewListVideoController(
+		video.NewListController(
 			loggerService,
 			videoBuilder,
 			videoService,
 			responseService,
 		),
-		video.NewUpdateVideoController(
+		video.NewUpdateController(
 			loggerService,
 			videoBuilder,
 			videoService,

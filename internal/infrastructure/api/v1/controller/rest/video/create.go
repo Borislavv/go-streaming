@@ -18,7 +18,7 @@ type CreateVideoController struct {
 	response response.Responder
 }
 
-func NewCreateVideoController(
+func NewCreateController(
 	logger logger.Logger,
 	builder builder.Video,
 	service video.CRUD,

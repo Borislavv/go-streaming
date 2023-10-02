@@ -18,7 +18,7 @@ type ListVideoController struct {
 	response response.Responder
 }
 
-func NewListVideoController(
+func NewListController(
 	logger logger.Logger,
 	builder builder.Video,
 	service video.CRUD,
