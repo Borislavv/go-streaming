@@ -18,7 +18,7 @@ type UpdateVideoController struct {
 	response response.Responder
 }
 
-func NewUpdateController(
+func NewUpdateVideoController(
 	logger logger.Logger,
 	builder builder.Video,
 	service video.CRUD,
