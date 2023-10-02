@@ -30,6 +30,14 @@ func NewResourceBuilder(
 
 // BuildUploadRequestDTOFromRequest will be parse raw *http.Request and build a dto.UploadRequest
 func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error) {
+	reader, err := r.MultipartReader()
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
+	// TODO переписать на данный подход
+	reader.NextRawPart()
+
 	// request will be parsed and stored in the memory if it is under the RAM threshold,
 	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
 	if err := r.ParseMultipartForm(b.inMemoryFileSizeThreshold); err != nil {
