@@ -12,7 +12,7 @@ const DeletePath = "/audio/{id}"
 type DeleteAudioController struct {
 }
 
-func NewDeleteAudioController() *DeleteAudioController {
+func NewDeleteController() *DeleteAudioController {
 	return &DeleteAudioController{}
 }
 

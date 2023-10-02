@@ -12,7 +12,7 @@ const ListPath = "/audio"
 type ListAudioController struct {
 }
 
-func NewListAudioController() *ListAudioController {
+func NewListController() *ListAudioController {
 	return &ListAudioController{}
 }
 

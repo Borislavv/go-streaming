@@ -12,7 +12,7 @@ const GetPath = "/audio/{id}"
 type GetAudioController struct {
 }
 
-func NewGetAudioController() *GetAudioController {
+func NewGetController() *GetAudioController {
 	return &GetAudioController{}
 }
 
