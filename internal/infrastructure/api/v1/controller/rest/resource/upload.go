@@ -18,7 +18,7 @@ type UploadResourceController struct {
 	responder response.Responder
 }
 
-func NewUploadResourceController(
+func NewUploadController(
 	logger logger.Logger,
 	builder builder.Resource,
 	service resource.CRUD,

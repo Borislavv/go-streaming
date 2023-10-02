@@ -171,7 +171,7 @@ func (app *ResourcesApp) InitRestApiControllers(
 ) []controller.Controller {
 	return []controller.Controller{
 		// resource
-		resource.NewUploadResourceController(
+		resource.NewUploadController(
 			loggerService,
 			resourceBuilder,
 			resourceService,
