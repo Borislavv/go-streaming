@@ -11,22 +11,22 @@ import (
 
 const ResourcesPrefix = "/static/"
 
-type ResourceController struct {
+type FilesController struct {
 	logger    logger.Logger
 	responder response.Responder
 }
 
-func NewResourceController(
+func NewFilesController(
 	logger logger.Logger,
 	responder response.Responder,
-) *ResourceController {
-	return &ResourceController{
+) *FilesController {
+	return &FilesController{
 		logger:    logger,
 		responder: responder,
 	}
 }
 
-func (c *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
+func (c *FilesController) Serve(w http.ResponseWriter, r *http.Request) {
 	dir, err := helper.StaticFilesDir()
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
@@ -41,7 +41,7 @@ func (c *ResourceController) Serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, dir+path)
 }
 
-func (c *ResourceController) AddRoute(router *mux.Router) {
+func (c *FilesController) AddRoute(router *mux.Router) {
 	router.
 		PathPrefix(ResourcesPrefix).
 		HandlerFunc(c.Serve).

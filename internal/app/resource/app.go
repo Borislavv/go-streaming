@@ -231,6 +231,6 @@ func (app *ResourcesApp) InitStaticServingControllers(
 	responseService response.Responder,
 ) []controller.Controller {
 	return []controller.Controller{
-		static.NewResourceController(loggerService, responseService),
+		static.NewFilesController(loggerService, responseService),
 	}
 }
