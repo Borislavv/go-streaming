@@ -12,7 +12,7 @@ const UpdatePath = "/audio/{id}"
 type UpdateAudioController struct {
 }
 
-func NewUpdateController() *UpdateAudioController {
+func NewUpdateAudioController() *UpdateAudioController {
 	return &UpdateAudioController{}
 }
 

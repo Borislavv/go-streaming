@@ -209,11 +209,11 @@ func (app *ResourcesApp) InitRestApiControllers(
 			responseService,
 		),
 		// audio
-		audio.NewCreateController(),
-		audio.NewDeleteController(),
-		audio.NewGetController(),
-		audio.NewListController(),
-		audio.NewUpdateController(),
+		audio.NewCreateAudioController(),
+		audio.NewDeleteAudioController(),
+		audio.NewGetAudioController(),
+		audio.NewListAudioController(),
+		audio.NewUpdateAudioController(),
 	}
 }
 

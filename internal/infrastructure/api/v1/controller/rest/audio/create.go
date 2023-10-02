@@ -12,7 +12,7 @@ const CreatePath = "/audio"
 type CreateAudioController struct {
 }
 
-func NewCreateController() *CreateAudioController {
+func NewCreateAudioController() *CreateAudioController {
 	return &CreateAudioController{}
 }
 
