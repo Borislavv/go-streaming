@@ -100,11 +100,30 @@ func NewUniquenessCheckFailedError(fields ...string) *UniquenessCheckFailedError
 
 type InvalidUploadedFileError struct{ publicError }
 
-func NewInvalidUploadedFileError(filename string) *InvalidUploadedFileError {
+func NewInvalidUploadedFileError(message string) *InvalidUploadedFileError {
+	if message == "" {
+		message = "given file is not valid"
+	}
+
 	return &InvalidUploadedFileError{
 		publicError{
 			errored{
-				ErrorMessage: fmt.Sprintf("file '%v' has a zero size", filename),
+				ErrorMessage: message,
+				ErrorType:    validationType,
+				errorLevel:   publicValidationLevel,
+				errorStatus:  publicValidationStatus,
+			},
+		},
+	}
+}
+
+type FormDoesNotContainsUploadedFileError struct{ publicError }
+
+func NewFormDoesNotContainsUploadedFileError() *FormDoesNotContainsUploadedFileError {
+	return &FormDoesNotContainsUploadedFileError{
+		publicError{
+			errored{
+				ErrorMessage: "form does not contains an uploading file",
 				ErrorType:    validationType,
 				errorLevel:   publicValidationLevel,
 				errorStatus:  publicValidationStatus,
