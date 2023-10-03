@@ -2,12 +2,17 @@ package validator
 
 import (
 	"context"
+	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
+
+var supportsFileContentTypes = map[string]struct{}{
+	"video/mp4": {},
+}
 
 type Resource interface {
 	ValidateUploadRequestDTO(req dto.UploadRequest) error
@@ -28,8 +33,17 @@ func NewResourceValidator(ctx context.Context, repository repository.Resource) *
 }
 
 func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadRequest) error {
-	if req.GetHeader().Size == 0 {
-		return errors.NewInvalidUploadedFileError(req.GetHeader().Filename)
+	if req.GetContentLength() == 0 {
+		return errors.NewInvalidUploadedFileError(
+			fmt.Sprintf("request file form is empty"),
+		)
+	}
+
+	contentType := req.GetPart().Header.Get("Content-Type")
+	if _, ok := supportsFileContentTypes[contentType]; !ok {
+		return errors.NewInvalidUploadedFileError(
+			fmt.Sprintf("file '%v' has an unsupported content-type '%v'", req.GetPart().FileName(), contentType),
+		)
 	}
 	return nil
 }
@@ -47,8 +61,8 @@ func (v *ResourceValidator) ValidateEntity(entity entity.Resource) error {
 	if entity.GetFilesize() == 0 {
 		return errors.NewInternalValidationError("field 'filesize' cannot be zero")
 	}
-	if len(entity.GetFileMIME()) == 0 {
-		return errors.NewInternalValidationError("field 'fileMIME' cannot be empty map")
+	if entity.GetFiletype() == "" {
+		return errors.NewInternalValidationError("field 'filetype' cannot be empty")
 	}
 	return nil
 }

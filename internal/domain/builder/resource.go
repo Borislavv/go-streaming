@@ -4,8 +4,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"io"
 	"net/http"
 	"time"
 )
@@ -30,40 +32,38 @@ func NewResourceBuilder(
 
 // BuildUploadRequestDTOFromRequest will be parse raw *http.Request and build a dto.UploadRequest
 func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error) {
+	// extract the multipart form reader (handling the form as a stream)
 	reader, err := r.MultipartReader()
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	// TODO переписать на данный подход
-	reader.NextRawPart()
+	for { // search the file part
+		part, err := reader.NextPart()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, b.logger.ErrorPropagate(err)
+		}
 
-	// request will be parsed and stored in the memory if it is under the RAM threshold,
-	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
-	if err := r.ParseMultipartForm(b.inMemoryFileSizeThreshold); err != nil {
-		return nil, b.logger.LogPropagate(err)
+		if part.FileName() != "" {
+			return dto.NewResourceUploadRequest(part, r.ContentLength), nil
+		}
 	}
 
-	// receiving a file and header from multipart/form-data
-	// by requested filename which is stored in the `formFilename` const.
-	file, header, err := r.FormFile(b.formFilename)
-	if err != nil {
-		return nil, b.logger.LogPropagate(err)
-	}
-	defer func() { _ = file.Close() }()
-
-	return dto.NewResourceUploadRequest(file, header), nil
+	return nil, errors.NewFormDoesNotContainsUploadedFileError()
 }
 
 // BuildAggFromUploadRequestDTO will be make an agg.Resource from dto.UploadRequest
 func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto.UploadRequest) *agg.Resource {
 	return &agg.Resource{
 		Resource: entity.Resource{
-			Name:     req.GetHeader().Filename,
+			Name:     req.GetPart().FileName(),
 			Filename: req.GetUploadedFilename(),
 			Filepath: req.GetUploadedFilepath(),
-			Filesize: req.GetHeader().Size,
-			FileMIME: req.GetHeader().Header,
+			Filesize: req.GetUploadedFilesize(),
+			Filetype: req.GetUploadedFiletype(),
 		},
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),

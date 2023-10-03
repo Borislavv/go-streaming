@@ -3,8 +3,8 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	resource2 "github.com/Borislavv/video-streaming/internal/domain/service/resource"
-	video2 "github.com/Borislavv/video-streaming/internal/domain/service/video"
+	domainresource "github.com/Borislavv/video-streaming/internal/domain/service/resource"
+	domainvideo "github.com/Borislavv/video-streaming/internal/domain/service/video"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
@@ -19,6 +19,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -101,15 +102,18 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	// video service
-	videoService := video2.NewCRUDService(
+	videoService := domainvideo.NewCRUDService(
 		ctx, loggerService, videoBuilder, videoValidator, videoRepository,
 	)
 
 	// filesystem storage
-	filesystemStorage := storage.NewFilesystemStorage(loggerService)
+	filesystemStorage := storage.NewFilesystemStorage(ctx, loggerService)
+
+	// filename computer
+	filenameComputerService := file.NewNameService()
 
 	// native uploader service
-	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage)
+	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage, filenameComputerService)
 
 	// resource builder
 	resourceBuilder := builder.NewResourceBuilder(
@@ -117,7 +121,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	// resource service
-	resourceService := resource2.NewResourceService(
+	resourceService := domainresource.NewResourceService(
 		ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository,
 	)
 
@@ -164,10 +168,10 @@ func (app *ResourcesApp) InitRestApiControllers(
 	responseService response.Responder,
 	// resource deps.
 	resourceBuilder builder.Resource,
-	resourceService resource2.CRUD,
+	resourceService domainresource.CRUD,
 	// video deps.
 	videoBuilder builder.Video,
-	videoService video2.CRUD,
+	videoService domainvideo.CRUD,
 ) []controller.Controller {
 	return []controller.Controller{
 		// resource

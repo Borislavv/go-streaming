@@ -2,38 +2,26 @@ package dto
 
 import (
 	"mime/multipart"
-	"runtime"
 )
 
 type ResourceUploadRequestDTO struct {
-	file             multipart.File
-	header           *multipart.FileHeader
+	part             *multipart.Part
+	contentLength    int64
 	uploadedFilename string
 	uploadedFilepath string
+	uploadedFiletype string
+	uploadedFilesize int64
 }
 
-func NewResourceUploadRequest(
-	file multipart.File,
-	header *multipart.FileHeader,
-) (dto *ResourceUploadRequestDTO) {
-	resourceDTO := &ResourceUploadRequestDTO{
-		file:   file,
-		header: header,
-	}
-
-	// destructor implementation for deferred close file
-	runtime.SetFinalizer(resourceDTO, func(dto *ResourceUploadRequestDTO) {
-		_ = dto.file.Close()
-	})
-
-	return resourceDTO
+func NewResourceUploadRequest(part *multipart.Part, contentLength int64) (dto *ResourceUploadRequestDTO) {
+	return &ResourceUploadRequestDTO{part: part, contentLength: contentLength}
 }
 
-func (r *ResourceUploadRequestDTO) GetFile() multipart.File {
-	return r.file
+func (r *ResourceUploadRequestDTO) GetPart() *multipart.Part {
+	return r.part
 }
-func (r *ResourceUploadRequestDTO) GetHeader() *multipart.FileHeader {
-	return r.header
+func (r *ResourceUploadRequestDTO) GetContentLength() int64 {
+	return r.contentLength
 }
 func (r *ResourceUploadRequestDTO) GetUploadedFilename() string {
 	return r.uploadedFilename
@@ -46,4 +34,16 @@ func (r *ResourceUploadRequestDTO) GetUploadedFilepath() string {
 }
 func (r *ResourceUploadRequestDTO) SetUploadedFilepath(filepath string) {
 	r.uploadedFilepath = filepath
+}
+func (r *ResourceUploadRequestDTO) GetUploadedFilesize() int64 {
+	return r.uploadedFilesize
+}
+func (r *ResourceUploadRequestDTO) SetUploadedFilesize(filesize int64) {
+	r.uploadedFilesize = filesize
+}
+func (r *ResourceUploadRequestDTO) GetUploadedFiletype() string {
+	return r.uploadedFiletype
+}
+func (r *ResourceUploadRequestDTO) SetUploadedFiletype(filetype string) {
+	r.uploadedFiletype = filetype
 }

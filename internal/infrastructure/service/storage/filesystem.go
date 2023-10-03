@@ -1,13 +1,14 @@
 package storage
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"io"
-	"math"
+	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -16,29 +17,26 @@ import (
 )
 
 type Filesystem struct {
+	ctx    context.Context
 	logger logger.Logger
 }
 
-func NewFilesystemStorage(logger logger.Logger) *Filesystem {
+func NewFilesystemStorage(ctx context.Context, logger logger.Logger) *Filesystem {
 	return &Filesystem{
+		ctx:    ctx,
 		logger: logger,
 	}
 }
 
 // Has is checking whether the file already exists.
-func (s *Filesystem) Has(header *multipart.FileHeader) (has bool, e error) {
-	// filename with extension
-	name, err := s.getFilename(header)
-	if err != nil {
-		return true, err
-	}
-
+func (s *Filesystem) Has(filename string) (has bool, e error) {
+	// resources dir.
 	resourcesDir, err := helper.ResourcesDir()
 	if err != nil {
 		return true, err
 	}
 
-	// resources files directory
+	// resources files dir.
 	dir, err := os.Open(resourcesDir)
 	if err != nil {
 		return true, err
@@ -52,130 +50,180 @@ func (s *Filesystem) Has(header *multipart.FileHeader) (has bool, e error) {
 	}
 
 	// attempt of finding a match
-	for _, filename := range filenames {
-		if filename == name {
+	for _, foundFilename := range filenames {
+		if foundFilename == filename {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
-func (s *Filesystem) Store(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
-	defer func() { _ = file.Close() }()
-
-	// filename with extension
-	name, err = s.getFilename(header)
-	if err != nil {
-		return "", "", err
-	}
+func (s *Filesystem) Store(
+	name string,
+	part *multipart.Part,
+) (
+	length int64,
+	filename string,
+	filepath string,
+	err error,
+) {
+	// resource file name
+	filename = name
 
 	// resources files directory
 	dir, err := helper.ResourcesDir()
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	// full qualified file path
-	path = fmt.Sprintf("%v%v", dir, name)
+	filepath = fmt.Sprintf("%v%v", dir, name)
 
 	// resource creating which will represented as a simple file at now
-	createdFile, err := os.Create(path)
+	createdFile, err := os.Create(filepath)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 	defer func() { _ = createdFile.Close() }()
 
 	// moving the data in to the created file from tmp
-	_, err = io.Copy(createdFile, file)
+	length, err = io.Copy(createdFile, part)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	// returning id of the created file, e.g. resourceId
-	return name, path, nil
+	return length, filename, filepath, nil
 }
 
-func (s *Filesystem) StoreConcurrently(file multipart.File, header *multipart.FileHeader) (name string, path string, err error) {
-	defer func() { _ = file.Close() }()
-
-	// filename with extension
-	name, err = s.getFilename(header)
-	if err != nil {
-		return "", "", err
-	}
+func (s *Filesystem) StoreConcurrently(
+	name string,
+	part *multipart.Part,
+) (
+	length int64,
+	filename string,
+	filepath string,
+	err error,
+) {
+	filename = name
 
 	// resources files directory
 	dir, err := helper.ResourcesDir()
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	// full qualified file path
-	path = fmt.Sprintf("%v%v", dir, name)
+	filepath = fmt.Sprintf("%v%v", dir, name)
 
 	// resource creating which will represented as a simple file at now
-	createdFile, err := os.Create(path)
+	createdFile, err := os.Create(filepath)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	chunkSize := int64(1024 * 1024 * 1)
-	chunksNumber := int64(math.Ceil(float64(header.Size / chunkSize)))
-
-	threads := int64(runtime.NumCPU() * 3)
-	if chunksNumber < threads {
-		threads = chunksNumber
-	}
-
-	mu := &sync.Mutex{}
 	wg := &sync.WaitGroup{}
+	ctx, cancel := context.WithCancel(s.ctx)
+	dataCh := make(chan []byte)
 
-	chunkNum := int64(0)
+	chunkSize := 1024 * 1024 * 1
 
-	wg.Add(int(threads))
+	taskProvidersNum := 1
+	dataProvidersNum := runtime.NumCPU()
+	dataConsumersNum := 1
+
+	taskCh := make(chan struct{}, dataProvidersNum)
+
+	// taskProvider: sending task to each provider for control the treads state
+	wg.Add(taskProvidersNum)
 	go func() {
-		for j := int64(0); j < threads; j++ {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				close(taskCh)
+				log.Printf("closed taskCh, interruted by error")
+				return
+			default:
+				taskCh <- struct{}{}
+			}
+		}
+	}()
+
+	wg2 := &sync.WaitGroup{}
+	once := &sync.Once{}
+
+	// dataProviders: consuming tasks, reading the file and send the slices to data consumer
+	wg.Add(dataProvidersNum)
+	go func() {
+		for i := 0; i < dataProvidersNum; i++ {
 			go func() {
 				defer wg.Done()
 
-				mu.Lock()
-				offset := chunkNum * chunkSize
-				chunkNum += 1
-				mu.Unlock()
+				for range taskCh {
+					buff := make([]byte, 0, 1024*1024*1)
+					n, err := part.Read(buff)
+					if err != nil {
+						if err == io.EOF {
+							return
+						}
+						s.logger.Critical(err)
+						return
+					}
+					if n < chunkSize { // handle the last chunk
+						if n == 0 {
+							log.Printf("dataProvider: readed 0 bytes, RETURNED")
 
-				if offset > header.Size {
-					return
-				}
+							once.Do(
+								func() {
+									wg2.Add(1)
+									defer wg2.Done()
+									cancel()
+									close(dataCh)
+									wg.Wait()
+								},
+							)
 
-				buff := make([]byte, chunkSize)
-				rn, rerr := file.ReadAt(buff, offset)
-				if rerr != nil {
-					s.logger.Critical(rerr)
-					return
-				}
-				if rn < int(chunkSize) {
-					buff = buff[:rn]
-					return
-				}
-				wn, werr := createdFile.WriteAt(buff, offset)
-				if werr != nil {
-					s.logger.Critical(werr)
-					return
-				}
-				if wn != rn {
-					s.logger.Critical(
-						fmt.Sprintf("the len of writen bytes %d does not match the len of readed %d", wn, rn),
-					)
-					return
+							return
+						}
+						dataCh <- buff[:n]
+						return
+					}
+					log.Printf("dataProvider: readed %d bytes", n)
+					dataCh <- buff
 				}
 			}()
 		}
 	}()
 
-	wg.Wait()
+	wg2.Add(dataConsumersNum)
+	go func() {
+		defer wg2.Done()
 
-	return name, path, nil
+		for data := range dataCh {
+			n, err := createdFile.Write(data)
+			if err != nil {
+				s.logger.Critical(err)
+				log.Println(err)
+
+				cancel() // close the tasks provider
+
+				wg2.Add(1)
+				go func() { // skipping the last data if err occurred
+					defer wg2.Done()
+					for range dataCh {
+					} // deadlock escaping
+				}()
+				wg.Wait() // wait while the previous goroutines will be closed
+				close(dataCh)
+			}
+			length += int64(n)
+		}
+	}()
+	wg2.Wait()
+
+	return length, filename, filepath, nil
 }
 
 // getFilename - will return calculated filename with extension
