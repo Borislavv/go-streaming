@@ -33,12 +33,16 @@ type ListRequest interface {
 }
 
 type UploadRequest interface {
-	GetFile() multipart.File
-	GetHeader() *multipart.FileHeader
+	GetPart() *multipart.Part
+	GetContentLength() int64
 	GetUploadedFilename() string
 	SetUploadedFilename(filename string)
 	GetUploadedFilepath() string
 	SetUploadedFilepath(filepath string)
+	GetUploadedFilesize() int64
+	SetUploadedFilesize(filesize int64)
+	GetUploadedFiletype() string
+	SetUploadedFiletype(filetype string)
 }
 
 type PaginatedRequest interface {
