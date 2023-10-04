@@ -11,8 +11,6 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"runtime"
-	"sync"
 )
 
 type Filesystem struct {
@@ -122,131 +120,8 @@ func (s *Filesystem) StoreBuffered(
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	var wg sync.WaitGroup
-	var wgp sync.WaitGroup
+	// TODO Not implemented.
 
-	dataCh := make(chan []byte)
-	chunkSize := 1024 * 1024 * 1
-	dataProvidersNum := runtime.NumCPU()
-	doneCh := make(chan struct{})
-
-	wg.Add(dataProvidersNum)
-	wgp.Add(dataProvidersNum)
-	for i := 0; i < dataProvidersNum; i++ {
-		go func() {
-			defer func() {
-				wg.Done()
-				wgp.Done()
-			}()
-
-			for {
-				select {
-				case <-doneCh:
-					s.logger.Critical("reading interrupted")
-					return
-				default:
-					buff := make([]byte, 1024*1024*50, 1024*1024*50) // TODO try to reduce to 4096 if the file will be built successfully
-					n, e := part.Read(buff)
-					if e != nil && e != io.EOF {
-						s.logger.Critical(e)
-						return
-					}
-					s.logger.Critical(fmt.Sprintf("found %d bytes and ent through dataCh", n))
-					if n < 1024*1024*50 {
-						if n == 0 {
-							s.logger.Critical("zero bytes found, exit")
-							return // normal exit
-						}
-						dataCh <- buff[:n]
-						s.logger.Critical("found slice of bytes which is lower than chunkSize")
-						return // normal exit
-					}
-					s.logger.Emergency("buffer is MORE THAN 5000 bytes!!!!!!11111111111111")
-					dataCh <- buff
-				}
-			}
-		}()
-	}
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		wgp.Wait()
-		close(dataCh)
-		s.logger.Critical("dataCh is closed")
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer func() {
-			wg.Done()
-			s.logger.Critical("main consumer is closed")
-		}()
-
-		buff := make([]byte, chunkSize)
-		buffLen := 0
-
-		for data := range dataCh {
-			if buffLen+len(data) > chunkSize {
-				// flush the buffer
-				n, e := createdFile.Write(buff[:buffLen])
-				if e != nil {
-					s.logger.Critical(e)
-					close(doneCh)
-					wg.Add(1)
-					go func() {
-						defer func() {
-							wg.Done()
-							s.logger.Critical("child consumer is closed")
-						}()
-						for range dataCh {
-						}
-					}()
-					err = e
-					return
-				}
-
-				buff = buff[:0]
-				buff = append(buff, data...)
-				buffLen = len(data)
-
-				s.logger.Info(fmt.Sprintf("wrote %d bytes", n))
-				length += int64(n)
-			} else {
-				buff = append(buff, data...)
-				buffLen += len(data)
-			}
-		}
-
-		if buffLen > 0 {
-			n, e := createdFile.Write(buff[:buffLen])
-			if e != nil {
-				s.logger.Critical(e)
-				close(doneCh)
-				wg.Add(1)
-				go func() {
-					defer func() {
-						wg.Done()
-						s.logger.Critical("child consumer is closed")
-					}()
-					for range dataCh {
-					}
-				}()
-				err = e
-				return
-			}
-			s.logger.Info(fmt.Sprintf("wrote %d bytes", n))
-			length += int64(n)
-		}
-	}()
-
-	wg.Wait()
-
-	s.logger.Info(fmt.Sprintf("%d %v %v %v", length, filename, filepath, err))
-
-	if err != nil {
-		return 0, "", "", err
-	}
 	return length, filename, filepath, nil
 }
 
