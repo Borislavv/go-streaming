@@ -145,7 +145,7 @@ func (s *Filesystem) StoreConcurrently(
 					s.logger.Critical("reading interrupted")
 					return
 				default:
-					buff := make([]byte, 1024*1024*50) // TODO try to reduce to 4096 if the file will be built successfully
+					buff := make([]byte, 1024*1024*50, 1024*1024*50) // TODO try to reduce to 4096 if the file will be built successfully
 					n, e := part.Read(buff)
 					if e != nil && e != io.EOF {
 						s.logger.Critical(e)
