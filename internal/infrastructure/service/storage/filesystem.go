@@ -55,6 +55,7 @@ func (s *Filesystem) Has(filename string) (has bool, e error) {
 	return false, nil
 }
 
+// Store is saving file and calculating new hashed name.
 func (s *Filesystem) Store(
 	name string,
 	part *multipart.Part,
@@ -93,6 +94,7 @@ func (s *Filesystem) Store(
 	return length, filename, filepath, nil
 }
 
+// StoreBuffered is saving file and calculating new hashed name (buffered).
 func (s *Filesystem) StoreBuffered(
 	name string,
 	part *multipart.Part,
