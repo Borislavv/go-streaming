@@ -9,6 +9,6 @@ type Storage interface {
 	Has(filename string) (has bool, err error)
 	// Store is saving file and calculating new hashed name.
 	Store(name string, part *multipart.Part) (length int64, filename string, filepath string, err error)
-	// StoreBuffered is saving file and calculating new hashed name.
+	// StoreBuffered is saving file and calculating new hashed name (buffered).
 	StoreBuffered(name string, part *multipart.Part) (length int64, filename string, filepath string, err error)
 }
