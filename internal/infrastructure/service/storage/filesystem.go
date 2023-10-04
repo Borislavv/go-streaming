@@ -8,7 +8,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"io"
-	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -86,55 +85,11 @@ func (s *Filesystem) Store(
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	oneMB := 1024 * 1024 * 1
-
-	chunkBuff := make([]byte, oneMB)
-	chunkLen := 0
-	for {
-		buff := make([]byte, 4096)
-		n, e := part.Read(buff)
-		if e != nil {
-			if e == io.EOF {
-				n, e = createdFile.Write(chunkBuff[:chunkLen])
-				if e != nil {
-					log.Fatalln(e)
-				}
-				length += int64(n)
-				break
-			}
-			log.Fatalln(e)
-		}
-		if n < 4096 {
-			if n == 0 {
-				n, e = createdFile.Write(chunkBuff[:chunkLen])
-				if e != nil {
-					log.Fatalln(e)
-				}
-				length += int64(n)
-				break
-			}
-			buff = buff[:n]
-		}
-		chunkLen += n
-
-		if chunkLen < oneMB-4096 {
-			chunkBuff = append(chunkBuff, buff...)
-		} else {
-			n, e = createdFile.Write(chunkBuff[:chunkLen])
-			if e != nil {
-				log.Fatalln(e)
-			}
-			length += int64(n)
-			chunkBuff = chunkBuff[:0]
-			chunkLen = 0
-		}
-	}
-
 	//// moving the data in to the created file from tmp
-	//length, err = io.Copy(createdFile, part)
-	//if err != nil {
-	//	return 0, "", "", err
-	//}
+	length, err = io.Copy(createdFile, part)
+	if err != nil {
+		return 0, "", "", err
+	}
 
 	// returning id of the created file, e.g. resourceId
 	return length, filename, filepath, nil
@@ -190,14 +145,14 @@ func (s *Filesystem) StoreConcurrently(
 					s.logger.Critical("reading interrupted")
 					return
 				default:
-					buff := make([]byte, chunkSize)
+					buff := make([]byte, 5000) // TODO try to reduce to 4096 if the file will be built successfully
 					n, e := part.Read(buff)
 					if e != nil && e != io.EOF {
 						s.logger.Critical(e)
 						return
 					}
 					s.logger.Critical(fmt.Sprintf("found %d bytes and ent through dataCh", n))
-					if n < chunkSize {
+					if n < 5000 {
 						if n == 0 {
 							s.logger.Critical("zero bytes found, exit")
 							return // normal exit
@@ -206,6 +161,7 @@ func (s *Filesystem) StoreConcurrently(
 						s.logger.Critical("found slice of bytes which is lower than chunkSize")
 						return // normal exit
 					}
+					s.logger.Emergency("buffer is MORE THAN 5000 bytes!!!!!!11111111111111")
 					dataCh <- buff
 				}
 			}
@@ -226,8 +182,44 @@ func (s *Filesystem) StoreConcurrently(
 			wg.Done()
 			s.logger.Critical("main consumer is closed")
 		}()
+
+		buff := make([]byte, chunkSize)
+		buffLen := 0
+
 		for data := range dataCh {
-			n, e := createdFile.Write(data)
+			if buffLen+len(data) > chunkSize {
+				// flush the buffer
+				n, e := createdFile.Write(buff[:buffLen])
+				if e != nil {
+					s.logger.Critical(e)
+					close(doneCh)
+					wg.Add(1)
+					go func() {
+						defer func() {
+							wg.Done()
+							s.logger.Critical("child consumer is closed")
+						}()
+						for range dataCh {
+						}
+					}()
+					err = e
+					return
+				}
+
+				buff = buff[:0]
+				buff = append(buff, data...)
+				buffLen = len(data)
+
+				s.logger.Info(fmt.Sprintf("wrote %d bytes", n))
+				length += int64(n)
+			} else {
+				buff = append(buff, data...)
+				buffLen += len(data)
+			}
+		}
+
+		if buffLen > 0 {
+			n, e := createdFile.Write(buff[:buffLen])
 			if e != nil {
 				s.logger.Critical(e)
 				close(doneCh)
