@@ -95,7 +95,7 @@ func (s *Filesystem) Store(
 	return length, filename, filepath, nil
 }
 
-func (s *Filesystem) StoreConcurrently(
+func (s *Filesystem) StoreBuffered(
 	name string,
 	part *multipart.Part,
 ) (
