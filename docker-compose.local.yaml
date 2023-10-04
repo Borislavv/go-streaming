@@ -31,7 +31,9 @@ services:
       # Application
       RESOURCE_FORM_FILENAME: "resource"
       IN_MEMORY_FILE_SIZE_THRESHOLD: 104857600
-    command: ["sh", "-c", "go run ./cmd/main.go"]
+      # Go
+      CGO_ENABLED: 1
+    command: ["sh", "-c", "go run -race ./cmd/main.go"]
 
   mongodb:
     image: mongo:latest
