@@ -86,11 +86,55 @@ func (s *Filesystem) Store(
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	// moving the data in to the created file from tmp
-	length, err = io.Copy(createdFile, part)
-	if err != nil {
-		return 0, "", "", err
+	oneMB := 1024 * 1024 * 1
+
+	chunkBuff := make([]byte, oneMB)
+	chunkLen := 0
+	for {
+		buff := make([]byte, 4096)
+		n, e := part.Read(buff)
+		if e != nil {
+			if e == io.EOF {
+				n, e = createdFile.Write(chunkBuff[:chunkLen])
+				if e != nil {
+					log.Fatalln(e)
+				}
+				length += int64(n)
+				break
+			}
+			log.Fatalln(e)
+		}
+		if n < 4096 {
+			if n == 0 {
+				n, e = createdFile.Write(chunkBuff[:chunkLen])
+				if e != nil {
+					log.Fatalln(e)
+				}
+				length += int64(n)
+				break
+			}
+			buff = buff[:n]
+		}
+		chunkLen += n
+
+		if chunkLen < oneMB-4096 {
+			chunkBuff = append(chunkBuff, buff...)
+		} else {
+			n, e = createdFile.Write(chunkBuff[:chunkLen])
+			if e != nil {
+				log.Fatalln(e)
+			}
+			length += int64(n)
+			chunkBuff = chunkBuff[:0]
+			chunkLen = 0
+		}
 	}
+
+	//// moving the data in to the created file from tmp
+	//length, err = io.Copy(createdFile, part)
+	//if err != nil {
+	//	return 0, "", "", err
+	//}
 
 	// returning id of the created file, e.g. resourceId
 	return length, filename, filepath, nil
@@ -123,106 +167,94 @@ func (s *Filesystem) StoreConcurrently(
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	wg := &sync.WaitGroup{}
-	ctx, cancel := context.WithCancel(s.ctx)
+	var wg sync.WaitGroup
+	var wgp sync.WaitGroup
+
 	dataCh := make(chan []byte)
-
 	chunkSize := 1024 * 1024 * 1
-
-	taskProvidersNum := 1
 	dataProvidersNum := runtime.NumCPU()
-	dataConsumersNum := 1
+	doneCh := make(chan struct{})
 
-	taskCh := make(chan struct{}, dataProvidersNum)
-
-	// taskProvider: sending task to each provider for control the treads state
-	wg.Add(taskProvidersNum)
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case <-ctx.Done():
-				close(taskCh)
-				log.Printf("closed taskCh, interruted by error")
-				return
-			default:
-				taskCh <- struct{}{}
-			}
-		}
-	}()
-
-	wg2 := &sync.WaitGroup{}
-	once := &sync.Once{}
-
-	// dataProviders: consuming tasks, reading the file and send the slices to data consumer
 	wg.Add(dataProvidersNum)
-	go func() {
-		for i := 0; i < dataProvidersNum; i++ {
-			go func() {
-				defer wg.Done()
+	wgp.Add(dataProvidersNum)
+	for i := 0; i < dataProvidersNum; i++ {
+		go func() {
+			defer func() {
+				wg.Done()
+				wgp.Done()
+			}()
 
-				for range taskCh {
-					buff := make([]byte, 0, 1024*1024*1)
-					n, err := part.Read(buff)
-					if err != nil {
-						if err == io.EOF {
-							return
-						}
-						s.logger.Critical(err)
+			for {
+				select {
+				case <-doneCh:
+					s.logger.Critical("reading interrupted")
+					return
+				default:
+					buff := make([]byte, chunkSize)
+					n, e := part.Read(buff)
+					if e != nil && e != io.EOF {
+						s.logger.Critical(e)
 						return
 					}
-					if n < chunkSize { // handle the last chunk
+					s.logger.Critical(fmt.Sprintf("found %d bytes and ent through dataCh", n))
+					if n < chunkSize {
 						if n == 0 {
-							log.Printf("dataProvider: readed 0 bytes, RETURNED")
-
-							once.Do(
-								func() {
-									wg2.Add(1)
-									defer wg2.Done()
-									cancel()
-									close(dataCh)
-									wg.Wait()
-								},
-							)
-
-							return
+							s.logger.Critical("zero bytes found, exit")
+							return // normal exit
 						}
 						dataCh <- buff[:n]
-						return
+						s.logger.Critical("found slice of bytes which is lower than chunkSize")
+						return // normal exit
 					}
-					log.Printf("dataProvider: readed %d bytes", n)
 					dataCh <- buff
 				}
-			}()
-		}
+			}
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		wgp.Wait()
+		close(dataCh)
+		s.logger.Critical("dataCh is closed")
 	}()
 
-	wg2.Add(dataConsumersNum)
+	wg.Add(1)
 	go func() {
-		defer wg2.Done()
-
+		defer func() {
+			wg.Done()
+			s.logger.Critical("main consumer is closed")
+		}()
 		for data := range dataCh {
-			n, err := createdFile.Write(data)
-			if err != nil {
-				s.logger.Critical(err)
-				log.Println(err)
-
-				cancel() // close the tasks provider
-
-				wg2.Add(1)
-				go func() { // skipping the last data if err occurred
-					defer wg2.Done()
+			n, e := createdFile.Write(data)
+			if e != nil {
+				s.logger.Critical(e)
+				close(doneCh)
+				wg.Add(1)
+				go func() {
+					defer func() {
+						wg.Done()
+						s.logger.Critical("child consumer is closed")
+					}()
 					for range dataCh {
-					} // deadlock escaping
+					}
 				}()
-				wg.Wait() // wait while the previous goroutines will be closed
-				close(dataCh)
+				err = e
+				return
 			}
+			s.logger.Info(fmt.Sprintf("wrote %d bytes", n))
 			length += int64(n)
 		}
 	}()
-	wg2.Wait()
 
+	wg.Wait()
+
+	s.logger.Info(fmt.Sprintf("%d %v %v %v", length, filename, filepath, err))
+
+	if err != nil {
+		return 0, "", "", err
+	}
 	return length, filename, filepath, nil
 }
 
