@@ -49,10 +49,11 @@ func (u *NativeUploader) Upload(dto dto.UploadRequest) (err error) {
 	}
 	defer func() { _ = formFile.Close() }()
 
+	// TODO must be added filesize for check uniqueness
 	computedFilename, err := u.filename.Get(
-		dto.GetPart().FileName(),
-		dto.GetPart().Header.Get("Content-Type"),
-		dto.GetPart().Header.Get("Content-Disposition"),
+		header.Filename,
+		header.Header.Get("Content-Type"),
+		header.Header.Get("Content-Disposition"),
 	)
 
 	// checking whether the being uploaded resource already exists
