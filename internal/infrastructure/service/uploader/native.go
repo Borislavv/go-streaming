@@ -66,7 +66,7 @@ func (u *NativeUploader) Upload(dto dto.UploadRequest) (err error) {
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(computedFilename, dto.GetPart()) // TODO need to change this implementation to common for both uploader
+	length, filename, filepath, err := u.storage.Store(computedFilename, formFile)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}

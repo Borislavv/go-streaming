@@ -57,7 +57,7 @@ func (u *PartsUploader) Upload(dto dto.UploadRequest) (err error) {
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(computedFilename, part) // TODO need to change this implementation to common for both uploader
+	length, filename, filepath, err := u.storage.Store(computedFilename, part)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
