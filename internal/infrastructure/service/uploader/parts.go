@@ -5,6 +5,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/storage"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
 	"io"
 	"mime/multipart"
 )
@@ -15,18 +17,33 @@ const partFilename = "resource"
 // In such case it takes more time but takes much less memory.
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
 type PartsUploader struct {
-	logger logger.Logger
+	logger   logger.Logger
+	filename file.NameComputer
+	storage  storage.Storage
 }
 
-func NewPartsUploader(logger logger.Logger) *PartsUploader {
-	return &PartsUploader{logger: logger}
+func NewPartsUploader(
+	logger logger.Logger,
+	filename file.NameComputer,
+	storage storage.Storage,
+) *PartsUploader {
+	return &PartsUploader{
+		logger:   logger,
+		filename: filename,
+		storage:  storage,
+	}
 }
 
 func (u *PartsUploader) Upload(dto dto.UploadRequest) (err error) {
+	part, err := u.getFilePart(dto)
+	if err != nil {
+		return u.logger.LogPropagate(err)
+	}
+
 	computedFilename, err := u.filename.Get(
-		req.GetPart().FileName(),
-		req.GetPart().Header.Get("Content-Type"),
-		req.GetPart().Header.Get("Content-Disposition"),
+		part.FileName(),
+		part.Header.Get("Content-Type"),
+		part.Header.Get("Content-Disposition"),
 	)
 
 	// checking whether the being uploaded resource already exists
@@ -35,20 +52,20 @@ func (u *PartsUploader) Upload(dto dto.UploadRequest) (err error) {
 		return u.logger.LogPropagate(err)
 	}
 	if has { // if being uploading resource is already exists, then throw an error
-		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(req.GetPart().FileName()))
+		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(part.FileName()))
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(computedFilename, req.GetPart())
+	length, filename, filepath, err := u.storage.Store(computedFilename, part) // TODO need to change this implementation
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
 
 	// mutate request dto
-	req.SetUploadedFilename(filename)
-	req.SetUploadedFilepath(filepath)
-	req.SetUploadedFilesize(length)
-	req.SetUploadedFiletype(req.GetPart().Header.Get("Content-Type"))
+	dto.SetUploadedFilename(filename)
+	dto.SetUploadedFilepath(filepath)
+	dto.SetUploadedFilesize(length)
+	dto.SetUploadedFiletype(part.Header.Get("Content-Type"))
 
 	return nil
 }
