@@ -1,7 +1,6 @@
 package uploader
 
 import (
-	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -10,8 +9,6 @@ import (
 	"io"
 	"mime/multipart"
 )
-
-const partFilename = "resource"
 
 // PartsUploader - is an file Uploader which use multipart.Part.
 // In such case it takes more time but takes much less memory.
@@ -92,12 +89,10 @@ func (u *PartsUploader) getFilePart(dto dto.UploadRequest) (part *multipart.Part
 		}
 
 		// check the form part is th target file field
-		if part.FileName() == partFilename {
+		if part.FileName() != "" {
 			return part, nil
 		}
 	}
 
-	return nil, errors.NewInvalidUploadedFileError(
-		fmt.Sprintf("form does not contains the target file field '%v'", partFilename),
-	)
+	return nil, errors.NewFormDoesNotContainsUploadedFileError()
 }
