@@ -38,22 +38,22 @@ func NewResourceService(
 	}
 }
 
-func (s *CRUDService) Upload(req dto.UploadRequest) (*agg.Resource, error) {
-	if err := s.validator.ValidateUploadRequestDTO(req); err != nil {
+func (s *CRUDService) Upload(req dto.UploadRequest) (resource *agg.Resource, err error) {
+	if err = s.validator.ValidateUploadRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	if err := s.uploader.Upload(req); err != nil {
+	if err = s.uploader.Upload(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	resource := s.builder.BuildAggFromUploadRequestDTO(req)
+	resource = s.builder.BuildAggFromUploadRequestDTO(req)
 
 	if err := s.validator.ValidateAggregate(resource); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	resource, err := s.repository.Insert(s.ctx, resource)
+	resource, err = s.repository.Insert(s.ctx, resource)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
