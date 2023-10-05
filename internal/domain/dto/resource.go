@@ -1,11 +1,11 @@
 package dto
 
 import (
-	"mime/multipart"
+	"net/http"
 )
 
 type ResourceUploadRequestDTO struct {
-	part             *multipart.Part
+	request          *http.Request
 	contentLength    int64
 	uploadedFilename string
 	uploadedFilepath string
@@ -13,15 +13,12 @@ type ResourceUploadRequestDTO struct {
 	uploadedFilesize int64
 }
 
-func NewResourceUploadRequest(part *multipart.Part, contentLength int64) (dto *ResourceUploadRequestDTO) {
-	return &ResourceUploadRequestDTO{part: part, contentLength: contentLength}
+func NewResourceUploadRequest(r *http.Request) (dto *ResourceUploadRequestDTO) {
+	return &ResourceUploadRequestDTO{request: r}
 }
 
-func (r *ResourceUploadRequestDTO) GetPart() *multipart.Part {
-	return r.part
-}
-func (r *ResourceUploadRequestDTO) GetContentLength() int64 {
-	return r.contentLength
+func (r *ResourceUploadRequestDTO) GetRequest() *http.Request {
+	return r.request
 }
 func (r *ResourceUploadRequestDTO) GetUploadedFilename() string {
 	return r.uploadedFilename
