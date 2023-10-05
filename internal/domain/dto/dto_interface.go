@@ -2,7 +2,7 @@ package dto
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"mime/multipart"
+	"net/http"
 	"time"
 )
 
@@ -33,8 +33,7 @@ type ListRequest interface {
 }
 
 type UploadRequest interface {
-	GetPart() *multipart.Part
-	GetContentLength() int64
+	GetRequest() *http.Request
 	GetUploadedFilename() string
 	SetUploadedFilename(filename string)
 	GetUploadedFilepath() string
