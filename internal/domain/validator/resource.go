@@ -33,16 +33,9 @@ func NewResourceValidator(ctx context.Context, repository repository.Resource) *
 }
 
 func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadRequest) error {
-	if req.GetContentLength() == 0 {
+	if req.GetRequest().ContentLength == 0 {
 		return errors.NewInvalidUploadedFileError(
 			fmt.Sprintf("request file form is empty"),
-		)
-	}
-
-	contentType := req.GetPart().Header.Get("Content-Type")
-	if _, ok := supportsFileContentTypes[contentType]; !ok {
-		return errors.NewInvalidUploadedFileError(
-			fmt.Sprintf("file '%v' has an unsupported content-type '%v'", req.GetPart().FileName(), contentType),
 		)
 	}
 	return nil
