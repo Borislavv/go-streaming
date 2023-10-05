@@ -94,6 +94,45 @@ func (s *Filesystem) Store(
 	return length, filename, filepath, nil
 }
 
+// StoreFile is saving file and calculating new hashed name.
+func (s *Filesystem) StoreFile(
+	name string,
+	file *multipart.File,
+) (
+	length int64,
+	filename string,
+	filepath string,
+	err error,
+) {
+	// resource file name
+	filename = name
+
+	// resources files directory
+	dir, err := helper.ResourcesDir()
+	if err != nil {
+		return 0, "", "", err
+	}
+
+	// full qualified file path
+	filepath = fmt.Sprintf("%v%v", dir, name)
+
+	// resource creating which will represented as a simple file at now
+	createdFile, err := os.Create(filepath)
+	if err != nil {
+		return 0, "", "", err
+	}
+	defer func() { _ = createdFile.Close() }()
+
+	// moving the data in to the created file from tmp
+	length, err = io.Copy(createdFile, file)
+	if err != nil {
+		return 0, "", "", err
+	}
+
+	// returning id of the created file, e.g. resourceId
+	return length, filename, filepath, nil
+}
+
 // getFilename - will return calculated filename with extension
 func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string, e error) {
 	hash := sha256.New()
