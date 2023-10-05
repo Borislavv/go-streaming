@@ -72,6 +72,7 @@ func (u *NativeUploader) Upload(dto dto.UploadRequest) (err error) {
 	}
 
 	// mutate request dto
+	dto.SetOriginFilename(header.Filename)
 	dto.SetUploadedFilename(filename)
 	dto.SetUploadedFilepath(filepath)
 	dto.SetUploadedFilesize(length)
