@@ -62,11 +62,11 @@ func (u *NativeUploader) Upload(dto dto.UploadRequest) (err error) {
 		return u.logger.LogPropagate(err)
 	}
 	if has { // if being uploading resource is already exists, then throw an error
-		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(dto.GetPart().FileName()))
+		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(header.Filename))
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(computedFilename, dto.GetPart())
+	length, filename, filepath, err := u.storage.Store(computedFilename, dto.GetPart()) // TODO need to change this implementation to common for both uploader
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -75,7 +75,7 @@ func (u *NativeUploader) Upload(dto dto.UploadRequest) (err error) {
 	dto.SetUploadedFilename(filename)
 	dto.SetUploadedFilepath(filepath)
 	dto.SetUploadedFilesize(length)
-	dto.SetUploadedFiletype(dto.GetPart().Header.Get("Content-Type"))
+	dto.SetUploadedFiletype(header.Header.Get("Content-Type"))
 
 	return nil
 }
