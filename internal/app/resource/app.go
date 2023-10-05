@@ -113,7 +113,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	filenameComputerService := file.NewNameService()
 
 	// native uploader service
-	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage, filenameComputerService)
+	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage, filenameComputerService, app.cfg.InMemoryFileSizeThreshold)
 
 	// resource builder
 	resourceBuilder := builder.NewResourceBuilder(
