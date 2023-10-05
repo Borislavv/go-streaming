@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	domainresource "github.com/Borislavv/video-streaming/internal/domain/service/resource"
+	domainuploader "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	domainvideo "github.com/Borislavv/video-streaming/internal/domain/service/video"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
@@ -19,6 +20,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
+	_ "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -112,17 +114,23 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// filename computer
 	filenameComputerService := file.NewNameService()
 
-	// native uploader service
-	nativeUploader := uploader.NewNativeUploader(loggerService, filesystemStorage, filenameComputerService, app.cfg.InMemoryFileSizeThreshold)
-
 	// resource builder
 	resourceBuilder := builder.NewResourceBuilder(
 		loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold,
 	)
 
+	var uploaderStrategy domainuploader.Uploader
+	if app.cfg.Uploader == "native" {
+		// native uploader service
+		uploaderStrategy = uploader.NewNativeUploader(loggerService, filesystemStorage, filenameComputerService, app.cfg.InMemoryFileSizeThreshold)
+	} else {
+		// parts uploader service
+		uploaderStrategy = uploader.NewPartsUploader(loggerService, filesystemStorage, filenameComputerService, app.cfg.InMemoryFileSizeThreshold)
+	}
+
 	// resource service
 	resourceService := domainresource.NewResourceService(
-		ctx, loggerService, nativeUploader, resourceValidator, resourceBuilder, resourceRepository,
+		ctx, loggerService, uploaderStrategy, resourceValidator, resourceBuilder, resourceRepository,
 	)
 
 	wg.Add(1)

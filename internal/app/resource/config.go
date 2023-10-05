@@ -13,6 +13,7 @@ type config struct {
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
 	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
 	// application
+	Uploader                  string `env:"UPLOADER_TYPE" envDefault:"native"`
 	ResourceFormFilename      string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
 	InMemoryFileSizeThreshold int64  `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"`
 }

@@ -17,20 +17,23 @@ const partFilename = "resource"
 // In such case it takes more time but takes much less memory.
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
 type PartsUploader struct {
-	logger   logger.Logger
-	filename file.NameComputer
-	storage  storage.Storage
+	logger                    logger.Logger
+	storage                   storage.Storage
+	filename                  file.NameComputer
+	inMemoryFileSizeThreshold int64
 }
 
 func NewPartsUploader(
 	logger logger.Logger,
-	filename file.NameComputer,
 	storage storage.Storage,
+	filename file.NameComputer,
+	inMemoryFileSizeThreshold int64,
 ) *PartsUploader {
 	return &PartsUploader{
-		logger:   logger,
-		filename: filename,
-		storage:  storage,
+		logger:                    logger,
+		filename:                  filename,
+		storage:                   storage,
+		inMemoryFileSizeThreshold: inMemoryFileSizeThreshold,
 	}
 }
 
