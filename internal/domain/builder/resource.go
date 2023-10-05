@@ -37,7 +37,7 @@ func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dt
 func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto.UploadRequest) *agg.Resource {
 	return &agg.Resource{
 		Resource: entity.Resource{
-			Name:     req.GetPart().FileName(),
+			Name:     req.GetOriginFilename(),
 			Filename: req.GetUploadedFilename(),
 			Filepath: req.GetUploadedFilepath(),
 			Filesize: req.GetUploadedFilesize(),
