@@ -23,7 +23,33 @@ func NewPartsUploader(logger logger.Logger) *PartsUploader {
 }
 
 func (u *PartsUploader) Upload(dto dto.UploadRequest) (err error) {
-	// todo must be implemented
+	computedFilename, err := u.filename.Get(
+		req.GetPart().FileName(),
+		req.GetPart().Header.Get("Content-Type"),
+		req.GetPart().Header.Get("Content-Disposition"),
+	)
+
+	// checking whether the being uploaded resource already exists
+	has, err := u.storage.Has(computedFilename)
+	if err != nil {
+		return u.logger.LogPropagate(err)
+	}
+	if has { // if being uploading resource is already exists, then throw an error
+		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(req.GetPart().FileName()))
+	}
+
+	// saving a file on disk and calculating new hashed name with full qualified path
+	length, filename, filepath, err := u.storage.Store(computedFilename, req.GetPart())
+	if err != nil {
+		return u.logger.LogPropagate(err)
+	}
+
+	// mutate request dto
+	req.SetUploadedFilename(filename)
+	req.SetUploadedFilepath(filepath)
+	req.SetUploadedFilesize(length)
+	req.SetUploadedFiletype(req.GetPart().Header.Get("Content-Type"))
+
 	return nil
 }
 
