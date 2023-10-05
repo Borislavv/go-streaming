@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bufio"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -92,78 +91,6 @@ func (s *Filesystem) Store(
 	}
 
 	// returning id of the created file, e.g. resourceId
-	return length, filename, filepath, nil
-}
-
-// StoreBuffered is saving file and calculating new hashed name (buffered).
-func (s *Filesystem) StoreBuffered(
-	name string,
-	part *multipart.Part,
-) (
-	length int64,
-	filename string,
-	filepath string,
-	err error,
-) {
-	filename = name
-
-	// resources files directory
-	dir, err := helper.ResourcesDir()
-	if err != nil {
-		return 0, "", "", err
-	}
-
-	// full qualified file path
-	filepath = fmt.Sprintf("%v%v", dir, name)
-
-	// resource creating which will represented as a simple file at now
-	createdFile, err := os.Create(filepath)
-	if err != nil {
-		return 0, "", "", err
-	}
-	defer func() { _ = createdFile.Close() }()
-
-	buf := bufio.NewReader(part)
-	reader := io.MultiReader(buf, io.LimitReader(part, 1024*1024*1024*10))
-
-	chunkLen := 0
-	chunkBuff := make([]byte, 1024*1024*3)
-	for {
-		buff := make([]byte, 1024*1024)
-		r, e := reader.Read(buff)
-		if e != nil && e != io.EOF {
-			s.logger.Critical(e)
-			err = e
-			break
-		}
-		s.logger.Debug(fmt.Sprintf("Read %d bytes from multipart.Part", r))
-		if chunkLen+r > len(chunkBuff) || r == 0 {
-			// flush chunk buffer
-			w, e := createdFile.Write(chunkBuff[:chunkLen])
-			if e != nil {
-				s.logger.Critical(e)
-				err = e
-				break
-			}
-			length += int64(w)
-
-			chunkLen = 0
-			chunkBuff = chunkBuff[:0]
-
-			if r == 0 {
-				break
-			}
-		} else {
-			// append iteration buffer
-			chunkBuff = append(chunkBuff, buff[:r]...)
-			chunkLen += r
-		}
-	}
-
-	if err != nil {
-		return 0, "", "", err
-	}
-
 	return length, filename, filepath, nil
 }
 
