@@ -9,10 +9,12 @@ import (
 	"io"
 	"log"
 	"runtime"
+	"sync"
 	"time"
 )
 
 type Logger struct {
+	mu     *sync.Mutex
 	ctx    context.Context
 	writer io.Writer
 	errCh  chan introspectedError
@@ -21,6 +23,7 @@ type Logger struct {
 
 func NewLogger(ctx context.Context, w io.Writer, errBuff int, reqBuff int) (logger *Logger, closeFunc func()) {
 	l := &Logger{
+		mu:     new(sync.Mutex),
 		ctx:    ctx,
 		writer: w,
 		errCh:  make(chan introspectedError, errBuff),
@@ -38,6 +41,8 @@ func (l *Logger) Close() (closeFunc func()) {
 }
 
 func (l *Logger) SetOutput(w io.Writer) {
+	defer l.mu.Unlock()
+	l.mu.Lock()
 	l.writer = w
 }
 
@@ -46,6 +51,8 @@ func (l *Logger) Writer() io.Writer {
 }
 
 func (l *Logger) SetContext(ctx context.Context) {
+	defer l.mu.Unlock()
+	l.mu.Lock()
 	l.ctx = ctx
 }
 
@@ -287,11 +294,14 @@ func (l *Logger) EmergencyPropagate(strOrErr any) error {
 func (l *Logger) handle() {
 	go func() {
 		for err := range l.errCh {
+			l.mu.Lock()
 			if uniqReqID := l.ctx.Value(enum.UniqueRequestIdKey); uniqReqID != nil {
 				if strUniqReqID, ok := uniqReqID.(string); ok {
+
 					err.SetRequestId(strUniqReqID)
 				}
 			}
+			l.mu.Unlock()
 
 			j, e := json.MarshalIndent(err, "", "  ")
 			if e != nil {
@@ -312,6 +322,7 @@ func (l *Logger) handle() {
 
 	go func() {
 		for info := range l.reqCh {
+			l.mu.Lock()
 			if uniqReqID := l.ctx.Value(enum.UniqueRequestIdKey); uniqReqID != nil {
 				if strUniqReqID, ok := uniqReqID.(string); ok {
 					if infoObj, iok := info.(RequestIdAware); iok {
@@ -319,6 +330,7 @@ func (l *Logger) handle() {
 					}
 				}
 			}
+			l.mu.Unlock()
 
 			j, e := json.MarshalIndent(info, "", "  ")
 			if e != nil {
