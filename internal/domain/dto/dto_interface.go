@@ -34,6 +34,8 @@ type ListRequest interface {
 
 type UploadRequest interface {
 	GetRequest() *http.Request
+	GetOriginFilename() string
+	SetOriginFilename(filename string)
 	GetUploadedFilename() string
 	SetUploadedFilename(filename string)
 	GetUploadedFilepath() string

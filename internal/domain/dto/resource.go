@@ -6,6 +6,7 @@ import (
 
 type ResourceUploadRequestDTO struct {
 	request          *http.Request
+	originFilename   string
 	contentLength    int64
 	uploadedFilename string
 	uploadedFilepath string
@@ -19,6 +20,12 @@ func NewResourceUploadRequest(r *http.Request) (dto *ResourceUploadRequestDTO) {
 
 func (r *ResourceUploadRequestDTO) GetRequest() *http.Request {
 	return r.request
+}
+func (r *ResourceUploadRequestDTO) GetOriginFilename() string {
+	return r.originFilename
+}
+func (r *ResourceUploadRequestDTO) SetOriginFilename(filename string) {
+	r.originFilename = filename
 }
 func (r *ResourceUploadRequestDTO) GetUploadedFilename() string {
 	return r.uploadedFilename
