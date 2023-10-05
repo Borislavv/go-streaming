@@ -40,6 +40,7 @@ func (u *PartsUploader) Upload(dto dto.UploadRequest) (err error) {
 		return u.logger.LogPropagate(err)
 	}
 
+	// TODO must be added filesize for check uniqueness
 	computedFilename, err := u.filename.Get(
 		part.FileName(),
 		part.Header.Get("Content-Type"),
