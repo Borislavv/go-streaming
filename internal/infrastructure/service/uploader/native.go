@@ -46,7 +46,7 @@ func (u *NativeUploader) Upload(req dto.UploadRequest) (err error) {
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.StoreBuffered(computedFilename, req.GetPart())
+	length, filename, filepath, err := u.storage.Store(computedFilename, req.GetPart())
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
