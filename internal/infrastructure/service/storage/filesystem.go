@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bufio"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -84,7 +85,7 @@ func (s *Filesystem) Store(
 	}
 	defer func() { _ = createdFile.Close() }()
 
-	//// moving the data in to the created file from tmp
+	// moving the data in to the created file from tmp
 	length, err = io.Copy(createdFile, part)
 	if err != nil {
 		return 0, "", "", err
@@ -122,16 +123,20 @@ func (s *Filesystem) StoreBuffered(
 	}
 	defer func() { _ = createdFile.Close() }()
 
+	buf := bufio.NewReader(part)
+	reader := io.MultiReader(buf, io.LimitReader(part, 1024*1024*1024*10))
+
 	chunkLen := 0
 	chunkBuff := make([]byte, 1024*1024*3)
-	buff := make([]byte, 4096)
 	for {
-		r, e := part.Read(buff)
+		buff := make([]byte, 1024*1024)
+		r, e := reader.Read(buff)
 		if e != nil && e != io.EOF {
 			s.logger.Critical(e)
 			err = e
 			break
 		}
+		s.logger.Debug(fmt.Sprintf("Read %d bytes from multipart.Part", r))
 		if chunkLen+r > len(chunkBuff) || r == 0 {
 			// flush chunk buffer
 			w, e := createdFile.Write(chunkBuff[:chunkLen])
@@ -143,7 +148,6 @@ func (s *Filesystem) StoreBuffered(
 			length += int64(w)
 
 			chunkLen = 0
-			buff = buff[:0]
 			chunkBuff = chunkBuff[:0]
 
 			if r == 0 {
@@ -151,8 +155,8 @@ func (s *Filesystem) StoreBuffered(
 			}
 		} else {
 			// append iteration buffer
-			chunkBuff = append(chunkBuff, buff...)
-			buff = buff[:0]
+			chunkBuff = append(chunkBuff, buff[:r]...)
+			chunkLen += r
 		}
 	}
 
