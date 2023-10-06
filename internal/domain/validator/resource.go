@@ -10,10 +10,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
 
-var supportsFileContentTypes = map[string]struct{}{
-	"video/mp4": {},
-}
-
 type Resource interface {
 	ValidateUploadRequestDTO(req dto.UploadRequest) error
 	ValidateEntity(entity entity.Resource) error
