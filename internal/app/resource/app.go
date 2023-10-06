@@ -91,7 +91,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
 
 	// resource validator
-	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository)
+	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository, app.cfg.MaxFilesize)
 
 	// video validator
 	videoValidator := validator.NewVideoValidator(
@@ -128,7 +128,6 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 				filesystemStorage,
 				filenameComputerService,
 				app.cfg.ResourceFormFilename,
-				app.cfg.MaxFilesize,
 				app.cfg.InMemoryFileSizeThreshold,
 			)
 	} else {
@@ -138,7 +137,6 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 				loggerService,
 				filesystemStorage,
 				filenameComputerService,
-				app.cfg.MaxFilesize,
 			)
 	}
 
@@ -188,10 +186,10 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 func (app *ResourcesApp) InitRestApiControllers(
 	loggerService *stdout.Logger,
 	responseService response.Responder,
-// resource deps.
+	// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService domainresource.CRUD,
-// video deps.
+	// video deps.
 	videoBuilder builder.Video,
 	videoService domainvideo.CRUD,
 ) []controller.Controller {
