@@ -24,13 +24,11 @@ func NewPartsUploader(
 	logger logger.Logger,
 	storage storage.Storage,
 	filename file.NameComputer,
-	maxFilesize int64,
 ) *MultipartPartUploader {
 	return &MultipartPartUploader{
-		logger:      logger,
-		filename:    filename,
-		storage:     storage,
-		maxFilesize: maxFilesize,
+		logger:   logger,
+		filename: filename,
+		storage:  storage,
 	}
 }
 
