@@ -121,11 +121,25 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 	var uploaderStrategy domainuploader.Uploader
 	if app.cfg.Uploader == "native" {
-		// native uploader service
-		uploaderStrategy = uploader.NewNativeUploader(loggerService, filesystemStorage, filenameComputerService, app.cfg.InMemoryFileSizeThreshold)
+		// used parsing of full form into RAM
+		uploaderStrategy =
+			uploader.NewNativeUploader(
+				loggerService,
+				filesystemStorage,
+				filenameComputerService,
+				app.cfg.ResourceFormFilename,
+				app.cfg.MaxFilesize,
+				app.cfg.InMemoryFileSizeThreshold,
+			)
 	} else {
-		// parts uploader service
-		uploaderStrategy = uploader.NewPartsUploader(loggerService, filesystemStorage, filenameComputerService, app.cfg.InMemoryFileSizeThreshold)
+		// used partial reading from multipart.Part
+		uploaderStrategy =
+			uploader.NewPartsUploader(
+				loggerService,
+				filesystemStorage,
+				filenameComputerService,
+				app.cfg.MaxFilesize,
+			)
 	}
 
 	// resource service
@@ -174,10 +188,10 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 func (app *ResourcesApp) InitRestApiControllers(
 	loggerService *stdout.Logger,
 	responseService response.Responder,
-	// resource deps.
+// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService domainresource.CRUD,
-	// video deps.
+// video deps.
 	videoBuilder builder.Video,
 	videoService domainvideo.CRUD,
 ) []controller.Controller {
