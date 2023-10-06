@@ -15,5 +15,6 @@ type config struct {
 	// application
 	Uploader                  string `env:"UPLOADER_TYPE" envDefault:"native"`
 	ResourceFormFilename      string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
-	InMemoryFileSizeThreshold int64  `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"`
+	MaxFilesize               int64  `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"`      // 10gb.
+	InMemoryFileSizeThreshold int64  `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"` // 100mb.
 }
