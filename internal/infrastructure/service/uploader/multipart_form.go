@@ -27,7 +27,6 @@ func NewNativeUploader(
 	storage storage.Storage,
 	filename file.NameComputer,
 	formFilename string,
-	maxFilesize int64,
 	inMemoryFileSizeThreshold int64,
 ) *MultipartFormUploader {
 	return &MultipartFormUploader{
@@ -35,8 +34,7 @@ func NewNativeUploader(
 		storage:                   storage,
 		filename:                  filename,
 		formFilename:              formFilename,
-		maxFilesize:               maxFilesize,               // TODO not used at now
-		inMemoryFileSizeThreshold: inMemoryFileSizeThreshold, // TODO not used at now
+		inMemoryFileSizeThreshold: inMemoryFileSizeThreshold,
 	}
 }
 
