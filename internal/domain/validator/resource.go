@@ -17,21 +17,26 @@ type Resource interface {
 }
 
 type ResourceValidator struct {
-	ctx        context.Context
-	repository repository.Resource
+	ctx         context.Context
+	repository  repository.Resource
+	maxFilesize int64
 }
 
-func NewResourceValidator(ctx context.Context, repository repository.Resource) *ResourceValidator {
+func NewResourceValidator(ctx context.Context, repository repository.Resource, maxFilesize int64) *ResourceValidator {
 	return &ResourceValidator{
-		ctx:        ctx,
-		repository: repository,
+		ctx:         ctx,
+		repository:  repository,
+		maxFilesize: maxFilesize,
 	}
 }
 
 func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadRequest) error {
 	if req.GetRequest().ContentLength == 0 {
+		return errors.NewInvalidUploadedFileError("request form file is empty")
+	}
+	if req.GetRequest().ContentLength > v.maxFilesize {
 		return errors.NewInvalidUploadedFileError(
-			fmt.Sprintf("request file form is empty"),
+			fmt.Sprintf("request form file is largest than threshold value %d", v.maxFilesize),
 		)
 	}
 	return nil
