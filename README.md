@@ -70,6 +70,15 @@ It's a pretty simple process, first of all you need to build the application:
   the 'muiltipart_form' approach and increase the value of InMemoryFileSizeThreshold variable.
   Otherwise, use 'muiltipart_part' because it takes a much lower RAM per file uploading.
   For example: for upload the file which weight is 50mb. it will take around 10mb. of your RAM.
+- **RESOURCE_FORM_FILENAME** is a value which will be used for extract a file from the form by given string.
+  *Used only with the 'muiltipart_form' strategy because the 'muiltipart_part' will search the first form file.
+  Be careful and don't send more than one file per request in one form.
+- **MAX_UPLOADING_FILESIZE** is a threshold value which means the max. weight of uploading file in bytes.
+  By default, it's 5gb per file.
+- **IN_MEMORY_FILE_SIZE_THRESHOLD** is a threshold value which means the max. weight of uploading file in bytes
+  which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow op.).
+  By default, it's 100mb per file.
+- **ADMIN_CONTACT_EMAIL_ADDRESS** is a target administrator contact email address for takes a users errors reports.
 
 // TODO The Swagger docs. is not implemented yet :( sorry
 
