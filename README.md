@@ -54,6 +54,23 @@ It's a pretty simple process, first of all you need to build the application:
 - **MONGO_URI** is a simple MongoDb DSN string for connect to database.
 - **MongoDb** is a name of database into the MongoDb.
 
+### Application
+- **JWT_SECRET_SALT** is a secret string which further will convert to slice of bytes and will be provided
+  as a salt for signature the jwt tokens.
+  If this variable an empty or omitted then will be generated random salt which is alive while application instance
+  is running (note: you cannot get access to this value, and it will not be provided anywhere as an output. If
+  you need access to this value, and you need to share this value, then sat up your own secret string).
+- **UPLOADER_TYPE** is an uploading strategy which will be used for upload files on the server.
+  1. '**muiltipart_form**' is a strategy which used builtin sugar approach. It will be parsing a whole file into the
+            memory (if a file more than InMemoryFileSizeThreshold, it will be saved on the disk, otherwise, it will be
+            loaded in the RAM).
+  2. '**muiltipart_part**' is a strategy which used lower level implementation which based on the reading by parts
+      from raw form data.
+  If you care of application performance (speed of uploading directly) and you have enough RAM, then use
+  the 'muiltipart_form' approach and increase the value of InMemoryFileSizeThreshold variable.
+  Otherwise, use 'muiltipart_part' because it takes a much lower RAM per file uploading.
+  For example: for upload the file which weight is 50mb. it will take around 10mb. of your RAM.
+
 // TODO The Swagger docs. is not implemented yet :( sorry
 
 // I'm already working on it for you! :)
