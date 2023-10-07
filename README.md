@@ -25,15 +25,24 @@ It's a pretty simple process, first of all you need to build the application:
 ## Configuration
 
 ### Api
-
--  **ApiVersionPrefix** is a value which will be used as your RestAPI controllers version prefix.
+- **API_VERSION_PREFIX** is a value which will be used as your RestAPI controllers version prefix.
    For example: {{schema}}://{{host}}:{{port}}{{ApiVersionPrefix}}/{{additionalControllerPath}}
-- **RenderVersionPrefix** is a value which will be used as your native rendering controllers version prefix.
+- **RENDER_VERSION_PREFIX** is a value which will be used as your native rendering controllers version prefix.
   For example: {{schema}}://{{host}}:{{port}}{{RenderVersionPrefix}}/{{additionalControllerPath}}
   By default it's an empty string.
-- **StaticVersionPrefix** is a value which will be used as your static files controllers version prefix.
+- **STATIC_VERSION_PREFIX** is a value which will be used as your static files controllers version prefix.
   For example: {{schema}}://{{host}}:{{port}}{{StaticVersionPrefix}}/{{additionalControllerPath}}
   By default it's an empty string.
+
+### Server
+#### HTTP
+- **RESOURCES_SERVER_HOST** is an HTTP server serving host.
+- **RESOURCES_SERVER_PORT** is an HTTP server serving port.
+- **RESOURCES_SERVER_TRANSPORT_PROTOCOL** is an HTTP server transport protocol.
+  If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
+  because this will give you a performance gain (due to the server will not check of packages number and them ord.).
+  Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
+#### WebSocket
 
 // TODO The Swagger docs. is not implemented yet :( sorry
 
