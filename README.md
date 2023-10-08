@@ -1,4 +1,6 @@
-# Video/audio streaming service
+# Streaming service
+
+---
 
 ## Installation
 
@@ -22,6 +24,8 @@ It's a pretty simple process, first of all you need to build the application:
   
 - Of course, don’t forget to set the environment variables according to your needs. You won’t have to look at them in the `docker-compose` file.
 
+---
+
 ## Configuration
 
 ### Api
@@ -35,20 +39,20 @@ It's a pretty simple process, first of all you need to build the application:
   By default it's an empty string.
 
 ### Server
-#### HTTP
-- **RESOURCES_SERVER_HOST** is an HTTP server serving host.
-- **RESOURCES_SERVER_PORT** is an HTTP server serving port.
-- **RESOURCES_SERVER_TRANSPORT_PROTOCOL** is an HTTP server transport protocol.
-  If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
-  because this will give you a performance gain (due to the server will not check of packages number and them ord.).
-  Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
-#### WebSocket
-- **STREAMING_SERVER_HOST** is an WebSocket server serving host.
-- **STREAMING_SERVER_PORT** is an WebSocket server serving port.
-- **STREAMING_SERVER_TRANSPORT_PROTOCOL** is an WebSocket server transport protocol.
-  If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
-  because this will give you a performance gain (due to the server will not check of packages number and them ordering).
-  Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
+1. #### HTTP
+   - **RESOURCES_SERVER_HOST** is an HTTP server serving host.
+   - **RESOURCES_SERVER_PORT** is an HTTP server serving port.
+   - **RESOURCES_SERVER_TRANSPORT_PROTOCOL** is an HTTP server transport protocol.
+     If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
+     because this will give you a performance gain (due to the server will not check of packages number and them ord.).
+     Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
+2. #### WebSocket
+   - **STREAMING_SERVER_HOST** is an WebSocket server serving host.
+   - **STREAMING_SERVER_PORT** is an WebSocket server serving port.
+   - **STREAMING_SERVER_TRANSPORT_PROTOCOL** is an WebSocket server transport protocol.
+     If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
+     because this will give you a performance gain (due to the server will not check of packages number and them ordering).
+     Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 
 ### Database
 - **MONGO_URI** is a simple MongoDb DSN string for connect to database.
@@ -80,8 +84,26 @@ It's a pretty simple process, first of all you need to build the application:
   By default, it's 100mb per file.
 - **ADMIN_CONTACT_EMAIL_ADDRESS** is a target administrator contact email address for takes a users errors reports.
 
-// TODO The Swagger docs. is not implemented yet :( sorry
+### Logger
+- **LOGGER_ERRORS_BUFFER_CAPACITY** is errors channel capacity.
+  Logger is basing on the go channels, this value will be sat up as capacity.
+- **LOGGER_REQUESTS_BUFFER_CAPACITY** is requests channel capacity.
+  Use only when you are logging input requests/responses.
 
-// I'm already working on it for you! :)
+---
+
+## Launching
 
 At the moment, you already can surf the address: `http://0.0.0.0:8000/` in order to see the result.
+
+
+---
+
+## Not implemented:
+
+1. The Swagger docs.
+2. Tests.
+3. Benchmarks.
+
+### I'm already working on it for you! :)
+
