@@ -50,6 +50,9 @@ It's a pretty simple process, first of all you need to build the application:
   because this will give you a performance gain (due to the server will not check of packages number and them ordering).
   Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 
+### Database
+- **MONGO_URI** is a simple MongoDb DSN string for connect to database.
+- **MongoDb** is a name of database into the MongoDb.
 
 // TODO The Swagger docs. is not implemented yet :( sorry
 
