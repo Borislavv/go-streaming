@@ -30,33 +30,34 @@ It's a pretty simple process, first of all you need to build the application:
 
 ### Api
 - **API_VERSION_PREFIX** is a value which will be used as your RestAPI controllers version prefix.
-   For example: {{schema}}://{{host}}:{{port}}{{ApiVersionPrefix}}/{{additionalControllerPath}}
+  For example: {{schema}}://{{host}}:{{port}}{{ApiVersionPrefix}}/{{additionalControllerPath}}.
+  Default: `/api/v1`
 - **RENDER_VERSION_PREFIX** is a value which will be used as your native rendering controllers version prefix.
-  For example: {{schema}}://{{host}}:{{port}}{{RenderVersionPrefix}}/{{additionalControllerPath}}
-  By default it's an empty string.
+  For example: {{schema}}://{{host}}:{{port}}{{RenderVersionPrefix}}/{{additionalControllerPath}}.
+  By default, it's an empty string.
 - **STATIC_VERSION_PREFIX** is a value which will be used as your static files controllers version prefix.
-  For example: {{schema}}://{{host}}:{{port}}{{StaticVersionPrefix}}/{{additionalControllerPath}}
-  By default it's an empty string.
+  For example: {{schema}}://{{host}}:{{port}}{{StaticVersionPrefix}}/{{additionalControllerPath}}.
+  By default, it's an empty string.
 
 ### Server
 1. #### HTTP
-   - **RESOURCES_SERVER_HOST** is an HTTP server serving host.
-   - **RESOURCES_SERVER_PORT** is an HTTP server serving port.
-   - **RESOURCES_SERVER_TRANSPORT_PROTOCOL** is an HTTP server transport protocol.
+   - **RESOURCES_SERVER_HOST** is an HTTP server serving host. Default: `0.0.0.0`.
+   - **RESOURCES_SERVER_PORT** is an HTTP server serving port. Default: `8000`.
+   - **RESOURCES_SERVER_TRANSPORT_PROTOCOL** is an HTTP server transport protocol. Default: `tcp`.
      If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
      because this will give you a performance gain (due to the server will not check of packages number and them ord.).
      Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 2. #### WebSocket
-   - **STREAMING_SERVER_HOST** is an WebSocket server serving host.
-   - **STREAMING_SERVER_PORT** is an WebSocket server serving port.
-   - **STREAMING_SERVER_TRANSPORT_PROTOCOL** is an WebSocket server transport protocol.
+   - **STREAMING_SERVER_HOST** is an WebSocket server serving host. Default: `0.0.0.0`.
+   - **STREAMING_SERVER_PORT** is an WebSocket server serving port. Default: `9988`.
+   - **STREAMING_SERVER_TRANSPORT_PROTOCOL** is an WebSocket server transport protocol. Default: `tcp`.
      If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
      because this will give you a performance gain (due to the server will not check of packages number and them ordering).
      Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 
 ### Database
-- **MONGO_URI** is a simple MongoDb DSN string for connect to database.
-- **MongoDb** is a name of database into the MongoDb.
+- **MONGO_URI** is a simple MongoDb DSN string for connect to database. Default: `mongodb://mongodb:27017/streaming`.
+- **MongoDb** is a name of database into the MongoDb. Default: `streaming`.
 
 ### Application
 - **JWT_SECRET_SALT** is a secret string which further will convert to slice of bytes and will be provided
@@ -64,7 +65,7 @@ It's a pretty simple process, first of all you need to build the application:
   If this variable an empty or omitted then will be generated random salt which is alive while application instance
   is running (note: you cannot get access to this value, and it will not be provided anywhere as an output. If
   you need access to this value, and you need to share this value, then sat up your own secret string).
-- **UPLOADER_TYPE** is an uploading strategy which will be used for upload files on the server.
+- **UPLOADER_TYPE** is an uploading strategy which will be used for upload files on the server. Default: `muiltipart_part`.
   1. '**muiltipart_form**' is a strategy which used builtin sugar approach. It will be parsing a whole file into the
             memory (if a file more than InMemoryFileSizeThreshold, it will be saved on the disk, otherwise, it will be
             loaded in the RAM).
@@ -74,21 +75,25 @@ It's a pretty simple process, first of all you need to build the application:
   the 'muiltipart_form' approach and increase the value of InMemoryFileSizeThreshold variable.
   Otherwise, use 'muiltipart_part' because it takes a much lower RAM per file uploading.
   For example: for upload the file which weight is 50mb. it will take around 10mb. of your RAM.
-- **RESOURCE_FORM_FILENAME** is a value which will be used for extract a file from the form by given string.
+- **RESOURCE_FORM_FILENAME** is a value which will be used for extract a file from the form by given string. Default: `resource`.
   *Used only with the 'muiltipart_form' strategy because the 'muiltipart_part' will search the first form file.
   Be careful and don't send more than one file per request in one form.
-- **MAX_UPLOADING_FILESIZE** is a threshold value which means the max. weight of uploading file in bytes.
+- **MAX_UPLOADING_FILESIZE** is a threshold value which means the max. weight of uploading file in bytes. Default: `5368709120`.
   By default, it's 5gb per file.
 - **IN_MEMORY_FILE_SIZE_THRESHOLD** is a threshold value which means the max. weight of uploading file in bytes
-  which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow op.).
+  which may be loaded in the RAM. Default: `104857600`. If file weight is more this value, than it will be loaded on the disk (slow op.).
   By default, it's 100mb per file.
 - **ADMIN_CONTACT_EMAIL_ADDRESS** is a target administrator contact email address for takes a users errors reports.
 
 ### Logger
-- **LOGGER_ERRORS_BUFFER_CAPACITY** is errors channel capacity.
+- **LOGGER_ERRORS_BUFFER_CAPACITY** is errors channel capacity. Default: `10`.
   Logger is basing on the go channels, this value will be sat up as capacity.
-- **LOGGER_REQUESTS_BUFFER_CAPACITY** is requests channel capacity.
+- **LOGGER_REQUESTS_BUFFER_CAPACITY** is requests channel capacity. Default: `10`.
   Use only when you are logging input requests/responses.
+
+### File reader
+- **FILE_READER_CHUNK_SIZE** is a value which means the size of one chunk while reading the file when streaming a resource.
+  By default, it's 1mb. Default: `1048576`.
 
 ---
 
