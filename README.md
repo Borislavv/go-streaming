@@ -43,6 +43,13 @@ It's a pretty simple process, first of all you need to build the application:
   because this will give you a performance gain (due to the server will not check of packages number and them ord.).
   Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 #### WebSocket
+- **STREAMING_SERVER_HOST** is an WebSocket server serving host.
+- **STREAMING_SERVER_PORT** is an WebSocket server serving port.
+- **STREAMING_SERVER_TRANSPORT_PROTOCOL** is an WebSocket server transport protocol.
+  If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
+  because this will give you a performance gain (due to the server will not check of packages number and them ordering).
+  Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
+
 
 // TODO The Swagger docs. is not implemented yet :( sorry
 
