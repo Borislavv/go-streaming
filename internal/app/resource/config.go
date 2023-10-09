@@ -45,10 +45,17 @@ type config struct {
 	//	Be careful and don't send more than one file per request in one form.
 	ResourceFormFilename string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
 	// MaxFilesizeThreshold is a threshold value which means the max. weight of uploading file in bytes.
-	MaxFilesizeThreshold int64 `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"` // 10gb.
+	// By default, it's 10gb per file.
+	MaxFilesizeThreshold int64 `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"`
 	// InMemoryFileSizeThreshold is a threshold value which means the max. weight of uploading file in bytes
 	// which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow operation).
-	InMemoryFileSizeThreshold int64 `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"` // 100mb.
+	// By default, it's 100mb per file.
+	InMemoryFileSizeThreshold int64 `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"`
 	// >>> LOGGER <<<
-	// Not implemented yet :(
+	// LoggerErrorsBufferCap is errors channel capacity.
+	// Logger is basing on the go channels, this value will be sat up as capacity.
+	LoggerErrorsBufferCap int `env:"LOGGER_ERRORS_BUFFER_CAPACITY" envDefault:"10"`
+	// LoggerRequestsBufferCap is requests channel capacity.
+	// Use only when you are logging input requests/responses.
+	LoggerRequestsBufferCap int `env:"LOGGER_REQUESTS_BUFFER_CAPACITY" envDefault:"10"`
 }
