@@ -10,7 +10,7 @@ type config struct {
 	// If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
 	// because this will give you a performance gain (due to the server will not check of packages number and them ordering).
 	// Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
-	Transport string `env:"STREAMING_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
+	Transport string `env:"STREAMING_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp" opts:"tcp,udp"`
 	// >>> DATABASE <<<
 	// MongoUri is a simple MongoDb DSN string for connect to database.
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
