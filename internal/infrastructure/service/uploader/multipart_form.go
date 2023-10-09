@@ -8,6 +8,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
 )
 
+const MultipartFormUploadingType = "multipart_form"
+
 // MultipartFormUploader is a service which represents functionality
 // for uploader a full file from *http.Request into storage.
 // This approach of uploading takes a much more RAM but works more fast than MultipartPartUploader.

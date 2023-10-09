@@ -10,6 +10,8 @@ import (
 	"mime/multipart"
 )
 
+const MultipartPartUploadingType = "multipart_part"
+
 // MultipartPartUploader - is a file Uploader which use multipart.Part.
 // In such case it takes more time but takes much less memory.
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
