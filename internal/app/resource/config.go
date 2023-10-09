@@ -13,7 +13,7 @@ type config struct {
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
 	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
 	// application
-	Uploader                  string `env:"UPLOADER_TYPE" envDefault:"native"`
+	Uploader                  string `env:"UPLOADER_TYPE" envDefault:"muiltipart_part"` // supported types: 'muiltipart_form', 'muiltipart_part'
 	ResourceFormFilename      string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
 	MaxFilesize               int64  `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"`      // 10gb.
 	InMemoryFileSizeThreshold int64  `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"` // 100mb.
