@@ -11,9 +11,13 @@ type config struct {
 	// because this will give you a performance gain (due to the server will not check of packages number and them ordering).
 	// Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 	Transport string `env:"STREAMING_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp"`
-	// database
+	// >>> DATABASE <<<
+	// MongoUri is a simple MongoDb DSN string for connect to database.
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
-	MongoDb  string `env:"MONGO_DATABASE" envDefault:"streaming"`
-	// file reader
-	ChunkSize int `env:"FILE_READER_CHUNK_SIZE" envDefault:"1048576"` // by default: chunk size is 1mb.
+	// MongoDb is a name of database into the MongoDb.
+	MongoDb string `env:"MONGO_DATABASE" envDefault:"streaming"`
+	// >>> FILE READER <<<
+	// ChunkSize is a value which means the size of one chunk while reading the file when streaming a resource.
+	// By default, it's 1mb.
+	ChunkSize int `env:"FILE_READER_CHUNK_SIZE" envDefault:"1048576"`ddd
 }
