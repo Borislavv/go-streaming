@@ -1,7 +1,7 @@
 package resource
 
 type config struct {
-	// API
+	// >>> API <<<
 	// ApiVersionPrefix is a value which will be used as your RestAPI controllers version prefix.
 	// For example: {{schema}}://{{host}}:{{port}}{{ApiVersionPrefix}}/{{additionalControllerPath}}
 	ApiVersionPrefix string `env:"API_VERSION_PREFIX" envDefault:"/api/v1"`
@@ -13,7 +13,7 @@ type config struct {
 	// For example: {{schema}}://{{host}}:{{port}}{{StaticVersionPrefix}}/{{additionalControllerPath}}
 	// By default it's an empty string.
 	StaticVersionPrefix string `env:"STATIC_VERSION_PREFIX" envDefault:""`
-	// SERVER
+	// >>> SERVER <<<
 	// Host is an HTTP server serving host.
 	Host string `env:"RESOURCES_SERVER_HOST" envDefault:"0.0.0.0"`
 	// Port is an HTTP server serving port.
@@ -23,15 +23,32 @@ type config struct {
 	// because this will give you a performance gain (due to the server will not check of packages number and them ordering).
 	// Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 	Transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp" opts:"tcp,udp"`
-	// DATABASE
+	// >>> DATABASE <<<
 	// MongoUri is a simple MongoDb DSN string for connect to database.
 	MongoUri string `env:"MONGO_URI" envDefault:"mongodb://mongodb:27017/streaming"`
 	// MongoDb is a name of database into the MongoDb.
 	MongoDb string `env:"MONGO_DATABASE" envDefault:"streaming"`
-	// application
-	Uploader                  string `env:"UPLOADER_TYPE" envDefault:"muiltipart_part"` // supported types: 'muiltipart_form', 'muiltipart_part'
-	ResourceFormFilename      string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
-	MaxFilesize               int64  `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"`      // 10gb.
-	InMemoryFileSizeThreshold int64  `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"` // 100mb.
-	// logger
+	// >>> APPLICATION <<<
+	// Uploader is an uploading strategy which will be used for upload files on the server.
+	// 	1. 'muiltipart_form' is a strategy which used builtin sugar approach. It will be parsing a whole file into the
+	//		memory (if a file more than InMemoryFileSizeThreshold, it will be saved on the disk, otherwise, it will be
+	//		loaded in the RAM).
+	//	2. 'muiltipart_part' is a strategy which used lower level implementation which based on the reading by parts
+	//		from raw form data.
+	// 	If you care of application performance (speed of uploading directly) and you have enough RAM, then use
+	//	the 'muiltipart_form' approach and increase the value of InMemoryFileSizeThreshold variable.
+	//	Otherwise, use 'muiltipart_part' because it takes a much lower RAM per file uploading.
+	//	For example: for upload the file which weight is 50mb. it will take around 10mb. of your RAM.
+	Uploader string `env:"UPLOADER_TYPE" envDefault:"muiltipart_part" opts:"muiltipart_form,muiltipart_part"`
+	// ResourceFormFilename is a value which will be used for extract a file from the form by given string.
+	// *Used only with the 'muiltipart_form' strategy because the 'muiltipart_part' will search the first form file.
+	//	Be careful and don't send more than one file per request in one form.
+	ResourceFormFilename string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
+	// MaxFilesize is a threshold value which means the max. weight of uploading file in bytes.
+	MaxFilesize int64 `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"` // 10gb.
+	// InMemoryFileSizeThreshold is a threshold value which means the max. weight of uploading file in bytes
+	// which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow operation).
+	InMemoryFileSizeThreshold int64 `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"` // 100mb.
+	// >>> LOGGER <<<
+	// Not implemented yet :(
 }
