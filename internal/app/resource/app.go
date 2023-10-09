@@ -120,7 +120,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	var uploaderStrategy domainuploader.Uploader
-	if app.cfg.Uploader == "native" {
+	if app.cfg.Uploader == uploader.MultipartFormUploadingType {
 		// used parsing of full form into RAM
 		uploaderStrategy =
 			uploader.NewNativeUploader(
@@ -130,7 +130,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 				app.cfg.ResourceFormFilename,
 				app.cfg.InMemoryFileSizeThreshold,
 			)
-	} else {
+	} else if app.cfg.Uploader == uploader.MultipartPartUploadingType {
 		// used partial reading from multipart.Part
 		uploaderStrategy =
 			uploader.NewPartsUploader(
