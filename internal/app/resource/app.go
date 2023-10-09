@@ -91,7 +91,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	resourceRepository := mongodb.NewResourceRepository(db, loggerService, time.Minute)
 
 	// resource validator
-	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository, app.cfg.MaxFilesize)
+	resourceValidator := validator.NewResourceValidator(ctx, resourceRepository, app.cfg.MaxFilesizeThreshold)
 
 	// video validator
 	videoValidator := validator.NewVideoValidator(
@@ -120,7 +120,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	var uploaderStrategy domainuploader.Uploader
-	if app.cfg.Uploader == uploader.MultipartFormUploadingType {
+	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
 		// used parsing of full form into RAM
 		uploaderStrategy =
 			uploader.NewNativeUploader(
@@ -130,7 +130,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 				app.cfg.ResourceFormFilename,
 				app.cfg.InMemoryFileSizeThreshold,
 			)
-	} else if app.cfg.Uploader == uploader.MultipartPartUploadingType {
+	} else if app.cfg.UploadingStrategy == uploader.MultipartPartUploadingType {
 		// used partial reading from multipart.Part
 		uploaderStrategy =
 			uploader.NewPartsUploader(
