@@ -19,5 +19,5 @@ type config struct {
 	// >>> FILE READER <<<
 	// ChunkSize is a value which means the size of one chunk while reading the file when streaming a resource.
 	// By default, it's 1mb.
-	ChunkSize int `env:"FILE_READER_CHUNK_SIZE" envDefault:"1048576"`ddd
+	ChunkSize int `env:"FILE_READER_CHUNK_SIZE" envDefault:"1048576"`
 }
