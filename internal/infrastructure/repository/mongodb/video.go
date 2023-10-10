@@ -21,10 +21,11 @@ var (
 	VideoNotFoundByIdError         = errors.NewEntityNotFoundError("video", "id")
 	VideoNotFoundByNameError       = errors.NewEntityNotFoundError("video", "name")
 	VideoNotFoundByResourceIdError = errors.NewEntityNotFoundError("video", "resource.id")
-	VideoInsertingFailedError      = errors.NewInternalValidationError("unable to store 'video' or retrieve inserted 'id'")
+	VideoInsertingFailedError      = errors.NewInternalValidationError("unable to store 'video' or get inserted 'id'")
 	VideoWasNotDeletedError        = errors.NewInternalValidationError("video was not deleted")
 )
 
+// TODO need to implement cascade removing of related entities and files!
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex

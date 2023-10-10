@@ -20,3 +20,7 @@ type Video interface {
 	BuildAggFromUpdateRequestDTO(dto dto.UpdateRequest) (*agg.Video, error)
 	BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error)
 }
+
+type User interface {
+	BuildGetRequestDTOFromRequest(r *http.Request) (*dto.UserGetRequestDTO, error)
+}

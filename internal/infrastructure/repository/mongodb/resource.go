@@ -21,6 +21,7 @@ var (
 	ResourceInsertingFailedError = errors.NewInternalRepositoryError("unable to store 'resource' or retrieve inserted 'id'")
 )
 
+// TODO need to implement cascade removing of related entities and files!
 type ResourceRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex

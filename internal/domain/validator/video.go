@@ -15,15 +15,6 @@ const (
 	resourceIDField = "resourceID"
 )
 
-type Video interface {
-	ValidateGetRequestDTO(req dto.GetRequest) error
-	ValidateListRequestDTO(req dto.ListRequest) error
-	ValidateCreateRequestDTO(req dto.CreateRequest) error
-	ValidateUpdateRequestDTO(req dto.UpdateRequest) error
-	ValidateDeleteRequestDTO(req dto.DeleteRequest) error
-	ValidateAggregate(agg *agg.Video) error
-}
-
 type VideoValidator struct {
 	ctx                context.Context
 	logger             logger.Logger
