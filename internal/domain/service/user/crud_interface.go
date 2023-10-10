@@ -7,7 +7,7 @@ import (
 
 type CRUD interface {
 	Get(reqDTO dto.GetRequest) (*agg.User, error)
-	Create(reqDTO dto.CreateRequest) (*agg.User, error)
-	Update(reqDTO dto.UpdateRequest) (*agg.User, error)
-	Delete(reqDTO dto.DeleteRequest) error
+	//Create(reqDTO dto.CreateRequest) (*agg.User, error)
+	//Update(reqDTO dto.UpdateRequest) (*agg.User, error)
+	//Delete(reqDTO dto.DeleteRequest) error
 }
