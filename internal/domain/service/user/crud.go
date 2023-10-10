@@ -36,12 +36,12 @@ func NewCRUDService(
 
 func (s *CRUDService) Get(req dto.GetRequest) (user *agg.User, err error) {
 	if err = s.validator.ValidateGetRequestDTO(req); err != nil {
-		return nil, err
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	user, err = s.repository.Find(s.ctx, req.GetId())
 	if err != nil {
-		return nil, s.logger.ErrorPropagate(err)
+		return nil, s.logger.LogPropagate(err)
 	}
 
 	return user, nil
