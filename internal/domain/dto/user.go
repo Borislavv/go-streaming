@@ -19,3 +19,7 @@ type UserUpdateRequestDTO struct {
 type UserGetRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
+
+func (req *UserGetRequestDTO) GetId() vo.ID {
+	return req.ID
+}
