@@ -84,22 +84,22 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateRequest) (*agg
 
 // BuildUpdateRequestDTOFromRequest - build a dto.UpdateRequest from raw *http.Request
 func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.VideoUpdateRequestDTO, error) {
-	videoDto := &dto.VideoUpdateRequestDTO{}
-	if err := json.NewDecoder(r.Body).Decode(&videoDto); err != nil {
+	videoDTO := &dto.VideoUpdateRequestDTO{}
+	if err := json.NewDecoder(r.Body).Decode(&videoDTO); err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	hexId, err := b.extractor.GetParameter(idField, r)
+	hexID, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
-	oid, err := primitive.ObjectIDFromHex(hexId)
+	oID, err := primitive.ObjectIDFromHex(hexID)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
-	videoDto.ID = vo.ID{Value: oid}
+	videoDTO.ID = vo.ID{Value: oID}
 
-	return videoDto, nil
+	return videoDTO, nil
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateRequest
@@ -137,28 +137,28 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateRequest) (*agg
 
 // BuildGetRequestDTOFromRequest - build a dto.GetRequest from raw *http.Request
 func (b *VideoBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.VideoGetRequestDTO, error) {
-	videoDto := &dto.VideoGetRequestDTO{}
+	videoDTO := &dto.VideoGetRequestDTO{}
 
-	hexId, err := b.extractor.GetParameter(idField, r)
+	hexID, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
-	oid, err := primitive.ObjectIDFromHex(hexId)
+	oID, err := primitive.ObjectIDFromHex(hexID)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
-	videoDto.ID = vo.ID{Value: oid}
+	videoDTO.ID = vo.ID{Value: oID}
 
-	return videoDto, nil
+	return videoDTO, nil
 }
 
 // BuildListRequestDTOFromRequest - build a dto.ListRequest from raw *http.Request
 func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.VideoListRequestDTO, error) {
-	videoDto := &dto.VideoListRequestDTO{}
+	videoDTO := &dto.VideoListRequestDTO{}
 
 	if b.extractor.HasParameter(nameField, r) {
 		if nm, err := b.extractor.GetParameter(nameField, r); err == nil {
-			videoDto.Name = nm
+			videoDTO.Name = nm
 		}
 	}
 	if b.extractor.HasParameter(createdAtField, r) {
@@ -168,7 +168,7 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 		if err != nil {
 			return nil, b.logger.LogPropagate(err)
 		} else {
-			videoDto.CreatedAt = parsedCreatedAt
+			videoDTO.CreatedAt = parsedCreatedAt
 		}
 	}
 	if b.extractor.HasParameter(fromField, r) {
@@ -178,7 +178,7 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 		if err != nil {
 			return nil, b.logger.LogPropagate(err)
 		} else {
-			videoDto.From = parsedFrom
+			videoDTO.From = parsedFrom
 		}
 	}
 	if b.extractor.HasParameter(toField, r) {
@@ -188,7 +188,7 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 		if err != nil {
 			return nil, b.logger.LogPropagate(err)
 		} else {
-			videoDto.To = parsedTo
+			videoDTO.To = parsedTo
 		}
 	}
 	if b.extractor.HasParameter(pageField, r) {
@@ -197,9 +197,9 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 		if atoiErr != nil {
 			return nil, b.logger.LogPropagate(atoiErr)
 		}
-		videoDto.Page = pgi
+		videoDTO.Page = pgi
 	} else {
-		videoDto.Page = pageDefaultValue
+		videoDTO.Page = pageDefaultValue
 	}
 	if b.extractor.HasParameter(limitField, r) {
 		l, _ := b.extractor.GetParameter(limitField, r)
@@ -207,20 +207,20 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 		if atoiErr != nil {
 			return nil, b.logger.LogPropagate(atoiErr)
 		}
-		videoDto.Limit = li
+		videoDTO.Limit = li
 	} else {
-		videoDto.Limit = limitDefaultValue
+		videoDTO.Limit = limitDefaultValue
 	}
 
-	return videoDto, nil
+	return videoDTO, nil
 }
 
 // BuildDeleteRequestDTOFromRequest - build a dto.DeleteRequest from raw *http.Request
 func (b *VideoBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.VideoDeleteRequestDto, error) {
-	videoGetDto, err := b.BuildGetRequestDTOFromRequest(r)
+	videoGetDTO, err := b.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	return &dto.VideoDeleteRequestDto{ID: videoGetDto.ID}, nil
+	return &dto.VideoDeleteRequestDto{ID: videoGetDTO.ID}, nil
 }
