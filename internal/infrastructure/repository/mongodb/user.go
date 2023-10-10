@@ -69,3 +69,21 @@ func (r *UserRepository) Insert(ctx context.Context, user *agg.User) (*agg.User,
 
 	return nil, r.logger.CriticalPropagate(UserInsertingFailedError)
 }
+
+func (r *UserRepository) Update(ctx context.Context, user *agg.User) (*agg.User, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	res, err := r.db.UpdateByID(qCtx, user.ID.Value, bson.M{"$set": user})
+	if err != nil {
+		return nil, r.logger.ErrorPropagate(err)
+	}
+
+	// check the record is really updated
+	if res.ModifiedCount > 0 {
+		return r.Find(qCtx, user.ID)
+	}
+
+	// if changes is not exists, then return the original data
+	return user, nil
+}
