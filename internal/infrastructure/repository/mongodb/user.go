@@ -7,7 +7,9 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"sync"
 	"time"
 )
@@ -50,4 +52,20 @@ func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, er
 	}
 
 	return user, nil
+}
+
+func (r *UserRepository) Insert(ctx context.Context, user *agg.User) (*agg.User, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	res, err := r.db.InsertOne(qCtx, user, options.InsertOne())
+	if err != nil {
+		return nil, r.logger.ErrorPropagate(err)
+	}
+
+	if oID, ok := res.InsertedID.(primitive.ObjectID); ok {
+		return r.Find(qCtx, vo.ID{Value: oID})
+	}
+
+	return nil, r.logger.CriticalPropagate(UserInsertingFailedError)
 }
