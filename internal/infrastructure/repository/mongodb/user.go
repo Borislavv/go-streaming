@@ -87,3 +87,19 @@ func (r *UserRepository) Update(ctx context.Context, user *agg.User) (*agg.User,
 	// if changes is not exists, then return the original data
 	return user, nil
 }
+
+func (r *UserRepository) Remove(ctx context.Context, user *agg.User) error {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	res, err := r.db.DeleteOne(qCtx, bson.M{"_id": user.ID.Value})
+	if err != nil {
+		return r.logger.ErrorPropagate(err)
+	}
+
+	if res.DeletedCount == 0 { // checking the user is really deleted
+		return r.logger.CriticalPropagate(UserWasNotDeletedError)
+	}
+
+	return nil
+}
