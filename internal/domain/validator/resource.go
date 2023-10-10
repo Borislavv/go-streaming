@@ -10,12 +10,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
 
-type Resource interface {
-	ValidateUploadRequestDTO(req dto.UploadRequest) error
-	ValidateEntity(entity entity.Resource) error
-	ValidateAggregate(agg *agg.Resource) error
-}
-
 type ResourceValidator struct {
 	ctx         context.Context
 	repository  repository.Resource

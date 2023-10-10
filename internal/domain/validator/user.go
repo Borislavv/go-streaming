@@ -2,20 +2,11 @@ package validator
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
-
-type User interface {
-	ValidateGetRequestDTO(req dto.GetRequest) error
-	ValidateCreateRequestDTO(req dto.CreateRequest) error
-	ValidateUpdateRequestDTO(req dto.UpdateRequest) error
-	ValidateDeleteRequestDTO(req dto.DeleteRequest) error
-	ValidateAggregate(agg *agg.User) error
-}
 
 type UserValidator struct {
 	ctx                context.Context
