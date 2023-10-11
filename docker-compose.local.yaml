@@ -31,7 +31,7 @@ services:
       # Application
       UPLOADER_TYPE: "muiltipart_part"
       RESOURCE_FORM_FILENAME: "resource"
-      MAX_UPLOADING_FILESIZE: "10000000000"
+      MAX_UPLOADING_FILESIZE: 5368709120
       IN_MEMORY_FILE_SIZE_THRESHOLD: 104857600
       ADMIN_CONTACT_EMAIL_ADDRESS: "glazunov2142@gmail.com"
       # Logger
