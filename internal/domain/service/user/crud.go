@@ -34,7 +34,7 @@ func NewCRUDService(
 	}
 }
 
-func (s *CRUDService) Get(req dto.GetRequest) (user *agg.User, err error) {
+func (s *CRUDService) Get(req dto.GetUserRequest) (user *agg.User, err error) {
 	if err = s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -45,4 +45,30 @@ func (s *CRUDService) Get(req dto.GetRequest) (user *agg.User, err error) {
 	}
 
 	return user, nil
+}
+
+func (s *CRUDService) Create(userDTO dto.CreateUserRequest) (*agg.User, error) {
+	// validation of input request
+	if err := s.validator.ValidateCreateRequestDTO(userDTO); err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	// building an aggregate
+	userAgg, err := s.builder.BuildAggFromCreateRequestDTO(userDTO)
+	if err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	// validation of an aggregate
+	if err = s.validator.ValidateAggregate(userAgg); err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	// saving an aggregate into storage
+	userAgg, err = s.repository.Insert(s.ctx, userAgg)
+	if err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	return userAgg, nil
 }
