@@ -21,7 +21,7 @@ services:
       RESOURCES_SERVER_HOST: "0.0.0.0"
       RESOURCES_SERVER_PORT: "8000"
       RESOURCES_SERVER_TRANSPORT_PROTOCOL: "tcp"
-      # Server (ws)
+      # Server (websocket)
       STREAMING_SERVER_HOST: "0.0.0.0"
       STREAMING_SERVER_PORT: "9988"
       STREAMING_SERVER_TRANSPORT_PROTOCOL: "tcp"
@@ -29,8 +29,14 @@ services:
       MONGODB_URI: "mongodb://mongodb:27017/streaming"
       MONGO_DATABASE: "streaming"
       # Application
+      UPLOADER_TYPE: "muiltipart_part"
       RESOURCE_FORM_FILENAME: "resource"
+      MAX_UPLOADING_FILESIZE: "10000000000"
       IN_MEMORY_FILE_SIZE_THRESHOLD: 104857600
+      ADMIN_CONTACT_EMAIL_ADDRESS: "glazunov2142@gmail.com"
+      # Logger
+      LOGGER_ERRORS_BUFFER_CAPACITY: "10"
+      LOGGER_REQUESTS_BUFFER_CAPACITY: "10"
     command: ["sh", "-c", "./.ops/build/build_and_rotate.sh && ./streaming"]
 
   mongodb:
