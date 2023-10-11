@@ -11,5 +11,5 @@ type Audio interface {
 	Insert(ctx context.Context, audio *agg.Audio) (string, error)
 	Update(ctx context.Context, audio *agg.Audio) error
 	Find(ctx context.Context, id vo.ID) (*agg.Audio, error)
-	FindList(ctx context.Context, dto dto.ListRequest) ([]*agg.Audio, error)
+	FindList(ctx context.Context, dto dto.ListAudioRequest) ([]*agg.Audio, error)
 }
