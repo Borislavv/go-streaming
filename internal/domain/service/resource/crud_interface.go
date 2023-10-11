@@ -6,5 +6,5 @@ import (
 )
 
 type CRUD interface {
-	Upload(req dto.UploadRequest) (*agg.Resource, error)
+	Upload(req dto.UploadResourceRequest) (*agg.Resource, error)
 }
