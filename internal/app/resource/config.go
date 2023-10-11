@@ -51,6 +51,8 @@ type config struct {
 	// which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow operation).
 	// By default, it's 100mb per file.
 	InMemoryFileSizeThreshold int64 `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"`
+	// AdminContactEmail is a target administrator contact email address for takes a users errors reports.
+	AdminContactEmail string `env:"ADMIN_CONTACT_EMAIL_ADDRESS" envDefault:"glazunov2142@gmail.com"`
 	// >>> LOGGER <<<
 	// LoggerErrorsBufferCap is errors channel capacity.
 	// Logger is basing on the go channels, this value will be sat up as capacity.

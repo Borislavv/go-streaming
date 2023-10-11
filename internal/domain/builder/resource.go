@@ -28,13 +28,13 @@ func NewResourceBuilder(
 	}
 }
 
-// BuildUploadRequestDTOFromRequest will be parse raw *http.Request and build a dto.UploadRequest
+// BuildUploadRequestDTOFromRequest will be parse raw *http.Request and build a dto.UploadResourceRequest
 func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error) {
 	return dto.NewResourceUploadRequest(r), nil
 }
 
-// BuildAggFromUploadRequestDTO will be make an agg.Resource from dto.UploadRequest
-func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto.UploadRequest) *agg.Resource {
+// BuildAggFromUploadRequestDTO will be make an agg.Resource from dto.UploadResourceRequest
+func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto.UploadResourceRequest) *agg.Resource {
 	return &agg.Resource{
 		Resource: entity.Resource{
 			Name:     req.GetOriginFilename(),

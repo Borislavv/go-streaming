@@ -34,7 +34,7 @@ func NewPartsUploader(
 	}
 }
 
-func (u *MultipartPartUploader) Upload(dto dto.UploadRequest) (err error) {
+func (u *MultipartPartUploader) Upload(dto dto.UploadResourceRequest) (err error) {
 	part, err := u.getFilePart(dto)
 	if err != nil {
 		return u.logger.LogPropagate(err)
@@ -72,7 +72,7 @@ func (u *MultipartPartUploader) Upload(dto dto.UploadRequest) (err error) {
 	return nil
 }
 
-func (u *MultipartPartUploader) getFilePart(dto dto.UploadRequest) (part *multipart.Part, err error) {
+func (u *MultipartPartUploader) getFilePart(dto dto.UploadResourceRequest) (part *multipart.Part, err error) {
 	// extract the multipart form reader (handling the form as a stream)
 	reader, err := dto.GetRequest().MultipartReader()
 	if err != nil {

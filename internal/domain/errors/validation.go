@@ -47,6 +47,78 @@ func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
 	}
 }
 
+type UserWithSuchEmailAlreadyExistsError struct{ publicError }
+
+func NewUserWithSuchEmailAlreadyExistsError(email string) *UserWithSuchEmailAlreadyExistsError {
+	return &UserWithSuchEmailAlreadyExistsError{
+		publicError{
+			errored{
+				ErrorMessage: fmt.Sprintf("user with such email '%v' already exists", email),
+				ErrorType:    validationType,
+				errorStatus:  publicValidationLevel,
+				errorLevel:   publicValidationStatus,
+			},
+		},
+	}
+}
+
+type UsernameIsInvalidError struct{ publicError }
+
+func NewUsernameIsInvalidError(username string) *UsernameIsInvalidError {
+	return &UsernameIsInvalidError{
+		publicError{
+			errored{
+				ErrorMessage: fmt.Sprintf(
+					"username must be longer than 3 chars and contains only the latin letters, given: %v",
+					username,
+				),
+				ErrorType:   validationType,
+				errorStatus: publicValidationLevel,
+				errorLevel:  publicValidationStatus,
+			},
+		},
+	}
+}
+
+type PasswordIsInvalidError struct{ publicError }
+
+func NewPasswordIsInvalidError(username string) *PasswordIsInvalidError {
+	return &PasswordIsInvalidError{
+		publicError{
+			errored{
+				ErrorMessage: fmt.Sprintf(
+					"password must be longer or equals 8 chars and contains "+
+						"only the latin letters and digits, given: %v",
+					username,
+				),
+				ErrorType:   validationType,
+				errorStatus: publicValidationLevel,
+				errorLevel:  publicValidationStatus,
+			},
+		},
+	}
+}
+
+type EmailIsInvalidError struct{ publicError }
+
+func NewEmailIsInvalidError(email string, adminEmail string) *EmailIsInvalidError {
+	return &EmailIsInvalidError{
+		publicError{
+			errored{
+				ErrorMessage: fmt.Sprintf(
+					"email is not valid, given: %v (if you are sure that your email is corrent "+
+						"than please write to a service administrator: %v) ",
+					email,
+					adminEmail,
+				),
+				ErrorType:   validationType,
+				errorStatus: publicValidationLevel,
+				errorLevel:  publicValidationStatus,
+			},
+		},
+	}
+}
+
 type AtLeastOneFieldMustBeDefinedError struct{ publicError }
 
 func NewAtLeastOneFieldMustBeDefinedError(fields ...string) *AtLeastOneFieldMustBeDefinedError {

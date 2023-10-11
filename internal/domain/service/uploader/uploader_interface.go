@@ -6,5 +6,5 @@ import (
 
 type Uploader interface {
 	// Upload method will be store a file on a disk and calculate a new hashed name. Request DTO mutation!
-	Upload(req dto.UploadRequest) (err error)
+	Upload(req dto.UploadResourceRequest) (err error)
 }

@@ -34,7 +34,7 @@ func NewCRUDService(
 	}
 }
 
-func (s *CRUDService) Get(req dto.GetRequest) (*agg.Video, error) {
+func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -48,7 +48,7 @@ func (s *CRUDService) Get(req dto.GetRequest) (*agg.Video, error) {
 	return video, nil
 }
 
-func (s *CRUDService) List(req dto.ListRequest) (list []*agg.Video, total int64, err error) {
+func (s *CRUDService) List(req dto.ListVideoRequest) (list []*agg.Video, total int64, err error) {
 	// validation of input request
 	if err = s.validator.ValidateListRequestDTO(req); err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
@@ -62,7 +62,7 @@ func (s *CRUDService) List(req dto.ListRequest) (list []*agg.Video, total int64,
 	return list, total, err
 }
 
-func (s *CRUDService) Create(videoDTO dto.CreateRequest) (*agg.Video, error) {
+func (s *CRUDService) Create(videoDTO dto.CreateVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateCreateRequestDTO(videoDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -88,7 +88,7 @@ func (s *CRUDService) Create(videoDTO dto.CreateRequest) (*agg.Video, error) {
 	return videoAgg, nil
 }
 
-func (s *CRUDService) Update(req dto.UpdateRequest) (*agg.Video, error) {
+func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -114,7 +114,7 @@ func (s *CRUDService) Update(req dto.UpdateRequest) (*agg.Video, error) {
 	return videoAgg, nil
 }
 
-func (s *CRUDService) Delete(reqDTO dto.DeleteRequest) error {
+func (s *CRUDService) Delete(reqDTO dto.DeleteVideoRequest) error {
 	// validation of input request
 	if err := s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
 		return s.logger.LogPropagate(err)

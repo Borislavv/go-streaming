@@ -38,7 +38,7 @@ func NewResourceService(
 	}
 }
 
-func (s *CRUDService) Upload(req dto.UploadRequest) (resource *agg.Resource, err error) {
+func (s *CRUDService) Upload(req dto.UploadResourceRequest) (resource *agg.Resource, err error) {
 	if err = s.validator.ValidateUploadRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
