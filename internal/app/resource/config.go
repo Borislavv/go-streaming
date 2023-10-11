@@ -45,8 +45,8 @@ type config struct {
 	//	Be careful and don't send more than one file per request in one form.
 	ResourceFormFilename string `env:"RESOURCE_FORM_FILENAME" envDefault:"resource"`
 	// MaxFilesizeThreshold is a threshold value which means the max. weight of uploading file in bytes.
-	// By default, it's 10gb per file.
-	MaxFilesizeThreshold int64 `env:"MAX_UPLOADING_FILESIZE" envDefault:"10000000000"`
+	// By default, it's 5gb per file.
+	MaxFilesizeThreshold int64 `env:"MAX_UPLOADING_FILESIZE" envDefault:"5368709120"`
 	// InMemoryFileSizeThreshold is a threshold value which means the max. weight of uploading file in bytes
 	// which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow operation).
 	// By default, it's 100mb per file.
