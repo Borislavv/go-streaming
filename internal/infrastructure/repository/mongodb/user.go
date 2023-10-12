@@ -55,6 +55,21 @@ func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, er
 	return user, nil
 }
 
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user *agg.User, err error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	user = &agg.User{}
+	if err = r.db.FindOne(qCtx, bson.M{"email": bson.M{"$eq": email}}).Decode(user); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, r.logger.InfoPropagate(UserNotFoundByEmailError)
+		}
+		return nil, r.logger.ErrorPropagate(err)
+	}
+
+	return user, nil
+}
+
 func (r *UserRepository) Insert(ctx context.Context, user *agg.User) (*agg.User, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
