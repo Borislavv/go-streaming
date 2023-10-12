@@ -39,14 +39,14 @@ func NewVideoValidator(
 	}
 }
 
-func (v *VideoValidator) ValidateGetRequestDTO(req dto.GetRequest) error {
+func (v *VideoValidator) ValidateGetRequestDTO(req dto.GetVideoRequest) error {
 	if req.GetId().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
 
-func (v *VideoValidator) ValidateListRequestDTO(req dto.ListRequest) error {
+func (v *VideoValidator) ValidateListRequestDTO(req dto.ListVideoRequest) error {
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
 		return errors.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
@@ -56,7 +56,7 @@ func (v *VideoValidator) ValidateListRequestDTO(req dto.ListRequest) error {
 	return nil
 }
 
-func (v *VideoValidator) ValidateCreateRequestDTO(req dto.CreateRequest) error {
+func (v *VideoValidator) ValidateCreateRequestDTO(req dto.CreateVideoRequest) error {
 	if req.GetName() == "" {
 		return errors.NewFieldCannotBeEmptyError(nameField)
 	}
@@ -66,14 +66,14 @@ func (v *VideoValidator) ValidateCreateRequestDTO(req dto.CreateRequest) error {
 	return nil
 }
 
-func (v *VideoValidator) ValidateUpdateRequestDTO(req dto.UpdateRequest) error {
+func (v *VideoValidator) ValidateUpdateRequestDTO(req dto.UpdateVideoRequest) error {
 	if err := v.ValidateGetRequestDTO(req); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (v *VideoValidator) ValidateDeleteRequestDTO(req dto.DeleteRequest) error {
+func (v *VideoValidator) ValidateDeleteRequestDTO(req dto.DeleteVideoRequest) error {
 	return v.ValidateGetRequestDTO(req)
 }
 

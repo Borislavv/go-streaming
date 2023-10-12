@@ -59,7 +59,7 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 
 func (r *VideoRepository) FindList(
 	ctx context.Context,
-	dto dto.ListRequest,
+	dto dto.ListVideoRequest,
 ) (
 	list []*agg.Video,
 	total int64,
