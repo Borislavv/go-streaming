@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/video"
+	"github.com/Borislavv/video-streaming/internal/domain/service/user"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -14,15 +14,15 @@ const CreatePath = "/user"
 // CreateUserController - not implemented yet.
 type CreateUserController struct {
 	logger   logger.Logger
-	builder  builder.Video
-	service  video.CRUD
+	builder  builder.User
+	service  user.CRUD
 	response response.Responder
 }
 
 func NewCreateController(
 	logger logger.Logger,
-	builder builder.Video,
-	service video.CRUD,
+	builder builder.User,
+	service user.CRUD,
 	response response.Responder,
 ) *CreateUserController {
 	return &CreateUserController{
