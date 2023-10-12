@@ -24,7 +24,7 @@ func NewResourceValidator(ctx context.Context, repository repository.Resource, m
 	}
 }
 
-func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadRequest) error {
+func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadResourceRequest) error {
 	if req.GetRequest().ContentLength == 0 {
 		return errors.NewInvalidUploadedFileError("request form file is empty")
 	}
