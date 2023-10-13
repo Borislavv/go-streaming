@@ -11,7 +11,6 @@ import (
 
 const GetPath = "/user/{id}"
 
-// GetUserController - not implemented yet.
 type GetUserController struct {
 	logger   logger.Logger
 	builder  builder.User
