@@ -11,7 +11,6 @@ import (
 
 const CreatePath = "/user"
 
-// CreateUserController - not implemented yet.
 type CreateUserController struct {
 	logger   logger.Logger
 	builder  builder.User

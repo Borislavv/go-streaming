@@ -40,8 +40,8 @@ func NewFieldCannotBeEmptyError(field string) *FieldCannotBeEmptyError {
 			errored{
 				ErrorMessage: fmt.Sprintf("field '%v' must not be empty or omitted", field),
 				ErrorType:    validationType,
-				errorLevel:   publicValidationLevel,
 				errorStatus:  publicValidationStatus,
+				errorLevel:   publicValidationLevel,
 			},
 		},
 	}
@@ -55,8 +55,8 @@ func NewUserWithSuchEmailAlreadyExistsError(email string) *UserWithSuchEmailAlre
 			errored{
 				ErrorMessage: fmt.Sprintf("user with such email '%v' already exists", email),
 				ErrorType:    validationType,
-				errorStatus:  publicValidationLevel,
-				errorLevel:   publicValidationStatus,
+				errorStatus:  publicValidationStatus,
+				errorLevel:   publicValidationLevel,
 			},
 		},
 	}
@@ -73,8 +73,8 @@ func NewUsernameIsInvalidError(username string) *UsernameIsInvalidError {
 					username,
 				),
 				ErrorType:   validationType,
-				errorStatus: publicValidationLevel,
-				errorLevel:  publicValidationStatus,
+				errorStatus: publicValidationStatus,
+				errorLevel:  publicValidationLevel,
 			},
 		},
 	}
@@ -92,8 +92,8 @@ func NewPasswordIsInvalidError(username string) *PasswordIsInvalidError {
 					username,
 				),
 				ErrorType:   validationType,
-				errorStatus: publicValidationLevel,
-				errorLevel:  publicValidationStatus,
+				errorStatus: publicValidationStatus,
+				errorLevel:  publicValidationLevel,
 			},
 		},
 	}
@@ -112,8 +112,8 @@ func NewEmailIsInvalidError(email string, adminEmail string) *EmailIsInvalidErro
 					adminEmail,
 				),
 				ErrorType:   validationType,
-				errorStatus: publicValidationLevel,
-				errorLevel:  publicValidationStatus,
+				errorStatus: publicValidationStatus,
+				errorLevel:  publicValidationLevel,
 			},
 		},
 	}
@@ -129,8 +129,8 @@ func NewBirthdayIsInvalidError(birthday string) *BirthdayIsInvalidError {
 					"birthday is not valid, check the value by pattern: 'Y-m-d', given: %v", birthday,
 				),
 				ErrorType:   validationType,
-				errorStatus: publicValidationLevel,
-				errorLevel:  publicValidationStatus,
+				errorStatus: publicValidationStatus,
+				errorLevel:  publicValidationLevel,
 			},
 		},
 	}

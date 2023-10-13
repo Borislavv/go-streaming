@@ -6,6 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
@@ -65,9 +66,11 @@ func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.Us
 
 // BuildAggFromCreateRequestDTO - build an agg.User from dto.CreateUserRequest
 func (b *UserBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateUserRequest) (*agg.User, error) {
-	birthday, err := time.Parse("2006-01-02", dto.GetBirthday())
+	// this validation checked previously into the DTO validator
+	birthday, err := time.Parse(enum.BirthdayDatePattern, dto.GetBirthday())
 	if err != nil {
-		return nil, b.logger.LogPropagate(err)
+		// here, we must have a valid date or occurred internal error
+		return nil, b.logger.CriticalPropagate(err)
 	}
 
 	return &agg.User{

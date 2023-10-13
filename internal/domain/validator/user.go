@@ -4,15 +4,18 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
+	"time"
 )
 
 const (
 	passwordFiled = "password"
 	emailField    = "email"
+	birthdayField = "birthday"
 )
 
 type UserValidator struct {
@@ -53,6 +56,16 @@ func (v *UserValidator) ValidateCreateRequestDTO(req dto.CreateUserRequest) erro
 	if req.GetEmail() == "" {
 		return errors.NewFieldCannotBeEmptyError(emailField)
 	}
+	if req.GetBirthday() == "" {
+		return errors.NewFieldCannotBeEmptyError(birthdayField)
+	}
+
+	_, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
+	if err != nil {
+		v.logger.Log(err)
+		return errors.NewBirthdayIsInvalidError(req.GetBirthday())
+	}
+
 	return nil
 }
 
@@ -89,9 +102,14 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 			return v.logger.LogPropagate(err)
 		}
 	}
-	if user != nil { // TODO probably may error occurred when user is nil, but it's typed nil (must be tested)
-		// check that found user is not the same (handling update action case)
-		if !agg.ID.Value.IsZero() && agg.ID.Value.Hex() != user.ID.Value.Hex() {
+	if user != nil {
+		if !agg.ID.Value.IsZero() {
+			if agg.ID.Value.Hex() != user.ID.Value.Hex() {
+				//  update user case (check that found user is not the same)
+				return errors.NewUserWithSuchEmailAlreadyExistsError(agg.Email)
+			}
+		} else {
+			// create new user case (error thrown if the user was found)
 			return errors.NewUserWithSuchEmailAlreadyExistsError(agg.Email)
 		}
 	}

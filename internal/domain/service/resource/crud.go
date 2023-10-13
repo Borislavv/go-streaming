@@ -7,14 +7,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	Uploader2 "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
+	"github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
 type CRUDService struct {
 	ctx        context.Context
 	logger     logger.Logger
-	uploader   Uploader2.Uploader
+	uploader   uploader.Uploader
 	validator  validator.Resource
 	builder    builder.Resource
 	repository repository.Resource
@@ -23,7 +23,7 @@ type CRUDService struct {
 func NewResourceService(
 	ctx context.Context,
 	logger logger.Logger,
-	uploader Uploader2.Uploader,
+	uploader uploader.Uploader,
 	validator validator.Resource,
 	builder builder.Resource,
 	repository repository.Resource,

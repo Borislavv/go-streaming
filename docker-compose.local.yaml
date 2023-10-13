@@ -29,7 +29,7 @@ services:
       MONGODB_URI: "mongodb://mongodb:27017/streaming"
       MONGO_DATABASE: "streaming"
       # Application
-      UPLOADER_TYPE: "muiltipart_part"
+      UPLOADER_TYPE: "multipart_part"
       RESOURCE_FORM_FILENAME: "resource"
       MAX_UPLOADING_FILESIZE: 5368709120
       IN_MEMORY_FILE_SIZE_THRESHOLD: 104857600
