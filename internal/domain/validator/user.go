@@ -4,15 +4,18 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
+	"time"
 )
 
 const (
 	passwordFiled = "password"
 	emailField    = "email"
+	birthdayField = "birthday"
 )
 
 type UserValidator struct {
@@ -53,6 +56,16 @@ func (v *UserValidator) ValidateCreateRequestDTO(req dto.CreateUserRequest) erro
 	if req.GetEmail() == "" {
 		return errors.NewFieldCannotBeEmptyError(emailField)
 	}
+	if req.GetBirthday() == "" {
+		return errors.NewFieldCannotBeEmptyError(birthdayField)
+	}
+
+	_, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
+	if err != nil {
+		v.logger.Log(err)
+		return errors.NewBirthdayIsInvalidError(req.GetBirthday())
+	}
+
 	return nil
 }
 
