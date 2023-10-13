@@ -39,7 +39,7 @@ type config struct {
 	//	the 'muiltipart_form' approach and increase the value of InMemoryFileSizeThreshold variable.
 	//	Otherwise, use 'muiltipart_part' because it takes a much lower RAM per file uploading.
 	//	For example: for upload the file which weight is 50mb. it will take around 10mb. of your RAM.
-	UploadingStrategy string `env:"UPLOADER_TYPE" envDefault:"muiltipart_part" opts:"muiltipart_form,muiltipart_part"`
+	UploadingStrategy string `env:"UPLOADER_TYPE" envDefault:"multipart_part" opts:"multipart_part,multipart_form"`
 	// ResourceFormFilename is a value which will be used for extract a file from the form by given string.
 	// *Used only with the 'muiltipart_form' strategy because the 'muiltipart_part' will search the first form file.
 	//	Be careful and don't send more than one file per request in one form.
