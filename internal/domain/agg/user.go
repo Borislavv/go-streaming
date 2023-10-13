@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	entity.User
+	entity.User `bson:",inline"`
 
 	VideoIDs  []vo.ID      `json:"videos" bson:"videos"`
 	Timestamp vo.Timestamp `json:"timestamp" bson:",inline"`
