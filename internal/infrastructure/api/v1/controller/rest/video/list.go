@@ -45,6 +45,7 @@ func (c *ListVideoController) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO must be refactored to paginated list DTO.
 	c.response.Respond(w,
 		map[string]interface{}{
 			"list": aggList,
