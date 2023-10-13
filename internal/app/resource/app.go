@@ -121,12 +121,16 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold,
 	)
 
+	// user repository
 	userRepository := mongodb.NewUserRepository(db, loggerService, time.Minute)
 
+	// user builder
 	userBuilder := builder.NewUserBuilder(ctx, loggerService, reqParamsExtractor, userRepository)
 
+	// user validator
 	userValidator := validator.NewUserValidator(ctx, loggerService, userRepository, app.cfg.AdminContactEmail)
 
+	// user CRUD service
 	userService := domainuser.NewCRUDService(ctx, loggerService, userBuilder, userValidator, userRepository)
 
 	var uploaderStrategy domainuploader.Uploader
@@ -255,6 +259,12 @@ func (app *ResourcesApp) InitRestApiControllers(
 		audio.NewUpdateController(),
 		// user
 		user.NewCreateController(
+			loggerService,
+			userBuilder,
+			userService,
+			responseService,
+		),
+		user.NewGetController(
 			loggerService,
 			userBuilder,
 			userService,
