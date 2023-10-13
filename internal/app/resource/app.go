@@ -5,12 +5,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	domainresource "github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	domainuploader "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
+	domainuser "github.com/Borislavv/video-streaming/internal/domain/service/user"
 	domainvideo "github.com/Borislavv/video-streaming/internal/domain/service/video"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/resource"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/user"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
@@ -119,6 +121,14 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		loggerService, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold,
 	)
 
+	userRepository := mongodb.NewUserRepository(db, loggerService, time.Minute)
+
+	userBuilder := builder.NewUserBuilder(ctx, loggerService, reqParamsExtractor, userRepository)
+
+	userValidator := validator.NewUserValidator(ctx, loggerService, userRepository, app.cfg.AdminContactEmail)
+
+	userService := domainuser.NewCRUDService(ctx, loggerService, userBuilder, userValidator, userRepository)
+
 	var uploaderStrategy domainuploader.Uploader
 	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
 		// used parsing of full form into RAM
@@ -161,6 +171,8 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			resourceService,
 			videoBuilder,
 			videoService,
+			userBuilder,
+			userService,
 		),
 		app.InitNativeRenderingControllers(
 			loggerService,
@@ -192,6 +204,9 @@ func (app *ResourcesApp) InitRestApiControllers(
 	// video deps.
 	videoBuilder builder.Video,
 	videoService domainvideo.CRUD,
+	// user. deps.
+	userBuilder builder.User,
+	userService domainuser.CRUD,
 ) []controller.Controller {
 	return []controller.Controller{
 		// resource
@@ -238,6 +253,13 @@ func (app *ResourcesApp) InitRestApiControllers(
 		audio.NewGetController(),
 		audio.NewListController(),
 		audio.NewUpdateController(),
+		// user
+		user.NewCreateController(
+			loggerService,
+			userBuilder,
+			userService,
+			responseService,
+		),
 	}
 }
 
