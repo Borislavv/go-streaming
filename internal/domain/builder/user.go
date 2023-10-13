@@ -65,12 +65,17 @@ func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.Us
 
 // BuildAggFromCreateRequestDTO - build an agg.User from dto.CreateUserRequest
 func (b *UserBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateUserRequest) (*agg.User, error) {
+	birthday, err := time.Parse("2006-01-02", dto.GetBirthday())
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
 	return &agg.User{
 		User: entity.User{
 			Username: dto.GetUsername(),
 			Password: dto.GetPassword(),
 			Email:    dto.GetEmail(),
-			Birthday: dto.GetBirthday(),
+			Birthday: birthday,
 		},
 		VideoIDs: []vo.ID{},
 		Timestamp: vo.Timestamp{
