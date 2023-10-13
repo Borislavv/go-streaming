@@ -102,9 +102,14 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 			return v.logger.LogPropagate(err)
 		}
 	}
-	if user != nil { // TODO probably may error occurred when user is nil, but it's typed nil (must be tested)
-		// check that found user is not the same (handling update action case)
-		if !agg.ID.Value.IsZero() && agg.ID.Value.Hex() != user.ID.Value.Hex() {
+	if user != nil {
+		if !agg.ID.Value.IsZero() {
+			if agg.ID.Value.Hex() != user.ID.Value.Hex() {
+				//  update user case (check that found user is not the same)
+				return errors.NewUserWithSuchEmailAlreadyExistsError(agg.Email)
+			}
+		} else {
+			// create new user case (error thrown if the user was found)
 			return errors.NewUserWithSuchEmailAlreadyExistsError(agg.Email)
 		}
 	}
