@@ -119,6 +119,23 @@ func NewEmailIsInvalidError(email string, adminEmail string) *EmailIsInvalidErro
 	}
 }
 
+type BirthdayIsInvalidError struct{ publicError }
+
+func NewBirthdayIsInvalidError(birthday string) *BirthdayIsInvalidError {
+	return &BirthdayIsInvalidError{
+		publicError{
+			errored{
+				ErrorMessage: fmt.Sprintf(
+					"birthday is not valid, check the value by pattern: 'Y-m-d', given: %v", birthday,
+				),
+				ErrorType:   validationType,
+				errorStatus: publicValidationLevel,
+				errorLevel:  publicValidationStatus,
+			},
+		},
+	}
+}
+
 type AtLeastOneFieldMustBeDefinedError struct{ publicError }
 
 func NewAtLeastOneFieldMustBeDefinedError(fields ...string) *AtLeastOneFieldMustBeDefinedError {

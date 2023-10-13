@@ -2,21 +2,20 @@ package dto
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"time"
 )
 
 type CreateUserRequest interface {
 	GetUsername() string
 	GetPassword() string
-	GetBirthday() time.Time
+	GetBirthday() string
 	GetEmail() string
 }
 
 type UpdateUserRequest interface {
+	GetID() vo.ID
 	GetUsername() string
 	GetPassword() string
-	GetBirthday() time.Time
-	GetEmail() string
+	GetBirthday() string
 }
 
 type GetUserRequest interface {
