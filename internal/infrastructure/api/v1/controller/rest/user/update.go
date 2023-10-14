@@ -1,30 +1,57 @@
 package user
 
 import (
+	"github.com/Borislavv/video-streaming/internal/domain/builder"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/user"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
-const UpdatePath = "/audio/{id}"
+const UpdatePath = "/user/{id}"
 
-// UpdateController - not implemented yet.
 type UpdateController struct {
+	logger   logger.Logger
+	builder  builder.User
+	service  user.CRUD
+	response response.Responder
 }
 
-func NewUpdateUserController() *UpdateController {
-	return &UpdateController{}
-}
-
-func (u *UpdateController) Update(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte("Sorry, the route is not implemented yet :(")); err != nil {
-		log.Fatalln(err)
+func NewUpdateUserController(
+	logger logger.Logger,
+	builder builder.User,
+	service user.CRUD,
+	response response.Responder,
+) *UpdateController {
+	return &UpdateController{
+		logger:   logger,
+		builder:  builder,
+		service:  service,
+		response: response,
 	}
 }
 
-func (u *UpdateController) AddRoute(router *mux.Router) {
+func (c *UpdateController) Update(w http.ResponseWriter, r *http.Request) {
+	userDTO, err := c.builder.BuildUpdateRequestDTOFromRequest(r)
+	if err != nil {
+		c.response.Respond(w, c.logger.LogPropagate(err))
+		return
+	}
+
+	userAgg, err := c.service.Update(userDTO)
+	if err != nil {
+		c.response.Respond(w, c.logger.LogPropagate(err))
+		return
+	}
+
+	c.response.Respond(w, userAgg)
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (c *UpdateController) AddRoute(router *mux.Router) {
 	router.
 		Path(UpdatePath).
-		HandlerFunc(u.Update).
+		HandlerFunc(c.Update).
 		Methods(http.MethodPatch)
 }
