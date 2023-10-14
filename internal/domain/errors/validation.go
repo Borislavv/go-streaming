@@ -142,10 +142,12 @@ func NewAtLeastOneFieldMustBeDefinedError(fields ...string) *AtLeastOneFieldMust
 	return &AtLeastOneFieldMustBeDefinedError{
 		publicError{
 			errored{
-				ErrorMessage: fmt.Sprintf("at least one of followed fields [%v] must be defined", strings.Join(fields, ", ")),
-				ErrorType:    validationType,
-				errorLevel:   publicValidationLevel,
-				errorStatus:  publicValidationStatus,
+				ErrorMessage: fmt.Sprintf(
+					"at least one of followed fields [%v] must be defined", strings.Join(fields, ", "),
+				),
+				ErrorType:   validationType,
+				errorLevel:  publicValidationLevel,
+				errorStatus: publicValidationStatus,
 			},
 		},
 	}
