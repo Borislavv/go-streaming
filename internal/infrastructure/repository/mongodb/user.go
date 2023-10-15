@@ -113,7 +113,7 @@ func (r *UserRepository) Remove(ctx context.Context, user *agg.User) error {
 		return r.logger.ErrorPropagate(err)
 	}
 
-	if res.DeletedCount == 0 { // checking the user is really deleted
+	if res.DeletedCount == 0 { // checking the user was deleted
 		return r.logger.CriticalPropagate(UserWasNotDeletedError)
 	}
 
