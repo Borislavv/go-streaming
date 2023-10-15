@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"net/http"
 )
 
@@ -50,4 +51,20 @@ func (r *ResourceUploadRequestDTO) GetUploadedFiletype() string {
 }
 func (r *ResourceUploadRequestDTO) SetUploadedFiletype(filetype string) {
 	r.uploadedFiletype = filetype
+}
+
+type GetResourceRequestDTO struct {
+	ID vo.ID `json:"id"`
+}
+
+func (req *GetResourceRequestDTO) GetId() vo.ID {
+	return req.ID
+}
+
+type DeleteResourceRequestDTO struct {
+	ID vo.ID `json:"id"`
+}
+
+func (req *DeleteResourceRequestDTO) GetId() vo.ID {
+	return req.ID
 }

@@ -116,3 +116,7 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 
 	return nil
 }
+
+func (v *UserValidator) ValidateDeleteRequestDTO(req dto.DeleteUserRequest) error {
+	return v.ValidateGetRequestDTO(req)
+}

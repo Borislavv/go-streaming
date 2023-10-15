@@ -86,3 +86,13 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateUserRequest) (*
 		},
 	}, nil
 }
+
+// BuildDeleteRequestDTOFromRequest - build a dto.DeleteVideoRequest from raw *http.Request
+func (b *UserBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDto, error) {
+	getReqDTO, err := b.BuildGetRequestDTOFromRequest(r)
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
+	return &dto.UserDeleteRequestDto{ID: getReqDTO.ID}, nil
+}

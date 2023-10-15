@@ -9,4 +9,5 @@ import (
 type Resource interface {
 	Find(ctx context.Context, id vo.ID) (*agg.Resource, error)
 	Insert(ctx context.Context, resource *agg.Resource) (*agg.Resource, error)
+	Remove(ctx context.Context, resource *agg.Resource) error
 }

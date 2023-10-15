@@ -10,4 +10,5 @@ type Resource interface {
 	ValidateUploadRequestDTO(req dto.UploadResourceRequest) error
 	ValidateEntity(entity entity.Resource) error
 	ValidateAggregate(agg *agg.Resource) error
+	ValidateDeleteRequestDTO(req dto.DeleteResourceRequest) error
 }

@@ -1,6 +1,9 @@
 package dto
 
-import "net/http"
+import (
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"net/http"
+)
 
 type Resource interface {
 	GetFilepath() string
@@ -20,3 +23,9 @@ type UploadResourceRequest interface {
 	GetUploadedFiletype() string
 	SetUploadedFiletype(filetype string)
 }
+
+type GetResourceRequest interface {
+	GetId() vo.ID
+}
+
+type DeleteResourceRequest GetResourceRequest

@@ -30,20 +30,20 @@ func (s *Filesystem) Has(filename string) (has bool, e error) {
 	// resources dir.
 	resourcesDir, err := helper.ResourcesDir()
 	if err != nil {
-		return true, err
+		return true, s.logger.LogPropagate(err)
 	}
 
 	// resources files dir.
 	dir, err := os.Open(resourcesDir)
 	if err != nil {
-		return true, err
+		return true, s.logger.LogPropagate(err)
 	}
 	defer func() { _ = dir.Close() }()
 
 	// slice of string which is filenames
 	filenames, err := dir.Readdirnames(-1)
 	if err != nil {
-		return true, err
+		return true, s.logger.LogPropagate(err)
 	}
 
 	// attempt of finding a match
@@ -71,7 +71,7 @@ func (s *Filesystem) Store(
 	// resources files directory
 	dir, err := helper.ResourcesDir()
 	if err != nil {
-		return 0, "", "", err
+		return 0, "", "", s.logger.LogPropagate(err)
 	}
 
 	// full qualified file path
@@ -80,24 +80,42 @@ func (s *Filesystem) Store(
 	// resource creating which will represented as a simple file at now
 	createdFile, err := os.Create(filepath)
 	if err != nil {
-		return 0, "", "", err
+		return 0, "", "", s.logger.LogPropagate(err)
 	}
 	defer func() { _ = createdFile.Close() }()
 
 	// moving the data in to the created file from tmp
 	length, err = io.Copy(createdFile, reader)
 	if err != nil {
-		return 0, "", "", err
+		return 0, "", "", s.logger.LogPropagate(err)
 	}
 
 	// returning id of the created file, e.g. resourceId
 	return length, filename, filepath, nil
 }
 
+func (s *Filesystem) Remove(name string) error {
+	// resources files directory
+	dir, err := helper.ResourcesDir()
+	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	// full qualified file path
+	path := fmt.Sprintf("%v%v", dir, name)
+
+	// removing the target file
+	if err = os.Remove(path); err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	return nil
+}
+
 // getFilename - will return calculated filename with extension
-func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string, e error) {
+func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string, err error) {
 	hash := sha256.New()
-	if _, err := hash.Write(
+	if _, err = hash.Write(
 		[]byte(
 			fmt.Sprintf(
 				"%v%d%+v",
@@ -107,7 +125,7 @@ func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string,
 			),
 		),
 	); err != nil {
-		return "", err
+		return "", s.logger.LogPropagate(err)
 	}
 
 	return fmt.Sprintf(
