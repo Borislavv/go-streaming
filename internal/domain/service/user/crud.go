@@ -9,16 +9,17 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/service/video"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
 type CRUDService struct {
-	ctx             context.Context
-	logger          logger.Logger
-	builder         builder.User
-	validator       validator.User
-	repository      repository.User
-	videoRepository repository.Video
+	ctx          context.Context
+	logger       logger.Logger
+	builder      builder.User
+	validator    validator.User
+	repository   repository.User
+	videoService video.CRUD
 }
 
 func NewCRUDService(
@@ -27,15 +28,15 @@ func NewCRUDService(
 	builder builder.User,
 	validator validator.User,
 	repository repository.User,
-	videoRepository repository.Video,
+	videoService video.CRUD,
 ) *CRUDService {
 	return &CRUDService{
-		ctx:             ctx,
-		logger:          logger,
-		builder:         builder,
-		validator:       validator,
-		repository:      repository,
-		videoRepository: videoRepository,
+		ctx:          ctx,
+		logger:       logger,
+		builder:      builder,
+		validator:    validator,
+		repository:   repository,
+		videoService: videoService,
 	}
 }
 
@@ -78,9 +79,9 @@ func (s *CRUDService) Create(userDTO dto.CreateUserRequest) (*agg.User, error) {
 	return userAgg, nil
 }
 
-func (s *CRUDService) Delete(reqDTO dto.DeleteUserRequest) error {
+func (s *CRUDService) Delete(reqDTO dto.DeleteUserRequest) (err error) {
 	// validation of input request
-	if err := s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
+	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
@@ -93,20 +94,13 @@ func (s *CRUDService) Delete(reqDTO dto.DeleteUserRequest) error {
 	// removing the references video first
 	if len(userAgg.VideoIDs) > 0 {
 		for _, videoID := range userAgg.VideoIDs {
-			// fetching the removing video
-			videoAgg, err := s.videoRepository.Find(s.ctx, videoID)
-			if err != nil {
+			if err = s.videoService.Delete(&dto.VideoDeleteRequestDto{ID: videoID}); err != nil {
 				if errors.IsEntityNotFoundError(err) {
 					s.logger.Warning(
 						fmt.Sprintf("user remobing error: references video '%v' is not exists", videoID.Value),
 					)
 					continue
 				}
-				return s.logger.LogPropagate(err)
-			}
-			// removing the fetched video
-			if err := s.videoRepository.Remove(s.ctx, videoAgg); err != nil {
-				return s.logger.LogPropagate(err)
 			}
 		}
 	}
