@@ -58,3 +58,14 @@ func (v *ResourceValidator) ValidateEntity(entity entity.Resource) error {
 func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
 	return v.ValidateEntity(agg.Resource)
 }
+
+func (v *ResourceValidator) ValidateGetRequestDTO(req dto.GetResourceRequest) error {
+	if req.GetId().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(idField)
+	}
+	return nil
+}
+
+func (v *ResourceValidator) ValidateDeleteRequestDTO(req dto.DeleteResourceRequest) error {
+	return v.ValidateGetRequestDTO(req)
+}
