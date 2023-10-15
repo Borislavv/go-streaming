@@ -68,3 +68,19 @@ func (r *ResourceRepository) Insert(ctx context.Context, resource *agg.Resource)
 
 	return nil, r.logger.CriticalPropagate(ResourceInsertingFailedError)
 }
+
+func (r *ResourceRepository) Remove(ctx context.Context, resource *agg.Resource) error {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	res, err := r.db.DeleteOne(qCtx, bson.M{"_id": resource.ID.Value})
+	if err != nil {
+		return r.logger.ErrorPropagate(err)
+	}
+
+	if res.DeletedCount == 0 { // checking the resource was deleted
+		return r.logger.CriticalPropagate(UserWasNotDeletedError)
+	}
+
+	return nil
+}
