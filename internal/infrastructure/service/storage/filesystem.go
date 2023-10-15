@@ -95,16 +95,27 @@ func (s *Filesystem) Store(
 }
 
 func (s *Filesystem) Remove(name string) error {
+	// resources files directory
 	dir, err := helper.ResourcesDir()
 	if err != nil {
-
+		return s.logger.LogPropagate(err)
 	}
+
+	// full qualified file path
+	path := fmt.Sprintf("%v%v", dir, name)
+
+	// removing the target file
+	if err = os.Remove(path); err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	return nil
 }
 
 // getFilename - will return calculated filename with extension
-func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string, e error) {
+func (s *Filesystem) getFilename(header *multipart.FileHeader) (filename string, err error) {
 	hash := sha256.New()
-	if _, err := hash.Write(
+	if _, err = hash.Write(
 		[]byte(
 			fmt.Sprintf(
 				"%v%d%+v",
