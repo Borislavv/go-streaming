@@ -12,14 +12,14 @@ type CreateVideoRequest interface {
 }
 
 type UpdateVideoRequest interface {
-	GetId() vo.ID
+	GetID() vo.ID
 	GetName() string
 	GetResourceID() vo.ID
 	GetDescription() string
 }
 
 type GetVideoRequest interface {
-	GetId() vo.ID
+	GetID() vo.ID
 }
 type ListVideoRequest interface {
 	GetName() string         // path of name

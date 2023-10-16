@@ -12,14 +12,14 @@ type CreateAudioRequest interface {
 }
 
 type UpdateAudioRequest interface {
-	GetId() vo.ID
+	GetID() vo.ID
 	GetName() string
 	GetResourceID() vo.ID
 	GetDescription() string
 }
 
 type GetAudioRequest interface {
-	GetId() vo.ID
+	GetID() vo.ID
 }
 type ListAudioRequest interface {
 	GetName() string         // path of name
