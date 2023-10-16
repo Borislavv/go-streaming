@@ -40,7 +40,7 @@ func NewUserValidator(
 }
 
 func (v *UserValidator) ValidateGetRequestDTO(req dto.GetUserRequest) error {
-	if req.GetId().Value.IsZero() {
+	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
@@ -114,6 +114,13 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 		}
 	}
 
+	return nil
+}
+
+func (v *UserValidator) ValidateUpdateRequestDTO(req dto.UpdateUserRequest) error {
+	if err := v.ValidateGetRequestDTO(req); err != nil {
+		return err
+	}
 	return nil
 }
 
