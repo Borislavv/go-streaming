@@ -13,14 +13,14 @@ const DeletePath = "/user/{id}"
 
 type DeleteUserController struct {
 	logger   logger.Logger
-	builder  builder.Video
+	builder  builder.User
 	service  user.CRUD
 	response response.Responder
 }
 
 func NewDeleteController(
 	logger logger.Logger,
-	builder builder.Video,
+	builder builder.User,
 	service user.CRUD,
 	response response.Responder,
 ) *DeleteUserController {
