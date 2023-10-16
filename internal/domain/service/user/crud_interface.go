@@ -8,6 +8,6 @@ import (
 type CRUD interface {
 	Get(reqDTO dto.GetUserRequest) (*agg.User, error)
 	Create(reqDTO dto.CreateUserRequest) (*agg.User, error)
-	//Update(reqDTO dto.UpdateVideoRequest) (*agg.User, error)
+	Update(reqDTO dto.UpdateUserRequest) (*agg.User, error)
 	Delete(reqDTO dto.DeleteUserRequest) error
 }
