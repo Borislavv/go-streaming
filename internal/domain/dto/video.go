@@ -30,7 +30,7 @@ type VideoUpdateRequestDTO struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (req *VideoUpdateRequestDTO) GetId() vo.ID {
+func (req *VideoUpdateRequestDTO) GetID() vo.ID {
 	return req.ID
 }
 func (req *VideoUpdateRequestDTO) GetName() string {
@@ -48,7 +48,7 @@ type VideoGetRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *VideoGetRequestDTO) GetId() vo.ID {
+func (req *VideoGetRequestDTO) GetID() vo.ID {
 	return req.ID
 }
 
@@ -79,6 +79,6 @@ type VideoDeleteRequestDto struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *VideoDeleteRequestDto) GetId() vo.ID {
+func (req *VideoDeleteRequestDto) GetID() vo.ID {
 	return req.ID
 }

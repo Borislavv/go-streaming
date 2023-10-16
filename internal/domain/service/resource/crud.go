@@ -72,7 +72,7 @@ func (s *CRUDService) Delete(req dto.DeleteResourceRequest) (err error) {
 	}
 
 	// fetching the target resource aggregate
-	resourceAgg, err := s.repository.Find(s.ctx, req.GetId())
+	resourceAgg, err := s.repository.Find(s.ctx, req.GetID())
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}

@@ -131,7 +131,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	userValidator := validator.NewUserValidator(ctx, loggerService, userRepository, app.cfg.AdminContactEmail)
 
 	// user CRUD service
-	userService := domainuser.NewCRUDService(ctx, loggerService, userBuilder, userValidator, userRepository)
+	userService := domainuser.NewCRUDService(ctx, loggerService, userBuilder, userValidator, userRepository, videoService)
 
 	var uploaderStrategy domainuploader.Uploader
 	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
@@ -156,7 +156,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 	// resource service
 	resourceService := domainresource.NewResourceService(
-		ctx, loggerService, uploaderStrategy, resourceValidator, resourceBuilder, resourceRepository,
+		ctx, loggerService, uploaderStrategy, resourceValidator, resourceBuilder, resourceRepository, filesystemStorage,
 	)
 
 	wg.Add(1)
@@ -264,7 +264,19 @@ func (app *ResourcesApp) InitRestApiControllers(
 			userService,
 			responseService,
 		),
+		user.NewUpdateUserController(
+			loggerService,
+			userBuilder,
+			userService,
+			responseService,
+		),
 		user.NewGetController(
+			loggerService,
+			userBuilder,
+			userService,
+			responseService,
+		),
+		user.NewDeleteController(
 			loggerService,
 			userBuilder,
 			userService,

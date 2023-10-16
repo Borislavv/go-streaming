@@ -19,7 +19,7 @@ type UpdateUserRequest interface {
 }
 
 type GetUserRequest interface {
-	GetId() vo.ID
+	GetID() vo.ID
 }
 
 type DeleteUserRequest GetUserRequest

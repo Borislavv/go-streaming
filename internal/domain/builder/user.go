@@ -87,6 +87,39 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateUserRequest) (*
 	}, nil
 }
 
+// BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
+func (b *UserBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateUserRequest) (*agg.Video, error) {
+	video, err := b.videoRepository.Find(b.ctx, dto.GetID())
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
+	changes := 0
+	if video.Name != dto.GetName() {
+		video.Name = dto.GetName()
+		changes++
+	}
+	if video.Description != dto.GetDescription() {
+		video.Description = dto.GetDescription()
+		changes++
+	}
+	if !dto.GetResourceID().Value.IsZero() {
+		resource, ferr := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
+		if ferr != nil {
+			return nil, b.logger.LogPropagate(ferr)
+		}
+		if video.Resource.ID.Value != resource.Resource.ID.Value {
+			video.Resource = resource.Resource
+			changes++
+		}
+	}
+	if changes > 0 {
+		video.Timestamp.UpdatedAt = time.Now()
+	}
+
+	return video, nil
+}
+
 // BuildDeleteRequestDTOFromRequest - build a dto.DeleteVideoRequest from raw *http.Request
 func (b *UserBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDto, error) {
 	getReqDTO, err := b.BuildGetRequestDTOFromRequest(r)

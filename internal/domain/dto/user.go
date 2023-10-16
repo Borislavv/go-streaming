@@ -51,7 +51,7 @@ type UserGetRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *UserGetRequestDTO) GetId() vo.ID {
+func (req *UserGetRequestDTO) GetID() vo.ID {
 	return req.ID
 }
 
@@ -60,6 +60,6 @@ type UserDeleteRequestDto struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *UserDeleteRequestDto) GetId() vo.ID {
+func (req *UserDeleteRequestDto) GetID() vo.ID {
 	return req.ID
 }

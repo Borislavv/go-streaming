@@ -57,7 +57,7 @@ type GetResourceRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *GetResourceRequestDTO) GetId() vo.ID {
+func (req *GetResourceRequestDTO) GetID() vo.ID {
 	return req.ID
 }
 
@@ -65,6 +65,6 @@ type DeleteResourceRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *DeleteResourceRequestDTO) GetId() vo.ID {
+func (req *DeleteResourceRequestDTO) GetID() vo.ID {
 	return req.ID
 }

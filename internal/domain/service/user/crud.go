@@ -45,7 +45,7 @@ func (s *CRUDService) Get(req dto.GetUserRequest) (user *agg.User, err error) {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	user, err = s.repository.Find(s.ctx, req.GetId())
+	user, err = s.repository.Find(s.ctx, req.GetID())
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -79,6 +79,32 @@ func (s *CRUDService) Create(userDTO dto.CreateUserRequest) (*agg.User, error) {
 	return userAgg, nil
 }
 
+func (s *CRUDService) Update(reqDTO dto.UpdateUserRequest) (*agg.User, error) {
+	// validation of input request
+	if err := s.validator.ValidateUpdateRequestDTO(reqDTO); err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	// building an aggregate
+	userAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
+	if err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	// validation an aggregate
+	if err = s.validator.ValidateAggregate(userAgg); err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	// saving the updated aggregate into storage
+	userAgg, err = s.repository.Update(s.ctx, userAgg)
+	if err != nil {
+		return nil, s.logger.LogPropagate(err)
+	}
+
+	return userAgg, nil
+}
+
 func (s *CRUDService) Delete(reqDTO dto.DeleteUserRequest) (err error) {
 	// validation of input request
 	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
@@ -86,7 +112,7 @@ func (s *CRUDService) Delete(reqDTO dto.DeleteUserRequest) (err error) {
 	}
 
 	// fetching a user which will be deleted
-	userAgg, err := s.repository.Find(s.ctx, reqDTO.GetId())
+	userAgg, err := s.repository.Find(s.ctx, reqDTO.GetID())
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}

@@ -7,15 +7,17 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
 
 type CRUDService struct {
-	ctx        context.Context
-	logger     logger.Logger
-	builder    builder.Video
-	validator  validator.Video
-	repository repository.Video
+	ctx             context.Context
+	logger          logger.Logger
+	builder         builder.Video
+	validator       validator.Video
+	repository      repository.Video
+	resourceService resource.CRUD
 }
 
 func NewCRUDService(
@@ -24,13 +26,15 @@ func NewCRUDService(
 	builder builder.Video,
 	validator validator.Video,
 	repository repository.Video,
+	resourceService resource.CRUD,
 ) *CRUDService {
 	return &CRUDService{
-		ctx:        ctx,
-		logger:     logger,
-		builder:    builder,
-		validator:  validator,
-		repository: repository,
+		ctx:             ctx,
+		logger:          logger,
+		builder:         builder,
+		validator:       validator,
+		repository:      repository,
+		resourceService: resourceService,
 	}
 }
 
@@ -40,7 +44,7 @@ func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	video, err := s.repository.Find(s.ctx, req.GetId())
+	video, err := s.repository.Find(s.ctx, req.GetID())
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -114,15 +118,20 @@ func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
 	return videoAgg, nil
 }
 
-func (s *CRUDService) Delete(reqDTO dto.DeleteVideoRequest) error {
+func (s *CRUDService) Delete(reqDTO dto.DeleteVideoRequest) (err error) {
 	// validation of input request
-	if err := s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
+	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
 	// fetching a video which will be deleted
-	videoAgg, err := s.repository.Find(s.ctx, reqDTO.GetId())
+	videoAgg, err := s.repository.Find(s.ctx, reqDTO.GetID())
 	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	// resource removing first
+	if err = s.resourceService.Delete(&dto.DeleteResourceRequestDTO{ID: videoAgg.Resource.ID}); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 

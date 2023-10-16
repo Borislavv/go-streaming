@@ -40,7 +40,7 @@ func NewVideoValidator(
 }
 
 func (v *VideoValidator) ValidateGetRequestDTO(req dto.GetVideoRequest) error {
-	if req.GetId().Value.IsZero() {
+	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil

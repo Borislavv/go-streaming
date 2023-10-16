@@ -104,7 +104,7 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 
 // BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
 func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateVideoRequest) (*agg.Video, error) {
-	video, err := b.videoRepository.Find(b.ctx, dto.GetId())
+	video, err := b.videoRepository.Find(b.ctx, dto.GetID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}

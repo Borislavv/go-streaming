@@ -60,7 +60,7 @@ func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
 }
 
 func (v *ResourceValidator) ValidateGetRequestDTO(req dto.GetResourceRequest) error {
-	if req.GetId().Value.IsZero() {
+	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
