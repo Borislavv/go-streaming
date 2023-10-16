@@ -7,4 +7,5 @@ import (
 
 type CRUD interface {
 	Upload(req dto.UploadResourceRequest) (*agg.Resource, error)
+	Delete(req dto.DeleteResourceRequest) (err error)
 }
