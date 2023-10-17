@@ -105,11 +105,6 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		ctx, loggerService, reqParamsExtractor, videoRepository, resourceRepository,
 	)
 
-	// video service
-	videoService := domainvideo.NewCRUDService(
-		ctx, loggerService, videoBuilder, videoValidator, videoRepository,
-	)
-
 	// filesystem storage
 	filesystemStorage := storage.NewFilesystemStorage(ctx, loggerService)
 
@@ -129,9 +124,6 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 	// user validator
 	userValidator := validator.NewUserValidator(ctx, loggerService, userRepository, app.cfg.AdminContactEmail)
-
-	// user CRUD service
-	userService := domainuser.NewCRUDService(ctx, loggerService, userBuilder, userValidator, userRepository, videoService)
 
 	var uploaderStrategy domainuploader.Uploader
 	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
@@ -154,9 +146,17 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			)
 	}
 
-	// resource service
+	/**
+	 * CRUD services.
+	 */
 	resourceService := domainresource.NewResourceService(
 		ctx, loggerService, uploaderStrategy, resourceValidator, resourceBuilder, resourceRepository, filesystemStorage,
+	)
+	videoService := domainvideo.NewCRUDService(
+		ctx, loggerService, videoBuilder, videoValidator, videoRepository, resourceService,
+	)
+	userService := domainuser.NewCRUDService(
+		ctx, loggerService, userBuilder, userValidator, userRepository, videoService,
 	)
 
 	wg.Add(1)
