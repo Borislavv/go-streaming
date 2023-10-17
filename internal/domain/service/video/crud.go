@@ -38,13 +38,13 @@ func NewCRUDService(
 	}
 }
 
-func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Get(reqDTO dto.GetVideoRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateGetRequestDTO(req); err != nil {
+	if err := s.validator.ValidateGetRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	video, err := s.repository.Find(s.ctx, req.GetID())
+	video, err := s.repository.Find(s.ctx, reqDTO.GetID())
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -52,13 +52,13 @@ func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
 	return video, nil
 }
 
-func (s *CRUDService) List(req dto.ListVideoRequest) (list []*agg.Video, total int64, err error) {
+func (s *CRUDService) List(reqDTO dto.ListVideoRequest) (list []*agg.Video, total int64, err error) {
 	// validation of input request
-	if err = s.validator.ValidateListRequestDTO(req); err != nil {
+	if err = s.validator.ValidateListRequestDTO(reqDTO); err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
 	}
 
-	list, total, err = s.repository.FindList(s.ctx, req)
+	list, total, err = s.repository.FindList(s.ctx, reqDTO)
 	if err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
 	}
@@ -66,14 +66,14 @@ func (s *CRUDService) List(req dto.ListVideoRequest) (list []*agg.Video, total i
 	return list, total, err
 }
 
-func (s *CRUDService) Create(videoDTO dto.CreateVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Create(reqDTO dto.CreateVideoRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDTO(videoDTO); err != nil {
+	if err := s.validator.ValidateCreateRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	videoAgg, err := s.builder.BuildAggFromCreateRequestDTO(videoDTO)
+	videoAgg, err := s.builder.BuildAggFromCreateRequestDTO(reqDTO)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -92,14 +92,14 @@ func (s *CRUDService) Create(videoDTO dto.CreateVideoRequest) (*agg.Video, error
 	return videoAgg, nil
 }
 
-func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
+	if err := s.validator.ValidateUpdateRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	videoAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
+	videoAgg, err := s.builder.BuildAggFromUpdateRequestDTO(reqDTO)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
