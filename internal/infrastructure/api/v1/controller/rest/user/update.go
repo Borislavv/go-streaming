@@ -46,7 +46,6 @@ func (c *UpdateController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.response.Respond(w, userAgg)
-	w.WriteHeader(http.StatusCreated)
 }
 
 func (c *UpdateController) AddRoute(router *mux.Router) {
