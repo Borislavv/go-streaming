@@ -39,31 +39,45 @@ func NewUserValidator(
 	}
 }
 
-func (v *UserValidator) ValidateGetRequestDTO(req dto.GetUserRequest) error {
-	if req.GetID().Value.IsZero() {
+func (v *UserValidator) ValidateGetRequestDTO(reqDTO dto.GetUserRequest) error {
+	if reqDTO.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
 
-func (v *UserValidator) ValidateCreateRequestDTO(req dto.CreateUserRequest) error {
-	if req.GetUsername() == "" {
+func (v *UserValidator) ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) error {
+	if reqDTO.GetUsername() == "" {
 		return errors.NewFieldCannotBeEmptyError(nameField)
 	}
-	if req.GetPassword() == "" {
+	if reqDTO.GetPassword() == "" {
 		return errors.NewFieldCannotBeEmptyError(passwordFiled)
 	}
-	if req.GetEmail() == "" {
+	if reqDTO.GetEmail() == "" {
 		return errors.NewFieldCannotBeEmptyError(emailField)
 	}
-	if req.GetBirthday() == "" {
+	if reqDTO.GetBirthday() == "" {
 		return errors.NewFieldCannotBeEmptyError(birthdayField)
 	}
 
-	_, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
+	_, err := time.Parse(enum.BirthdayDatePattern, reqDTO.GetBirthday())
 	if err != nil {
 		v.logger.Log(err)
-		return errors.NewBirthdayIsInvalidError(req.GetBirthday())
+		return errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday())
+	}
+
+	return nil
+}
+
+func (v *UserValidator) ValidateUpdateRequestDTO(reqDTO dto.UpdateUserRequest) error {
+	if err := v.ValidateGetRequestDTO(reqDTO); err != nil {
+		return err
+	}
+
+	_, err := time.Parse(enum.BirthdayDatePattern, reqDTO.GetBirthday())
+	if err != nil {
+		v.logger.Log(err)
+		return errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday())
 	}
 
 	return nil
@@ -117,13 +131,6 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	return nil
 }
 
-func (v *UserValidator) ValidateUpdateRequestDTO(req dto.UpdateUserRequest) error {
-	if err := v.ValidateGetRequestDTO(req); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (v *UserValidator) ValidateDeleteRequestDTO(req dto.DeleteUserRequest) error {
-	return v.ValidateGetRequestDTO(req)
+func (v *UserValidator) ValidateDeleteRequestDTO(reqDTO dto.DeleteUserRequest) error {
+	return v.ValidateGetRequestDTO(reqDTO)
 }

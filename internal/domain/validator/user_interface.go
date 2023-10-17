@@ -6,9 +6,9 @@ import (
 )
 
 type User interface {
-	ValidateGetRequestDTO(req dto.GetUserRequest) error
-	ValidateCreateRequestDTO(req dto.CreateUserRequest) error
-	ValidateUpdateRequestDTO(req dto.UpdateUserRequest) error
-	ValidateDeleteRequestDTO(req dto.DeleteUserRequest) error
+	ValidateGetRequestDTO(reqDTO dto.GetUserRequest) error
+	ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) error
+	ValidateUpdateRequestDTO(reqDTO dto.UpdateUserRequest) error
+	ValidateDeleteRequestDTO(reqDTO dto.DeleteUserRequest) error
 	ValidateAggregate(agg *agg.User) error
 }
