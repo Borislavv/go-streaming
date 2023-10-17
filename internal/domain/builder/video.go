@@ -64,16 +64,16 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.Video from dto.CreateVideoRequest
-func (b *VideoBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateVideoRequest) (*agg.Video, error) {
-	resource, err := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
+func (b *VideoBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateVideoRequest) (*agg.Video, error) {
+	resource, err := b.resourceRepository.Find(b.ctx, reqDTO.GetResourceID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	return &agg.Video{
 		Video: entity.Video{
-			Name:        dto.GetName(),
-			Description: dto.GetDescription(),
+			Name:        reqDTO.GetName(),
+			Description: reqDTO.GetDescription(),
 		},
 		Resource: resource.Resource,
 		Timestamp: vo.Timestamp{
@@ -103,23 +103,23 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
-func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateVideoRequest) (*agg.Video, error) {
-	video, err := b.videoRepository.Find(b.ctx, dto.GetID())
+func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) {
+	video, err := b.videoRepository.Find(b.ctx, reqDTO.GetID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	changes := 0
-	if video.Name != dto.GetName() {
-		video.Name = dto.GetName()
+	if video.Name != reqDTO.GetName() {
+		video.Name = reqDTO.GetName()
 		changes++
 	}
-	if video.Description != dto.GetDescription() {
-		video.Description = dto.GetDescription()
+	if video.Description != reqDTO.GetDescription() {
+		video.Description = reqDTO.GetDescription()
 		changes++
 	}
-	if !dto.GetResourceID().Value.IsZero() {
-		resource, ferr := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
+	if !reqDTO.GetResourceID().Value.IsZero() {
+		resource, ferr := b.resourceRepository.Find(b.ctx, reqDTO.GetResourceID())
 		if ferr != nil {
 			return nil, b.logger.LogPropagate(ferr)
 		}
