@@ -8,5 +8,5 @@ import (
 
 type Resource interface {
 	BuildUploadRequestDTOFromRequest(r *http.Request) (*dto.ResourceUploadRequestDTO, error)
-	BuildAggFromUploadRequestDTO(req dto.UploadResourceRequest) *agg.Resource
+	BuildAggFromUploadRequestDTO(reqDTO dto.UploadResourceRequest) *agg.Resource
 }
