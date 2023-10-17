@@ -41,16 +41,16 @@ func NewNativeUploader(
 }
 
 // Upload method will be store a file on a disk and calculate a new hashed name. Request DTO mutation!
-func (u *MultipartFormUploader) Upload(dto dto.UploadResourceRequest) (err error) {
+func (u *MultipartFormUploader) Upload(reqDTO dto.UploadResourceRequest) (err error) {
 	// request will be parsed and stored in the memory if it is under the RAM threshold,
 	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
-	if err = dto.GetRequest().ParseMultipartForm(u.inMemoryFileSizeThreshold); err != nil {
+	if err = reqDTO.GetRequest().ParseMultipartForm(u.inMemoryFileSizeThreshold); err != nil {
 		return u.logger.LogPropagate(err)
 	}
 
 	// receiving a file and header from multipart/form-data
 	// by requested filename which is stored in the `formFilename` const.
-	formFile, header, err := dto.GetRequest().FormFile(u.formFilename)
+	formFile, header, err := reqDTO.GetRequest().FormFile(u.formFilename)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -78,12 +78,12 @@ func (u *MultipartFormUploader) Upload(dto dto.UploadResourceRequest) (err error
 		return u.logger.LogPropagate(err)
 	}
 
-	// mutate request dto
-	dto.SetOriginFilename(header.Filename)
-	dto.SetUploadedFilename(filename)
-	dto.SetUploadedFilepath(filepath)
-	dto.SetUploadedFilesize(length)
-	dto.SetUploadedFiletype(header.Header.Get("Content-Type"))
+	// mutate request reqDTO
+	reqDTO.SetOriginFilename(header.Filename)
+	reqDTO.SetUploadedFilename(filename)
+	reqDTO.SetUploadedFilepath(filepath)
+	reqDTO.SetUploadedFilesize(length)
+	reqDTO.SetUploadedFiletype(header.Header.Get("Content-Type"))
 
 	return nil
 }

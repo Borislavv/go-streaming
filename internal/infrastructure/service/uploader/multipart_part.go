@@ -34,8 +34,8 @@ func NewPartsUploader(
 	}
 }
 
-func (u *MultipartPartUploader) Upload(dto dto.UploadResourceRequest) (err error) {
-	part, err := u.getFilePart(dto)
+func (u *MultipartPartUploader) Upload(reqDTO dto.UploadResourceRequest) (err error) {
+	part, err := u.getFilePart(reqDTO)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -62,19 +62,19 @@ func (u *MultipartPartUploader) Upload(dto dto.UploadResourceRequest) (err error
 		return u.logger.LogPropagate(err)
 	}
 
-	// mutate request dto
-	dto.SetOriginFilename(part.FileName())
-	dto.SetUploadedFilename(filename)
-	dto.SetUploadedFilepath(filepath)
-	dto.SetUploadedFilesize(length)
-	dto.SetUploadedFiletype(part.Header.Get("Content-Type"))
+	// mutate request reqDTO
+	reqDTO.SetOriginFilename(part.FileName())
+	reqDTO.SetUploadedFilename(filename)
+	reqDTO.SetUploadedFilepath(filepath)
+	reqDTO.SetUploadedFilesize(length)
+	reqDTO.SetUploadedFiletype(part.Header.Get("Content-Type"))
 
 	return nil
 }
 
-func (u *MultipartPartUploader) getFilePart(dto dto.UploadResourceRequest) (part *multipart.Part, err error) {
+func (u *MultipartPartUploader) getFilePart(reqDTO dto.UploadResourceRequest) (part *multipart.Part, err error) {
 	// extract the multipart form reader (handling the form as a stream)
-	reader, err := dto.GetRequest().MultipartReader()
+	reader, err := reqDTO.GetRequest().MultipartReader()
 	if err != nil {
 		return nil, u.logger.LogPropagate(err)
 	}
