@@ -4,12 +4,10 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	"time"
 )
 
 const (
@@ -59,13 +57,6 @@ func (v *UserValidator) ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) e
 	if reqDTO.GetBirthday() == "" {
 		return errors.NewFieldCannotBeEmptyError(birthdayField)
 	}
-
-	_, err := time.Parse(enum.BirthdayDatePattern, reqDTO.GetBirthday())
-	if err != nil {
-		v.logger.Log(err)
-		return errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday())
-	}
-
 	return nil
 }
 
@@ -73,13 +64,6 @@ func (v *UserValidator) ValidateUpdateRequestDTO(reqDTO dto.UpdateUserRequest) e
 	if err := v.ValidateGetRequestDTO(reqDTO); err != nil {
 		return err
 	}
-
-	_, err := time.Parse(enum.BirthdayDatePattern, reqDTO.GetBirthday())
-	if err != nil {
-		v.logger.Log(err)
-		return errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday())
-	}
-
 	return nil
 }
 
@@ -110,6 +94,12 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 		return v.logger.WarningPropagate(err)
 	}
 
+	// the user birthday cannot be empty or omitted
+	if agg.Birthday.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(birthdayField)
+	}
+
+	// check the user uniqueness
 	user, err := v.userRepository.FindByEmail(v.ctx, agg.Email)
 	if err != nil {
 		if !errors.IsEntityNotFoundError(err) {
