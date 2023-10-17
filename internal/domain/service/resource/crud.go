@@ -42,16 +42,16 @@ func NewResourceService(
 	}
 }
 
-func (s *CRUDService) Upload(req dto.UploadResourceRequest) (resource *agg.Resource, err error) {
-	if err = s.validator.ValidateUploadRequestDTO(req); err != nil {
+func (s *CRUDService) Upload(reqDTO dto.UploadResourceRequest) (resource *agg.Resource, err error) {
+	if err = s.validator.ValidateUploadRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	if err = s.uploader.Upload(req); err != nil {
+	if err = s.uploader.Upload(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	resource = s.builder.BuildAggFromUploadRequestDTO(req)
+	resource = s.builder.BuildAggFromUploadRequestDTO(reqDTO)
 
 	if err = s.validator.ValidateAggregate(resource); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -65,14 +65,14 @@ func (s *CRUDService) Upload(req dto.UploadResourceRequest) (resource *agg.Resou
 	return resource, nil
 }
 
-func (s *CRUDService) Delete(req dto.DeleteResourceRequest) (err error) {
+func (s *CRUDService) Delete(reqDTO dto.DeleteResourceRequest) (err error) {
 	// validation of raw delete request
-	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
+	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
 	// fetching the target resource aggregate
-	resourceAgg, err := s.repository.Find(s.ctx, req.GetID())
+	resourceAgg, err := s.repository.Find(s.ctx, reqDTO.GetID())
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
