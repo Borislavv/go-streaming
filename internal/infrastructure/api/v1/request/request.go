@@ -14,13 +14,13 @@ func NewParametersExtractor() *ParametersExtractor {
 }
 
 // Parameters - will return a map with param. names as keys to values
-func (e *ParametersExtractor) Parameters(req *http.Request) map[string]string {
+func (e *ParametersExtractor) Parameters(r *http.Request) map[string]string {
 	params := make(map[string]string)
 
-	for name, param := range req.URL.Query() {
+	for name, param := range r.URL.Query() {
 		params[name] = param[0]
 	}
-	for name, param := range mux.Vars(req) {
+	for name, param := range mux.Vars(r) {
 		params[name] = param
 	}
 
