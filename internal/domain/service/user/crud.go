@@ -40,12 +40,12 @@ func NewCRUDService(
 	}
 }
 
-func (s *CRUDService) Get(req dto.GetUserRequest) (user *agg.User, err error) {
-	if err = s.validator.ValidateGetRequestDTO(req); err != nil {
+func (s *CRUDService) Get(reqDTO dto.GetUserRequest) (user *agg.User, err error) {
+	if err = s.validator.ValidateGetRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	user, err = s.repository.Find(s.ctx, req.GetID())
+	user, err = s.repository.Find(s.ctx, reqDTO.GetID())
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -53,14 +53,14 @@ func (s *CRUDService) Get(req dto.GetUserRequest) (user *agg.User, err error) {
 	return user, nil
 }
 
-func (s *CRUDService) Create(userDTO dto.CreateUserRequest) (*agg.User, error) {
+func (s *CRUDService) Create(reqDTO dto.CreateUserRequest) (*agg.User, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDTO(userDTO); err != nil {
+	if err := s.validator.ValidateCreateRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	userAgg, err := s.builder.BuildAggFromCreateRequestDTO(userDTO)
+	userAgg, err := s.builder.BuildAggFromCreateRequestDTO(reqDTO)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -86,7 +86,7 @@ func (s *CRUDService) Update(reqDTO dto.UpdateUserRequest) (*agg.User, error) {
 	}
 
 	// building an aggregate
-	userAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
+	userAgg, err := s.builder.BuildAggFromUpdateRequestDTO(reqDTO)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
