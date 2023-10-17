@@ -87,37 +87,60 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(dto dto.CreateUserRequest) (*
 	}, nil
 }
 
-// BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
-func (b *UserBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateUserRequest) (*agg.Video, error) {
-	video, err := b.videoRepository.Find(b.ctx, dto.GetID())
+// BuildUpdateRequestDTOFromRequest - build a dto.UserUpdateRequestDTO from raw *http.Request
+func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.UserUpdateRequestDTO, error) {
+	userDTO := &dto.UserUpdateRequestDTO{}
+	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
+	hexID, err := b.extractor.GetParameter(idField, r)
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+	oID, err := primitive.ObjectIDFromHex(hexID)
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+	userDTO.ID = vo.ID{Value: oID}
+
+	return userDTO, nil
+}
+
+// BuildAggFromUpdateRequestDTO - build an agg.User from dto.UpdateUserRequest
+func (b *UserBuilder) BuildAggFromUpdateRequestDTO(dto dto.UpdateUserRequest) (*agg.User, error) {
+	user, err := b.userRepository.Find(b.ctx, dto.GetID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	changes := 0
-	if video.Name != dto.GetName() {
-		video.Name = dto.GetName()
+	if dto.GetUsername() != user.Username {
+		user.Username = dto.GetUsername()
 		changes++
-	}
-	if video.Description != dto.GetDescription() {
-		video.Description = dto.GetDescription()
-		changes++
-	}
-	if !dto.GetResourceID().Value.IsZero() {
-		resource, ferr := b.resourceRepository.Find(b.ctx, dto.GetResourceID())
-		if ferr != nil {
-			return nil, b.logger.LogPropagate(ferr)
-		}
-		if video.Resource.ID.Value != resource.Resource.ID.Value {
-			video.Resource = resource.Resource
-			changes++
-		}
-	}
-	if changes > 0 {
-		video.Timestamp.UpdatedAt = time.Now()
 	}
 
-	return video, nil
+	if dto.GetBirthday() != user.Birthday.String() {
+		// this validation checked previously into the DTO validator
+		birthday, err := time.Parse(enum.BirthdayDatePattern, dto.GetBirthday())
+		if err != nil {
+			// here, we must have a valid date or occurred internal error
+			return nil, b.logger.CriticalPropagate(err)
+		}
+		user.Birthday = birthday
+		changes++
+	}
+
+	if dto.GetPassword() != user.Password {
+		user.Password = dto.GetPassword()
+		changes++
+	}
+
+	if changes > 0 {
+		user.Timestamp.UpdatedAt = time.Now()
+	}
+
+	return user, nil
 }
 
 // BuildDeleteRequestDTOFromRequest - build a dto.DeleteVideoRequest from raw *http.Request
