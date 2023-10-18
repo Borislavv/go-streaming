@@ -32,6 +32,7 @@ func NewRegistrationController(
 	}
 }
 
+// Registration - is an endpoint for create a new user.
 func (c *RegistrationController) Registration(w http.ResponseWriter, r *http.Request) {
 	userDTO, err := c.builder.BuildCreateRequestDTOFromRequest(r)
 	if err != nil {
