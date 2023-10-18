@@ -11,6 +11,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/auth"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/resource"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/user"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/video"
@@ -277,6 +278,13 @@ func (app *ResourcesApp) InitRestApiControllers(
 			responseService,
 		),
 		user.NewDeleteController(
+			loggerService,
+			userBuilder,
+			userService,
+			responseService,
+		),
+		// auth
+		auth.NewRegistrationController(
 			loggerService,
 			userBuilder,
 			userService,
