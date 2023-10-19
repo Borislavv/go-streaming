@@ -27,6 +27,7 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 	rcookie, err := r.Cookie("access-token")
 	if err != nil {
 		c.logger.Error("access-token cookie is not present into request")
+		c.Write(w, err.Error())
 	} else {
 		if rcookie.Value == tokenStr {
 			token, err := jwt.Parse(rcookie.Value, func(token *jwt.Token) (interface{}, error) {
@@ -40,19 +41,31 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 			})
 			if err != nil {
 				c.logger.Error(err)
+				c.Write(w, err.Error())
 				return
 			}
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				if _, err = w.Write([]byte(fmt.Sprintf("sub: %v, iss: %v, exp: %v", claims["sub"], claims["iss"], claims["exp"]))); err != nil {
 					c.logger.Error(err)
+					c.Write(w, err.Error())
 					return
 				}
 			} else {
 				c.logger.Error(err)
+				c.Write(w, err.Error())
 				return
 			}
 		} else {
-			c.logger.Error("tokenStr != rcookie.Value error")
+			c.logger.Error(fmt.Sprintf(
+				"tokenStr != rcookie.Value error\n %v \n%v",
+				tokenStr,
+				rcookie.Value,
+			))
+			c.Write(w, fmt.Sprintf(
+				"tokenStr != rcookie.Value error\n %v \n%v",
+				tokenStr,
+				rcookie.Value,
+			))
 			return
 		}
 	}
@@ -60,7 +73,7 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": "jared-user",
 		"iss": "streaming-service",
-		"exp": time.Now().Add(time.Minute * 2),
+		"exp": &jwt.NumericDate{Time: time.Now().Add(time.Minute * 2)},
 	})
 
 	tokenStr, err = token.SignedString(hmacSampleSecret)
@@ -77,6 +90,12 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 	http.SetCookie(w, cookie)
 
 	if _, err = w.Write([]byte("cookie successfully sat up")); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func (c *AuthorizationController) Write(w http.ResponseWriter, str string) {
+	if _, err := w.Write([]byte(str)); err != nil {
 		log.Fatalln(err)
 	}
 }
