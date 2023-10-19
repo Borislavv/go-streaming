@@ -65,6 +65,12 @@ It's a pretty simple process, first of all you need to build the application:
   If this variable an empty or omitted then will be generated random salt which is alive while application instance
   is running (note: you cannot get access to this value, and it will not be provided anywhere as an output. If
   you need access to this value, and you need to share this value, then sat up your own secret string).
+- **JWT_TOKEN_ISSUER** is an issuer of JWT token. This variable helps determine which service issued the token
+  (commonly used for verify that token was created by service of your system, for example,
+  if you have more than one service which able for issue a token).
+- **JWT_TOKEN_ACCEPTED_ISSUERS** is a string with another JwtTokenIssuer values separated by delimiter. This values will
+  be accepted while token payload verification.
+- **JWT_TOKEN_ENCRYPT_ALGO** is a value which will be used as encrypt algo for encode the token. Default: `HS256`.
 - **UPLOADER_TYPE** is an uploading strategy which will be used for upload files on the server. Default: `muiltipart_part`.
   1. '**muiltipart_form**' is a strategy which used builtin sugar approach. It will be parsing a whole file into the
             memory (if a file more than InMemoryFileSizeThreshold, it will be saved on the disk, otherwise, it will be
