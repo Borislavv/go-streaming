@@ -8,7 +8,6 @@ import (
 
 const AuthorizationPath = "/authorization"
 
-// AuthorizationController - not implemented yet.
 type AuthorizationController struct {
 }
 
