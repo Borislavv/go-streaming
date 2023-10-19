@@ -20,7 +20,7 @@ type config struct {
 	Port string `env:"RESOURCES_SERVER_PORT" envDefault:"8000"`
 	// Transport is an HTTP server transport protocol.
 	// If you are not concerned about the loss part of packets and this is not a problem for you, then use the UDP,
-	// because this will give you a performance gain (due to the server will not check of packages number and them ordering).
+	// because this will give you a performance gain (due to the server will not check of packages number and them ord.).
 	// Otherwise, if your data needs to be in safe, and you cannot afford to lose it, use the TCP.
 	Transport string `env:"RESOURCES_SERVER_TRANSPORT_PROTOCOL" envDefault:"tcp" opts:"tcp,udp"`
 	// >>> DATABASE <<<
@@ -29,6 +29,12 @@ type config struct {
 	// MongoDb is a name of database into the MongoDb.
 	MongoDb string `env:"MONGO_DATABASE" envDefault:"streaming"`
 	// >>> APPLICATION <<<
+	// JwtSecretSalt is a secret string which further will convert to slice of bytes and will be provided
+	// as a salt for signature the jwt tokens.
+	// If this variable an empty or omitted then will be generated random salt which is alive while application instance
+	// is running (note: you cannot get access to this value, and it will not be provided anywhere as an output. If
+	// you need access to this value, and you need to share this value, then sat up your own secret string).
+	JwtSecretSalt string `env:"JWT_SECRET_SALT" envDefault:""`
 	// UploadingStrategy is an uploading strategy which will be used for upload files on the server.
 	// 	1. 'muiltipart_form' is a strategy which used builtin sugar approach. It will be parsing a whole file into the
 	//		memory (if a file more than InMemoryFileSizeThreshold, it will be saved on the disk, otherwise, it will be
@@ -48,7 +54,7 @@ type config struct {
 	// By default, it's 5gb per file.
 	MaxFilesizeThreshold int64 `env:"MAX_UPLOADING_FILESIZE" envDefault:"5368709120"`
 	// InMemoryFileSizeThreshold is a threshold value which means the max. weight of uploading file in bytes
-	// which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow operation).
+	// which may be loaded in the RAM. If file weight is more this value, than it will be loaded on the disk (slow op.).
 	// By default, it's 100mb per file.
 	InMemoryFileSizeThreshold int64 `env:"IN_MEMORY_FILE_SIZE_THRESHOLD" envDefault:"104857600"`
 	// AdminContactEmail is a target administrator contact email address for takes a users errors reports.
