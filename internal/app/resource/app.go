@@ -284,6 +284,7 @@ func (app *ResourcesApp) InitRestApiControllers(
 			responseService,
 		),
 		// auth
+		auth.NewAuthorizationController(),
 		auth.NewRegistrationController(
 			loggerService,
 			userBuilder,
