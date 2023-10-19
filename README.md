@@ -22,6 +22,19 @@ It's a pretty simple process, first of all you need to build the application:
   
 - Of course, don’t forget to set the environment variables according to your needs. You won’t have to look at them in the `docker-compose` file.
 
+## Configuration
+
+### Api
+
+-  **ApiVersionPrefix** is a value which will be used as your RestAPI controllers version prefix.
+   For example: {{schema}}://{{host}}:{{port}}{{ApiVersionPrefix}}/{{additionalControllerPath}}
+- **RenderVersionPrefix** is a value which will be used as your native rendering controllers version prefix.
+  For example: {{schema}}://{{host}}:{{port}}{{RenderVersionPrefix}}/{{additionalControllerPath}}
+  By default it's an empty string.
+- **StaticVersionPrefix** is a value which will be used as your static files controllers version prefix.
+  For example: {{schema}}://{{host}}:{{port}}{{StaticVersionPrefix}}/{{additionalControllerPath}}
+  By default it's an empty string.
+
 // TODO The Swagger docs. is not implemented yet :( sorry
 
 // I'm already working on it for you! :)
