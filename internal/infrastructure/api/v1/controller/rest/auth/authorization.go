@@ -27,7 +27,6 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 	rcookie, err := r.Cookie("access-token")
 	if err != nil {
 		c.logger.Error("access-token cookie is not present into request")
-		c.Write(w, err.Error())
 	} else {
 		if rcookie.Value == tokenStr {
 			token, err := jwt.Parse(rcookie.Value, func(token *jwt.Token) (interface{}, error) {
@@ -50,6 +49,7 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 					c.Write(w, err.Error())
 					return
 				}
+				return
 			} else {
 				c.logger.Error(err)
 				c.Write(w, err.Error())
@@ -73,7 +73,7 @@ func (c *AuthorizationController) Authorization(w http.ResponseWriter, r *http.R
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": "jared-user",
 		"iss": "streaming-service",
-		"exp": &jwt.NumericDate{Time: time.Now().Add(time.Minute * 2)},
+		"exp": &jwt.NumericDate{Time: time.Now().Add(time.Minute * 1)},
 	})
 
 	tokenStr, err = token.SignedString(hmacSampleSecret)
