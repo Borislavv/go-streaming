@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-const AuthorizationPath = "/auth"
+const AuthorizationPath = "/authorization"
 
 type AuthorizationController struct {
 	logger        logger.Logger
