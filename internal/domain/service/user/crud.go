@@ -45,9 +45,16 @@ func (s *CRUDService) Get(reqDTO dto.GetUserRequest) (user *agg.User, err error)
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	user, err = s.repository.Find(s.ctx, reqDTO.GetID())
-	if err != nil {
-		return nil, s.logger.LogPropagate(err)
+	if !reqDTO.GetID().Value.IsZero() {
+		user, err = s.repository.Find(s.ctx, reqDTO.GetID())
+		if err != nil {
+			return nil, s.logger.LogPropagate(err)
+		}
+	} else if reqDTO.GetEmail() != "" {
+		user, err = s.repository.FindByEmail(s.ctx, reqDTO.GetEmail())
+		if err != nil {
+			return nil, s.logger.LogPropagate(err)
+		}
 	}
 
 	return user, nil
