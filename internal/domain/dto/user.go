@@ -52,6 +52,10 @@ type UserGetRequestDTO struct {
 	Email string `json:"email"`
 }
 
+func NewUserGetRequestDTO(id vo.ID, email string) *UserGetRequestDTO {
+	return &UserGetRequestDTO{ID: id, Email: email}
+}
+
 func (req *UserGetRequestDTO) GetID() vo.ID {
 	return req.ID
 }
