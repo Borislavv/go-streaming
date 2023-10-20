@@ -6,8 +6,8 @@ import (
 )
 
 const (
+	applicationType               = "application"
 	internalServerErrorMessage    = "internal server error"
-	internalServerErrorType       = "application"
 	internalServerErrorStatusCode = http.StatusInternalServerError
 	internalServerErrorLevel      = logger.ErrorLevel
 )
@@ -22,7 +22,7 @@ func NewInternalServerError(msg string) InternalServerError {
 		publicError{
 			errored{
 				ErrorMessage: msg,
-				ErrorType:    internalServerErrorType,
+				ErrorType:    applicationType,
 				errorStatus:  internalServerErrorStatusCode,
 				errorLevel:   internalServerErrorLevel,
 			},

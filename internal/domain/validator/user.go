@@ -38,8 +38,8 @@ func NewUserValidator(
 }
 
 func (v *UserValidator) ValidateGetRequestDTO(reqDTO dto.GetUserRequest) error {
-	if reqDTO.GetID().Value.IsZero() {
-		return errors.NewFieldCannotBeEmptyError(idField)
+	if reqDTO.GetID().Value.IsZero() && reqDTO.GetEmail() == "" {
+		return errors.NewAtLeastOneFieldMustBeDefinedError(idField, emailField)
 	}
 	return nil
 }
@@ -61,8 +61,8 @@ func (v *UserValidator) ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) e
 }
 
 func (v *UserValidator) ValidateUpdateRequestDTO(reqDTO dto.UpdateUserRequest) error {
-	if err := v.ValidateGetRequestDTO(reqDTO); err != nil {
-		return err
+	if reqDTO.GetID().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
@@ -122,5 +122,8 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 }
 
 func (v *UserValidator) ValidateDeleteRequestDTO(reqDTO dto.DeleteUserRequest) error {
-	return v.ValidateGetRequestDTO(reqDTO)
+	if reqDTO.GetID().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(idField)
+	}
+	return nil
 }

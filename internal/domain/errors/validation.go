@@ -17,6 +17,21 @@ const (
 	internalValidationLevel  = logger.CriticalLevel
 )
 
+type RequestBodyIsEmptyError struct{ publicError }
+
+func NewRequestBodyIsEmptyError() RequestBodyIsEmptyError {
+	return RequestBodyIsEmptyError{
+		publicError{
+			errored{
+				ErrorMessage: "request body is empty",
+				ErrorType:    validationType,
+				errorStatus:  http.StatusBadRequest,
+				errorLevel:   logger.InfoLevel,
+			},
+		},
+	}
+}
+
 type InternalValidationError struct{ internalError }
 
 func NewInternalValidationError(message string) *InternalValidationError {

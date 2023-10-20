@@ -48,11 +48,20 @@ func (u *UserUpdateRequestDTO) GetBirthday() string {
 
 // UserGetRequestDTO - used when u want to get the user
 type UserGetRequestDTO struct {
-	ID vo.ID `json:"id"`
+	ID    vo.ID  `json:"id"`
+	Email string `json:"email"`
+}
+
+func NewUserGetRequestDTO(id vo.ID, email string) *UserGetRequestDTO {
+	return &UserGetRequestDTO{ID: id, Email: email}
 }
 
 func (req *UserGetRequestDTO) GetID() vo.ID {
 	return req.ID
+}
+
+func (req *UserGetRequestDTO) GetEmail() string {
+	return req.Email
 }
 
 // UserDeleteRequestDto - used when u want to remove the user
