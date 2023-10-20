@@ -31,32 +31,7 @@ func NewService(
 	}
 }
 
-func (s *Service) Auth(w http.ResponseWriter, r *http.Request, reqDTO dto.AuthRequest) (token string, err error) {
-	if err = s.validator.ValidateAuthRequest(reqDTO); err != nil {
-		return "", s.logger.LogPropagate(err)
-	}
-
-	userAgg, err := s.userService.Get(dto.NewUserGetRequestDTO(vo.ID{}, reqDTO.GetEmail()))
-	if err != nil {
-		return "", s.logger.LogPropagate(err)
-	}
-
-	if userAgg.Password != reqDTO.GetPassword() {
-		return "", errors.NewAuthFailedError("passwords did not match")
-	}
-
-	if err = s.tokenizer.Set(w, r, userAgg); err != nil {
-		return "", s.logger.LogPropagate(err)
-	}
-
-	token, err = s.tokenizer.Get(r)
-	if err != nil {
-		return "", s.logger.LogPropagate(err)
-	}
-
-	return token, nil
-}
-
+// GetToken will check credentials and generate a new access token for given user.
 func (s *Service) GetToken(reqDTO dto.AuthRequest) (token string, err error) {
 	// raw request validation (checking that email and pass is not empty)
 	if err = s.validator.ValidateAuthRequest(reqDTO); err != nil {
@@ -69,7 +44,7 @@ func (s *Service) GetToken(reqDTO dto.AuthRequest) (token string, err error) {
 		return "", s.logger.LogPropagate(err)
 	}
 
-	// checking that credentials is valid
+	// checking that credentials are valid
 	if userAgg.Password != reqDTO.GetPassword() {
 		return "", errors.NewAuthFailedError("passwords did not match")
 	}
@@ -82,4 +57,30 @@ func (s *Service) GetToken(reqDTO dto.AuthRequest) (token string, err error) {
 	}
 
 	return token, nil
+}
+
+// SetCookie will check credentials, generate a new token and set it up in the cookies.
+func (s *Service) SetCookie(w http.ResponseWriter, r *http.Request, reqDTO dto.AuthRequest) error {
+	// raw request validation (checking that email and pass is not empty)
+	if err := s.validator.ValidateAuthRequest(reqDTO); err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	// getting the target user agg. by email
+	userAgg, err := s.userService.Get(dto.NewUserGetRequestDTO(vo.ID{}, reqDTO.GetEmail()))
+	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	// checking that credentials are valid
+	if userAgg.Password != reqDTO.GetPassword() {
+		return errors.NewAuthFailedError("passwords did not match")
+	}
+
+	// setting up the access token in cookies
+	if err = s.tokenizer.Set(w, r, userAgg); err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	return nil
 }

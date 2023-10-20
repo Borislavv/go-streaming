@@ -6,6 +6,6 @@ import (
 )
 
 type Authenticator interface {
-	Auth(w http.ResponseWriter, r *http.Request, reqDTO dto.AuthRequest) (token string, err error)
+	SetCookie(w http.ResponseWriter, r *http.Request, reqDTO dto.AuthRequest) (token string, err error)
 	GetToken(reqDTO dto.AuthRequest) (token string, err error)
 }
