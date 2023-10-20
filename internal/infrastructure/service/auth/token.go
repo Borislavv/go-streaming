@@ -79,9 +79,9 @@ func (s *TokenService) Refresh(w http.ResponseWriter, user *agg.User) error {
 	}
 
 	cookie := &http.Cookie{
-		Name:     TokenCookieKey,
-		Value:    token,
-		HttpOnly: true,
+		Name:    TokenCookieKey,
+		Value:   token,
+		Expires: time.Now().Add(time.Second * time.Duration(s.jwtTokenExpiresAfter)),
 	}
 
 	http.SetCookie(w, cookie)
@@ -147,9 +147,8 @@ func (s *TokenService) isValid(r *http.Request, user *agg.User) (ok bool, err er
 
 func (s *TokenService) Remove(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     TokenCookieKey,
-		Value:    "",
-		HttpOnly: true,
-		Expires:  time.Unix(0, 0),
+		Name:    TokenCookieKey,
+		Value:   "",
+		Expires: time.Unix(0, 0),
 	})
 }
