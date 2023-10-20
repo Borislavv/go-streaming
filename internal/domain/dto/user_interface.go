@@ -20,6 +20,9 @@ type UpdateUserRequest interface {
 
 type GetUserRequest interface {
 	GetID() vo.ID
+	GetEmail() string
 }
 
-type DeleteUserRequest GetUserRequest
+type DeleteUserRequest interface {
+	GetID() vo.ID
+}
