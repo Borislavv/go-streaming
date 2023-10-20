@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
+	domainauth "github.com/Borislavv/video-streaming/internal/domain/service/auth"
 	domainresource "github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	domainuploader "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	domainuser "github.com/Borislavv/video-streaming/internal/domain/service/user"
@@ -21,6 +22,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
+	infrastructureauth "github.com/Borislavv/video-streaming/internal/infrastructure/service/auth"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	_ "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
@@ -147,6 +149,12 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			)
 	}
 
+	// auth. validator
+	authValidator := validator.NewAuthValidator(loggerService, app.cfg.AdminContactEmail)
+
+	// auth. builder
+	authBuilder := builder.NewAuthBuilder(loggerService)
+
 	/**
 	 * CRUD services.
 	 */
@@ -158,6 +166,12 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 	userService := domainuser.NewCRUDService(
 		ctx, loggerService, userBuilder, userValidator, userRepository, videoService,
+	)
+	tokenService := infrastructureauth.NewTokenService(
+		loggerService, app.cfg.JwtSecretSalt,
+	)
+	authService := domainauth.NewService(
+		loggerService, userService, authValidator, tokenService,
 	)
 
 	wg.Add(1)
@@ -178,6 +192,8 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			videoService,
 			userBuilder,
 			userService,
+			authBuilder,
+			authService,
 		),
 		app.InitNativeRenderingControllers(
 			loggerService,
@@ -212,6 +228,9 @@ func (app *ResourcesApp) InitRestApiControllers(
 	// user. deps.
 	userBuilder builder.User,
 	userService domainuser.CRUD,
+	// auth. deps.
+	authBuilder builder.Auth,
+	authService domainauth.Authenticator,
 ) []controller.Controller {
 	return []controller.Controller{
 		// resource
@@ -284,7 +303,12 @@ func (app *ResourcesApp) InitRestApiControllers(
 			responseService,
 		),
 		// auth
-		auth.NewAuthorizationController(loggerService),
+		auth.NewAuthorizationController(
+			loggerService,
+			authBuilder,
+			authService,
+			responseService,
+		),
 		auth.NewRegistrationController(
 			loggerService,
 			userBuilder,
