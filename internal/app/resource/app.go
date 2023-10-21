@@ -34,10 +34,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 )
+
+const DefaultDatabaseTimeout = time.Second * 10
 
 type ResourcesApp struct {
 	cfg config
@@ -121,7 +124,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	// user repository
-	userRepository := mongodb.NewUserRepository(db, loggerService, time.Minute)
+	userRepository := mongodb.NewUserRepository(db, loggerService, DefaultDatabaseTimeout)
 
 	// user builder
 	userBuilder := builder.NewUserBuilder(ctx, loggerService, reqParamsExtractor, userRepository)
@@ -156,6 +159,9 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// auth. builder
 	authBuilder := builder.NewAuthBuilder(loggerService)
 
+	// blocked token repository
+	blockedTokenRepository := mongodb.NewBlockedTokenRepository(db, loggerService, DefaultDatabaseTimeout)
+
 	/**
 	 * CRUD services.
 	 */
@@ -169,7 +175,8 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		ctx, loggerService, userBuilder, userValidator, userRepository, videoService,
 	)
 	tokenService := tokenizer.NewJwtService(
-		loggerService, app.cfg.JwtSecretSalt,
+		ctx, loggerService, blockedTokenRepository, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
+		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
 	)
 	authService := domainauth.NewAuthService(
 		loggerService, userService, authValidator, tokenService,
