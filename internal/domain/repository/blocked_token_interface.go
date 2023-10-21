@@ -1,5 +1,10 @@
 package repository
 
+import (
+	"context"
+)
+
 type BlockedToken interface {
-	Has(token string) (found bool, err error)
+	Insert(ctx context.Context, token string) error
+	Has(ctx context.Context, token string) (found bool, err error)
 }
