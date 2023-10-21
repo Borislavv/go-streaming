@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	passwordFiled = "password"
+	passwordField = "password"
 	emailField    = "email"
 	birthdayField = "birthday"
 )
@@ -49,7 +49,7 @@ func (v *UserValidator) ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) e
 		return errors.NewFieldCannotBeEmptyError(nameField)
 	}
 	if reqDTO.GetPassword() == "" {
-		return errors.NewFieldCannotBeEmptyError(passwordFiled)
+		return errors.NewFieldCannotBeEmptyError(passwordField)
 	}
 	if reqDTO.GetEmail() == "" {
 		return errors.NewFieldCannotBeEmptyError(emailField)
@@ -78,7 +78,7 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 
 	// the user password cannot be empty or omitted
 	if agg.Password == "" {
-		return errors.NewFieldCannotBeEmptyError(passwordFiled)
+		return errors.NewFieldCannotBeEmptyError(passwordField)
 		// the user password must be longer than 8 chars and contains only latin letters/digits
 	} else if len(agg.Password) < 8 || !helper.IsLatinOrDigitOnly(agg.Password) {
 		return errors.NewPasswordIsInvalidError(agg.Password)

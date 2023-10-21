@@ -26,7 +26,7 @@ func (v *AuthValidator) ValidateAuthRequest(reqDTO dto.AuthRequest) error {
 		return errors.NewFieldCannotBeEmptyError(emailField)
 	}
 	if reqDTO.GetPassword() == "" {
-		return errors.NewFieldCannotBeEmptyError(passwordFiled)
+		return errors.NewFieldCannotBeEmptyError(passwordField)
 	}
 	return nil
 }
