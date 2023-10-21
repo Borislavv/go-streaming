@@ -7,7 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
 	"github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
@@ -19,7 +19,7 @@ type CRUDService struct {
 	validator  validator.Resource
 	builder    builder.Resource
 	repository repository.Resource
-	storage    storage.Storage
+	storage    storager.Storage
 }
 
 func NewResourceService(
@@ -29,7 +29,7 @@ func NewResourceService(
 	validator validator.Resource,
 	builder builder.Resource,
 	repository repository.Resource,
-	storage storage.Storage,
+	storage storager.Storage,
 ) *CRUDService {
 	return &CRUDService{
 		ctx:        ctx,

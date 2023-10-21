@@ -4,7 +4,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
 )
 
@@ -17,7 +17,7 @@ const MultipartFormUploadingType = "multipart_form"
 // the appropriate value of 'inMemoryFileSizeThreshold' through env. configuration.
 type MultipartFormUploader struct {
 	logger                    logger.Logger
-	storage                   storage.Storage
+	storage                   storager.Storage
 	filename                  file.NameComputer
 	formFilename              string
 	maxFilesize               int64
@@ -26,7 +26,7 @@ type MultipartFormUploader struct {
 
 func NewNativeUploader(
 	logger logger.Logger,
-	storage storage.Storage,
+	storage storager.Storage,
 	filename file.NameComputer,
 	formFilename string,
 	inMemoryFileSizeThreshold int64,

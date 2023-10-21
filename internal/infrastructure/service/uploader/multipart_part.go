@@ -4,7 +4,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
 	"io"
 	"mime/multipart"
@@ -17,14 +17,14 @@ const MultipartPartUploadingType = "multipart_part"
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
 type MultipartPartUploader struct {
 	logger      logger.Logger
-	storage     storage.Storage
+	storage     storager.Storage
 	filename    file.NameComputer
 	maxFilesize int64
 }
 
 func NewPartsUploader(
 	logger logger.Logger,
-	storage storage.Storage,
+	storage storager.Storage,
 	filename file.NameComputer,
 ) *MultipartPartUploader {
 	return &MultipartPartUploader{
