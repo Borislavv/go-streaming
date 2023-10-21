@@ -3,7 +3,7 @@ package stream
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
+	server "github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
@@ -11,7 +11,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener"
-	ws2 "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/ws"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/ws"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -74,7 +74,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	readerService := reader.NewFileReaderService(ctx, loggerService, app.cfg.ChunkSize)
 
 	// custom websocket communication protocol
-	wsCommunicator := ws2.NewWebSocketCommunicator(loggerService)
+	wsCommunicator := ws.NewWebSocketCommunicator(loggerService)
 
 	// resource codecs determiner
 	codecsDetector := detector.NewResourceCodecInfo(ctx, loggerService)
@@ -97,7 +97,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	streamingService := streamer.NewStreamingService(loggerService, actionsListener, actionsHandler)
 
 	wg.Add(1)
-	go ws.NewWebSocketServer( // websocket server
+	go server.NewWebSocketServer( // websocket server
 		app.cfg.Host, app.cfg.Port, app.cfg.Transport, streamingService, loggerService,
 	).Listen(ctx, wg)
 
