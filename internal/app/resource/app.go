@@ -22,7 +22,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	_ "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
@@ -109,7 +109,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	)
 
 	// filesystem storage
-	filesystemStorage := storage.NewFilesystemStorage(ctx, loggerService)
+	filesystemStorage := storager.NewFilesystemStorage(ctx, loggerService)
 
 	// filename computer
 	filenameComputerService := file.NewNameService()
