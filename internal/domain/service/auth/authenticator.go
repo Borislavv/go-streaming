@@ -4,6 +4,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/domain/service/user"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -14,14 +15,14 @@ type AuthenticatorService struct {
 	logger      logger.Logger
 	userService user.CRUD
 	validator   validator.Auth
-	tokenizer   Tokenizer
+	tokenizer   tokenizer.Tokenizer
 }
 
 func NewAuthenticatorService(
 	logger logger.Logger,
 	userService user.CRUD,
 	validator validator.Auth,
-	tokenizer Tokenizer,
+	tokenizer tokenizer.Tokenizer,
 ) *AuthenticatorService {
 	return &AuthenticatorService{
 		logger:      logger,

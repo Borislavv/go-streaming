@@ -1,4 +1,4 @@
-package auth
+package tokenizer
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
