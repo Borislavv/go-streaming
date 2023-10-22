@@ -8,7 +8,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/codec"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
@@ -24,7 +24,7 @@ type StreamByIDWithOffsetActionStrategy struct {
 	logger          logger.Logger
 	videoRepository repository.Video
 	reader          reader.FileReader
-	codecInfo       codec.Detector
+	codecInfo       detector.Detector
 	communicator    proto.Communicator
 	chunkSize       int
 }
@@ -34,7 +34,7 @@ func NewStreamByIDWithOffsetActionStrategy(
 	logger logger.Logger,
 	videoRepository repository.Video,
 	reader reader.FileReader,
-	codecInfo codec.Detector,
+	codecInfo detector.Detector,
 	communicator proto.Communicator,
 	chunkSize int,
 ) *StreamByIDWithOffsetActionStrategy {

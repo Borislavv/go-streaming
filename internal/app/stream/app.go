@@ -5,7 +5,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/codec"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler"
@@ -77,7 +77,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	wsCommunicator := ws2.NewWebSocketCommunicator(loggerService)
 
 	// resource codecs determiner
-	codecsDetector := codec.NewResourceCodecInfo(ctx, loggerService)
+	codecsDetector := detector.NewResourceCodecInfo(ctx, loggerService)
 
 	// websocket actions listener
 	actionsListener := listener.NewWebSocketActionsListener(loggerService, wsCommunicator)

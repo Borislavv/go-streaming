@@ -22,8 +22,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
-	infrastructureauth "github.com/Borislavv/video-streaming/internal/infrastructure/service/auth"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storage"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	_ "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
@@ -167,7 +167,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	userService := domainuser.NewCRUDService(
 		ctx, loggerService, userBuilder, userValidator, userRepository, videoService,
 	)
-	tokenService := infrastructureauth.NewTokenizerService(
+	tokenService := tokenizer.NewJwtService(
 		loggerService, app.cfg.JwtSecretSalt,
 	)
 	authService := domainauth.NewAuthenticatorService(

@@ -1,4 +1,4 @@
-package auth
+package tokenizer
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
@@ -11,7 +11,7 @@ import (
 
 const TokenCookieKey = "access-token"
 
-type TokenizerService struct {
+type JwtService struct {
 	logger                  logger.Logger
 	jwtTokenAcceptedIssuers []string
 	jwtTokenIssuer          string
@@ -20,17 +20,17 @@ type TokenizerService struct {
 	jwtTokenExpiresAfter    int64
 }
 
-func NewTokenizerService(
+func NewJwtService(
 	logger logger.Logger,
 	jwtSecretSalt string,
-) *TokenizerService {
-	return &TokenizerService{
+) *JwtService {
+	return &JwtService{
 		logger:        logger,
 		jwtSecretSalt: jwtSecretSalt,
 	}
 }
 
-func (s *TokenizerService) New(user *agg.User) (token string, err error) {
+func (s *JwtService) New(user *agg.User) (token string, err error) {
 	tkn := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
 		"iss": s.jwtTokenIssuer,
@@ -44,7 +44,7 @@ func (s *TokenizerService) New(user *agg.User) (token string, err error) {
 	return token, nil
 }
 
-func (s *TokenizerService) Set(w http.ResponseWriter, r *http.Request, user *agg.User) error {
+func (s *JwtService) Set(w http.ResponseWriter, r *http.Request, user *agg.User) error {
 	if !s.Has(r) {
 		if err := s.Refresh(w, user); err != nil {
 			return s.logger.LogPropagate(err)
@@ -53,7 +53,7 @@ func (s *TokenizerService) Set(w http.ResponseWriter, r *http.Request, user *agg
 	return nil
 }
 
-func (s *TokenizerService) Has(r *http.Request) bool {
+func (s *JwtService) Has(r *http.Request) bool {
 	cookie, err := r.Cookie(TokenCookieKey)
 	if err != nil {
 		if err != http.ErrNoCookie {
@@ -64,7 +64,7 @@ func (s *TokenizerService) Has(r *http.Request) bool {
 	return cookie.Value != ""
 }
 
-func (s *TokenizerService) Get(r *http.Request) (token string, err error) {
+func (s *JwtService) Get(r *http.Request) (token string, err error) {
 	cookie, err := r.Cookie(TokenCookieKey)
 	if err != nil {
 		return "", s.logger.LogPropagate(err)
@@ -72,7 +72,7 @@ func (s *TokenizerService) Get(r *http.Request) (token string, err error) {
 	return cookie.Value, nil
 }
 
-func (s *TokenizerService) Refresh(w http.ResponseWriter, user *agg.User) error {
+func (s *JwtService) Refresh(w http.ResponseWriter, user *agg.User) error {
 	token, err := s.New(user)
 	if err != nil {
 		return s.logger.LogPropagate(err)
@@ -89,7 +89,7 @@ func (s *TokenizerService) Refresh(w http.ResponseWriter, user *agg.User) error 
 	return nil
 }
 
-func (s *TokenizerService) IsValid(w http.ResponseWriter, r *http.Request, user *agg.User) (ok bool, err error) {
+func (s *JwtService) IsValid(w http.ResponseWriter, r *http.Request, user *agg.User) (ok bool, err error) {
 	if !s.Has(r) {
 		return false, nil
 	}
@@ -101,7 +101,7 @@ func (s *TokenizerService) IsValid(w http.ResponseWriter, r *http.Request, user 
 	return ok, err
 }
 
-func (s *TokenizerService) isValid(r *http.Request, user *agg.User) (ok bool, err error) {
+func (s *JwtService) isValid(r *http.Request, user *agg.User) (ok bool, err error) {
 	// extract token string from request
 	givenToken, err := s.Get(r)
 	if err != nil {
@@ -145,7 +145,7 @@ func (s *TokenizerService) isValid(r *http.Request, user *agg.User) (ok bool, er
 	return true, nil
 }
 
-func (s *TokenizerService) Remove(w http.ResponseWriter) {
+func (s *JwtService) Remove(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    TokenCookieKey,
 		Value:   "",

@@ -1,4 +1,4 @@
-package codec
+package detector
 
 import "github.com/Borislavv/video-streaming/internal/domain/entity"
 
