@@ -167,10 +167,10 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	userService := domainuser.NewCRUDService(
 		ctx, loggerService, userBuilder, userValidator, userRepository, videoService,
 	)
-	tokenService := infrastructureauth.NewTokenService(
+	tokenService := infrastructureauth.NewTokenizerService(
 		loggerService, app.cfg.JwtSecretSalt,
 	)
-	authService := domainauth.NewService(
+	authService := domainauth.NewAuthenticatorService(
 		loggerService, userService, authValidator, tokenService,
 	)
 
