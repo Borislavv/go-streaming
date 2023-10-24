@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/auth"
+	"github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -14,14 +14,14 @@ const AuthorizationPath = "/authorization"
 type AuthorizationController struct {
 	logger        logger.Logger
 	builder       builder.Auth
-	authenticator auth.Authenticator
+	authenticator authenticator.Authenticator
 	responder     response.Responder
 }
 
 func NewAuthorizationController(
 	logger logger.Logger,
 	builder builder.Auth,
-	authenticator auth.Authenticator,
+	authenticator authenticator.Authenticator,
 	responder response.Responder,
 ) *AuthorizationController {
 	return &AuthorizationController{
