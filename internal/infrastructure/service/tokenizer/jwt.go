@@ -4,8 +4,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/golang-jwt/jwt/v5"
-	"net/http"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
@@ -13,23 +15,27 @@ const TokenCookieKey = "access-token"
 
 type JwtService struct {
 	logger                  logger.Logger
+	blockedTokenRepository  repository.BlockedToken
 	jwtTokenAcceptedIssuers []string
+	jwtSecretSalt           []byte
 	jwtTokenIssuer          string
-	jwtSecretSalt           string
 	jwtTokenEncryptAlgo     string
 	jwtTokenExpiresAfter    int64
 }
 
 func NewJwtService(
 	logger logger.Logger,
+	blockedTokenRepository repository.BlockedToken,
 	jwtSecretSalt string,
 ) *JwtService {
 	return &JwtService{
-		logger:        logger,
-		jwtSecretSalt: jwtSecretSalt,
+		logger:                 logger,
+		blockedTokenRepository: blockedTokenRepository,
+		jwtSecretSalt:          []byte(jwtSecretSalt),
 	}
 }
 
+// New will generate a new JWT.
 func (s *JwtService) New(user *agg.User) (token string, err error) {
 	tkn := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
@@ -37,118 +43,94 @@ func (s *JwtService) New(user *agg.User) (token string, err error) {
 		"exp": &jwt.NumericDate{Time: time.Now().Add(time.Second * time.Duration(s.jwtTokenExpiresAfter))},
 	})
 
-	token, err = tkn.SignedString([]byte(s.jwtSecretSalt))
-	if err != nil {
+	if token, err = tkn.SignedString(s.jwtSecretSalt); err != nil {
 		return "", s.logger.LogPropagate(err)
+	} else {
+		return token, nil
 	}
-	return token, nil
 }
 
-func (s *JwtService) Set(w http.ResponseWriter, r *http.Request, user *agg.User) error {
-	if !s.Has(r) {
-		if err := s.Refresh(w, user); err != nil {
-			return s.logger.LogPropagate(err)
+// Validate will decode the token and return a user ID or error, if it was occurred.
+func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
+	parsedToken, err := jwt.Parse(token, func(decodedToken *jwt.Token) (interface{}, error) {
+		if decodedToken.Header["alg"] != s.jwtTokenEncryptAlgo {
+			// user must be banned here because the algo wasn't matched
+			return nil, errors.NewTokenAlgoWasNotMatchedError(token)
 		}
-	}
-	return nil
-}
-
-func (s *JwtService) Has(r *http.Request) bool {
-	cookie, err := r.Cookie(TokenCookieKey)
-	if err != nil {
-		if err != http.ErrNoCookie {
-			s.logger.Log(err)
+		// cast to the configured givenToken signature type (stored in `s.jwtTokenEncryptAlgo`)
+		if _, success := decodedToken.Method.(*jwt.SigningMethodHMAC); !success {
+			return nil, errors.NewTokenUnexpectedSigningMethodError(token, decodedToken.Header["alg"])
 		}
-		return false
-	}
-	return cookie.Value != ""
-}
-
-func (s *JwtService) Get(r *http.Request) (token string, err error) {
-	cookie, err := r.Cookie(TokenCookieKey)
+		// jwtSecretSalt is a string containing your secret, but you need pass the []byte
+		return s.jwtSecretSalt, nil
+	})
 	if err != nil {
-		return "", s.logger.LogPropagate(err)
+		// parsing givenToken error occurred
+		return vo.ID{}, s.logger.LogPropagate(err)
 	}
-	return cookie.Value, nil
+
+	// extracting claims of the givenToken payload
+	if claims, success := parsedToken.Claims.(jwt.MapClaims); success && parsedToken.Valid {
+		if err = s.isValidIssuer(token, claims); err != nil {
+			return vo.ID{}, s.logger.LogPropagate(err)
+		}
+
+		userID, err = s.getUser(claims)
+		if err != nil {
+			return vo.ID{}, s.logger.LogPropagate(err)
+		}
+
+		return userID, nil
+	} else {
+		// error occurred while extracting claims from givenToken or givenToken is not valid
+		return vo.ID{}, errors.NewTokenInvalidError(token)
+	}
 }
 
-func (s *JwtService) Refresh(w http.ResponseWriter, user *agg.User) error {
-	token, err := s.New(user)
+// Block will mark the token as blocked into the storage.
+func (s *JwtService) Block(token string) error {
+	found, err := s.blockedTokenRepository.Has(token)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
-
-	cookie := &http.Cookie{
-		Name:    TokenCookieKey,
-		Value:   token,
-		Expires: time.Now().Add(time.Second * time.Duration(s.jwtTokenExpiresAfter)),
+	if found {
+		return s.logger.LogPropagate(errors.NewAccessTokenWasBlockedError())
 	}
+	return nil
+}
 
-	http.SetCookie(w, cookie)
+func (s *JwtService) isValidIssuer(token string, claims jwt.Claims) error {
+	// extracting the token issuer
+	iss, err := claims.GetIssuer()
+	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+	// checking that token issuer is valid
+	if iss != s.jwtTokenIssuer && !(func() (isIssuerWasMatched bool) {
+		for _, acceptedIssuer := range s.jwtTokenAcceptedIssuers {
+			if iss == acceptedIssuer {
+				return true
+			}
+		}
+		return false
+	}()) {
+		return errors.NewTokenIssuerWasNotMatchedError(token)
+	}
 
 	return nil
 }
 
-func (s *JwtService) IsValid(w http.ResponseWriter, r *http.Request, user *agg.User) (ok bool, err error) {
-	if !s.Has(r) {
-		return false, nil
-	}
-
-	if ok, err = s.isValid(r, user); err != nil || !ok {
-		s.Remove(w)
-	}
-
-	return ok, err
-}
-
-func (s *JwtService) isValid(r *http.Request, user *agg.User) (ok bool, err error) {
-	// extract token string from request
-	givenToken, err := s.Get(r)
+func (s *JwtService) getUser(claims jwt.Claims) (userID vo.ID, err error) {
+	// extracting subject (hexID) from the claims
+	hexID, err := claims.GetSubject()
 	if err != nil {
-		return false, s.logger.LogPropagate(err)
+		return vo.ID{}, s.logger.LogPropagate(err)
 	}
-
-	parsedToken, err := jwt.Parse(givenToken, func(token *jwt.Token) (interface{}, error) {
-		if token.Header["alg"] != s.jwtTokenEncryptAlgo {
-			// user must be banned here because the algo wasn't matched
-			return nil, errors.NewTokenAlgoWasNotMatchedError()
-		}
-		// cast to the configured token signature type (stored in `s.jwtTokenEncryptAlgo`)
-		if _, success := token.Method.(*jwt.SigningMethodHMAC); !success {
-			return nil, errors.NewTokenUnexpectedSigningMethodError(token.Header["alg"])
-		}
-		// jwtSecretSalt is a string containing your secret, but you need pass the []byte
-		return []byte(s.jwtSecretSalt), nil
-	})
+	// creating an object ID from hex
+	oID, err := primitive.ObjectIDFromHex(hexID)
 	if err != nil {
-		// parsing token error occurred
-		return false, s.logger.LogPropagate(err)
+		return vo.ID{}, s.logger.LogPropagate(err)
 	}
-
-	// extracting claims of the token payload
-	if claims, success := parsedToken.Claims.(jwt.MapClaims); success && parsedToken.Valid {
-		// extracting subject from the claims
-		sub, err := claims.GetSubject()
-		if err != nil {
-			return false, s.logger.LogPropagate(err)
-		}
-		// checking the subject is equals to current user
-		if sub != user.ID.Value.Hex() {
-			return false, errors.NewTokenSubjectPayloadWasNotMatchedError(user.ID.Value.Hex(), sub)
-		}
-	} else {
-		// error occurred while extracting claims from token or token is not valid
-		return false, errors.NewTokenInvalidError(givenToken)
-	}
-
-	// all checks were passed, token is valid
-	return true, nil
-}
-
-func (s *JwtService) Remove(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
-		Name:    TokenCookieKey,
-		Value:   "",
-		Expires: time.Unix(0, 0),
-	})
+	// returning a success response
+	return vo.ID{Value: oID}, nil
 }
