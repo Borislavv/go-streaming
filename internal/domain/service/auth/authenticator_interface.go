@@ -5,5 +5,6 @@ import (
 )
 
 type Authenticator interface {
-	AuthRaw(reqDTO dto.AuthRequest) (token string, err error)
+	// Auth will check raw credentials and generate a new access token for given user.
+	Auth(reqDTO dto.AuthRequest) (token string, err error)
 }

@@ -31,8 +31,8 @@ func NewAuthenticatorService(
 	}
 }
 
-// AuthRaw will check raw credentials and generate a new access token for given user.
-func (s *AuthenticatorService) AuthRaw(reqDTO dto.AuthRequest) (token string, err error) {
+// Auth will check raw credentials and generate a new access token for given user.
+func (s *AuthenticatorService) Auth(reqDTO dto.AuthRequest) (token string, err error) {
 	// raw request validation (checking that email and pass is not empty)
 	if err = s.validator.ValidateAuthRequest(reqDTO); err != nil {
 		return "", s.logger.LogPropagate(err)
