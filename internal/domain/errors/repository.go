@@ -22,7 +22,7 @@ func NewEntityNotFoundError(entity string, by string) *EntityNotFoundError {
 	return &EntityNotFoundError{
 		publicError{
 			errored{
-				ErrorMessage: fmt.Sprintf("entity '%v' not found by given '%s'", entity, by),
+				ErrorMessage: fmt.Sprintf("'%v' not found by given '%s'", entity, by),
 				ErrorType:    repositoryType,
 				errorLevel:   publicRepositoryLevel,
 				errorStatus:  publicRepositoryStatus,
