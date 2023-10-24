@@ -2,12 +2,14 @@ package auth
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/domain/service/user"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"net/http"
 )
 
 type AuthenticatorService struct {
@@ -57,4 +59,26 @@ func (s *AuthenticatorService) Auth(reqDTO dto.AuthRequest) (token string, err e
 	}
 
 	return token, nil
+}
+
+// IsAuthed with check that token is valid and extract userID from it.
+func (s *AuthenticatorService) IsAuthed(r *http.Request) (userID vo.ID, err error) {
+	// validate that token is present into request headers
+	if err = s.validator.ValidateTokennessRequest(r); err != nil {
+		return vo.ID{}, s.logger.LogPropagate(err)
+	}
+
+	// extract token from request headers
+	token := r.Header.Get(enum.AccessTokenHeaderKey)
+	if token == "" {
+		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsEmptyOrOmittedError())
+	}
+
+	// validate token and extract userID from it
+	userID, err = s.tokenizer.Validate(token)
+	if err != nil {
+		return vo.ID{}, s.logger.LogPropagate(err)
+	}
+
+	return userID, nil
 }
