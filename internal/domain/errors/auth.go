@@ -36,13 +36,43 @@ func NewAuthFailedError(msg string) *AuthFailedError {
 	}
 }
 
+type AccessTokenIsEmptyOrOmittedError struct{ publicError }
+
+func NewAccessTokenIsEmptyOrOmittedError() *AccessTokenIsEmptyOrOmittedError {
+	return &AccessTokenIsEmptyOrOmittedError{
+		publicError{
+			errored{
+				ErrorMessage: "authorization failed: token is empty or omitted",
+				ErrorType:    authErrType,
+				errorStatus:  publicAuthErrStatus,
+				errorLevel:   publicAuthErrLevel,
+			},
+		},
+	}
+}
+
+type AccessTokenWasBlockedError struct{ publicError }
+
+func NewAccessTokenWasBlockedError() *AccessTokenWasBlockedError {
+	return &AccessTokenWasBlockedError{
+		publicError{
+			errored{
+				ErrorMessage: "authorization failed: token was blocked",
+				ErrorType:    authErrType,
+				errorStatus:  publicAuthErrStatus,
+				errorLevel:   publicAuthErrLevel,
+			},
+		},
+	}
+}
+
 type TokenAlgoWasNotMatchedError struct{ internalError }
 
-func NewTokenAlgoWasNotMatchedError() *TokenAlgoWasNotMatchedError {
+func NewTokenAlgoWasNotMatchedError(token string) *TokenAlgoWasNotMatchedError {
 	return &TokenAlgoWasNotMatchedError{
 		internalError{
 			errored{
-				ErrorMessage: "token algo was not matched",
+				ErrorMessage: fmt.Sprintf("token '%v' algo was not matched", token),
 				ErrorType:    authErrType,
 				errorStatus:  internalAuthErrStatus,
 				errorLevel:   internalAuthErrLevel,
@@ -53,31 +83,14 @@ func NewTokenAlgoWasNotMatchedError() *TokenAlgoWasNotMatchedError {
 
 type TokenUnexpectedSigningMethodError struct{ internalError }
 
-func NewTokenUnexpectedSigningMethodError(algo interface{}) *TokenUnexpectedSigningMethodError {
+func NewTokenUnexpectedSigningMethodError(token string, algo interface{}) *TokenUnexpectedSigningMethodError {
 	return &TokenUnexpectedSigningMethodError{
 		internalError{
 			errored{
-				ErrorMessage: fmt.Sprintf("unexpected signing algo '%v'", algo),
+				ErrorMessage: fmt.Sprintf("unexpected signing algo '%v' for token '%v'", algo, token),
 				ErrorType:    authErrType,
 				errorStatus:  internalAuthErrStatus,
 				errorLevel:   internalAuthErrLevel,
-			},
-		},
-	}
-}
-
-type TokenSubjectPayloadWasNotMatchedError struct{ internalError }
-
-func NewTokenSubjectPayloadWasNotMatchedError(expected string, given string) *TokenSubjectPayloadWasNotMatchedError {
-	return &TokenSubjectPayloadWasNotMatchedError{
-		internalError{
-			errored{
-				ErrorMessage: fmt.Sprintf(
-					"subject payload was not matched, expected: %v, given: %v", expected, given,
-				),
-				ErrorType:   authErrType,
-				errorStatus: internalAuthErrStatus,
-				errorLevel:  internalAuthErrLevel,
 			},
 		},
 	}
@@ -89,7 +102,22 @@ func NewTokenInvalidError(token string) *TokenInvalidError {
 	return &TokenInvalidError{
 		internalError{
 			errored{
-				ErrorMessage: fmt.Sprintf("given token '%v' is not valid", token),
+				ErrorMessage: fmt.Sprintf("token '%v' is not valid", token),
+				ErrorType:    authErrType,
+				errorStatus:  internalAuthErrStatus,
+				errorLevel:   internalAuthErrLevel,
+			},
+		},
+	}
+}
+
+type TokenIssuerWasNotMatchedError struct{ internalError }
+
+func NewTokenIssuerWasNotMatchedError(token string) *TokenIssuerWasNotMatchedError {
+	return &TokenIssuerWasNotMatchedError{
+		internalError{
+			errored{
+				ErrorMessage: fmt.Sprintf("token '%v' issuer was not matched", token),
 				ErrorType:    authErrType,
 				errorStatus:  internalAuthErrStatus,
 				errorLevel:   internalAuthErrLevel,

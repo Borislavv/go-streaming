@@ -1,7 +1,8 @@
-package auth
+package authenticator
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
@@ -11,20 +12,20 @@ import (
 	"net/http"
 )
 
-type AuthenticatorService struct {
+type AuthService struct {
 	logger      logger.Logger
 	userService user.CRUD
 	validator   validator.Auth
 	tokenizer   tokenizer.Tokenizer
 }
 
-func NewAuthenticatorService(
+func NewAuthService(
 	logger logger.Logger,
 	userService user.CRUD,
 	validator validator.Auth,
 	tokenizer tokenizer.Tokenizer,
-) *AuthenticatorService {
-	return &AuthenticatorService{
+) *AuthService {
+	return &AuthService{
 		logger:      logger,
 		userService: userService,
 		validator:   validator,
@@ -32,8 +33,8 @@ func NewAuthenticatorService(
 	}
 }
 
-// GetToken will check credentials and generate a new access token for given user.
-func (s *AuthenticatorService) GetToken(reqDTO dto.AuthRequest) (token string, err error) {
+// Auth will check raw credentials and generate a new access token for given user.
+func (s *AuthService) Auth(reqDTO dto.AuthRequest) (token string, err error) {
 	// raw request validation (checking that email and pass is not empty)
 	if err = s.validator.ValidateAuthRequest(reqDTO); err != nil {
 		return "", s.logger.LogPropagate(err)
@@ -60,28 +61,24 @@ func (s *AuthenticatorService) GetToken(reqDTO dto.AuthRequest) (token string, e
 	return token, nil
 }
 
-// SetCookie will check credentials, generate a new token and set it up in the cookies.
-func (s *AuthenticatorService) SetCookie(w http.ResponseWriter, r *http.Request, reqDTO dto.AuthRequest) error {
-	// raw request validation (checking that email and pass is not empty)
-	if err := s.validator.ValidateAuthRequest(reqDTO); err != nil {
-		return s.logger.LogPropagate(err)
+// IsAuthed with check that token is valid and extract userID from it.
+func (s *AuthService) IsAuthed(r *http.Request) (userID vo.ID, err error) {
+	// validate that token is present into request headers
+	if err = s.validator.ValidateTokennessRequest(r); err != nil {
+		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 
-	// getting the target user agg. by email
-	userAgg, err := s.userService.Get(dto.NewUserGetRequestDTO(vo.ID{}, reqDTO.GetEmail()))
+	// extract token from request headers
+	token := r.Header.Get(enum.AccessTokenHeaderKey)
+	if token == "" {
+		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsEmptyOrOmittedError())
+	}
+
+	// validate token and extract userID from it
+	userID, err = s.tokenizer.Validate(token)
 	if err != nil {
-		return s.logger.LogPropagate(err)
+		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 
-	// checking that credentials are valid
-	if userAgg.Password != reqDTO.GetPassword() {
-		return errors.NewAuthFailedError("passwords did not match")
-	}
-
-	// setting up the access token in cookies
-	if err = s.tokenizer.Set(w, r, userAgg); err != nil {
-		return s.logger.LogPropagate(err)
-	}
-
-	return nil
+	return userID, nil
 }

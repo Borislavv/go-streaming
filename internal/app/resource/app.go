@@ -3,7 +3,7 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	domainauth "github.com/Borislavv/video-streaming/internal/domain/service/auth"
+	domainauth "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	domainresource "github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	domainuploader "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	domainuser "github.com/Borislavv/video-streaming/internal/domain/service/user"
@@ -170,7 +170,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	tokenService := tokenizer.NewJwtService(
 		loggerService, app.cfg.JwtSecretSalt,
 	)
-	authService := domainauth.NewAuthenticatorService(
+	authService := domainauth.NewAuthService(
 		loggerService, userService, authValidator, tokenService,
 	)
 
