@@ -41,7 +41,7 @@ func (c *AuthorizationController) GetAccessToken(w http.ResponseWriter, r *http.
 	}
 
 	// getting access token
-	token, err := c.authenticator.GetToken(reqDTO)
+	token, err := c.authenticator.Auth(reqDTO)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
