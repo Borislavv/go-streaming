@@ -14,7 +14,7 @@ const (
 	publicAuthErrStatus   = http.StatusBadRequest
 )
 
-type AuthFailedError struct{ PublicError }
+type AuthFailedError struct{ publicError }
 
 func NewAuthFailedError(msg string) *AuthFailedError {
 	baseMsg := "authorization failed"
@@ -29,8 +29,8 @@ func NewAuthFailedError(msg string) *AuthFailedError {
 			errored{
 				ErrorMessage: msg,
 				ErrorType:    authErrType,
-				errorStatus:  publicAuthErrStatus,
 				errorLevel:   publicAuthErrLevel,
+				errorStatus:  publicAuthErrStatus,
 			},
 		},
 	}
