@@ -7,3 +7,7 @@ type Video struct {
 	Name        string `json:"name" bson:"name"`
 	Description string `json:"description" bson:"description,omitempty"`
 }
+
+func (r Video) GetID() vo.ID {
+	return r.ID
+}
