@@ -7,3 +7,7 @@ type Audio struct {
 	Name        string `bson:"name"`
 	Description string `bson:"description,omitempty"`
 }
+
+func (r Audio) GetID() vo.ID {
+	return r.ID
+}
