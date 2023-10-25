@@ -18,6 +18,9 @@ type Resource struct {
 	Filesize int64  `json:"filesize" bson:"filesize"` // size of uploaded file
 }
 
+func (r Resource) GetID() vo.ID {
+	return r.ID
+}
 func (r Resource) GetName() string {
 	return r.Name
 }

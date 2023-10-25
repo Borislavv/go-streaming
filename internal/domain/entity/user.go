@@ -12,3 +12,7 @@ type User struct {
 	Email    string    `json:"email" bson:"email"` // unique key
 	Birthday time.Time `json:"birthday" bson:"birthday,omitempty"`
 }
+
+func (r User) GetID() vo.ID {
+	return r.ID
+}
