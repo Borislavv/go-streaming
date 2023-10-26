@@ -79,7 +79,7 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isG
 }
 
 // video
-func (s *AccessService) videoHandler(userId vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
+func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
 	if !s.audioIsAppropriateHandler(aggregate) {
 		return false, s.logger.LogPropagate(
 			fmt.Errorf(
@@ -88,7 +88,12 @@ func (s *AccessService) videoHandler(userId vo.ID, aggregate agg.Aggregate) (isG
 			),
 		)
 	}
-	// TODO must be implemented
+
+	userAgg, err := s.userRepository.Find(s.ctx, userID)
+	if err != nil {
+		return false, s.logger.LogPropagate(err)
+	}
+
 	return true, nil
 }
 func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
