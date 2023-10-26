@@ -12,7 +12,7 @@ import (
 )
 
 type AggregateAccessType int
-type AggregateAccessHandler func(userID vo.ID, agg agg.Aggregate) (isGranted bool, err error)
+type AggregateAccessHandler func(userAgg *agg.User, agg agg.Aggregate) (isGranted bool, err error)
 type AggregateAccessIsAppropriateHandler func(agg agg.Aggregate) (isSupported bool)
 
 const (
@@ -55,6 +55,11 @@ func NewAccessService(
 
 // IsGranted is a method which will check the access to target scope of aggregates.
 func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isGranted bool, err error) {
+	userAgg, err := s.userRepository.Find(s.ctx, userID)
+	if err != nil {
+		return false, s.logger.LogPropagate(err)
+	}
+
 	for _, aggregate := range aggregates {
 		for aggregateAccessType, isAppropriateHandler := range s.isAppropriateHandlerFuncs {
 			if isAppropriateHandler(aggregate) {
@@ -68,7 +73,7 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isG
 					)
 				}
 
-				isGranted, err = appropriateHandler(userID, aggregate)
+				isGranted, err = appropriateHandler(userAgg, aggregate)
 				if err != nil {
 					return false, s.logger.LogPropagate(err)
 				}
@@ -83,7 +88,7 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isG
 }
 
 // video
-func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
+func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate) (isGranted bool, err error) {
 	videoAgg, ok := aggregate.(*agg.Video)
 	if !ok {
 		return false, s.logger.LogPropagate(
@@ -94,18 +99,15 @@ func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) (isG
 		)
 	}
 
-	userAgg, err := s.userRepository.Find(s.ctx, userID)
-	if err != nil {
-		return false, s.logger.LogPropagate(err)
-	}
-
 	for _, videoID := range userAgg.VideoIDs {
 		if videoID.Value == videoAgg.ID.Value {
+			// video match was found, access is granted for this user
 			return true, nil
 		}
 	}
 
-	return true, nil
+	// video was not matched, access is denied
+	return false, nil
 }
 func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Audio); ok {
@@ -115,8 +117,9 @@ func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // audio
-func (s *AccessService) audioHandler(userID vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
-	if !s.videoIsAppropriateHandler(aggregate) {
+func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate) (isGranted bool, err error) {
+	audioAgg, ok := aggregate.(*agg.Audio)
+	if !ok {
 		return false, s.logger.LogPropagate(
 			fmt.Errorf(
 				"unable to check access for given aggregate of type '%v' in audio access handler",
@@ -124,8 +127,16 @@ func (s *AccessService) audioHandler(userID vo.ID, aggregate agg.Aggregate) (isG
 			),
 		)
 	}
-	// TODO must be implemented
-	return true, nil
+
+	for _, audioID := range userAgg.AudioIDs {
+		if audioID.Value == audioAgg.ID.Value {
+			// audio match was found, access is granted for this user
+			return true, nil
+		}
+	}
+
+	// audio was not matched, access is denied
+	return false, nil
 }
 func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Video); ok {
