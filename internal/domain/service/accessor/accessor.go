@@ -55,6 +55,7 @@ func NewAccessService(
 
 // IsGranted is a method which will check the access to target scope of aggregates.
 func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isGranted bool, err error) {
+	// TODO must be implemented cache and its interface for storing users and get users from cache later
 	userAgg, err := s.userRepository.Find(s.ctx, userID)
 	if err != nil {
 		return false, s.logger.LogPropagate(err)
