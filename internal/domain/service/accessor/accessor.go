@@ -84,7 +84,8 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isG
 
 // video
 func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
-	if !s.audioIsAppropriateHandler(aggregate) {
+	videoAgg, ok := aggregate.(*agg.Video)
+	if !ok {
 		return false, s.logger.LogPropagate(
 			fmt.Errorf(
 				"unable to check access for given aggregate of type '%v' in video access handler",
@@ -96,6 +97,12 @@ func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) (isG
 	userAgg, err := s.userRepository.Find(s.ctx, userID)
 	if err != nil {
 		return false, s.logger.LogPropagate(err)
+	}
+
+	for _, videoID := range userAgg.VideoIDs {
+		if videoID.Value == videoAgg.ID.Value {
+			return true, nil
+		}
 	}
 
 	return true, nil
