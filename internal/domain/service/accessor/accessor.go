@@ -12,7 +12,7 @@ import (
 )
 
 type AggregateAccessType int
-type AggregateAccessHandler func(userAgg *agg.User, agg agg.Aggregate) (isGranted bool, err error)
+type AggregateAccessHandler func(userAgg *agg.User, agg agg.Aggregate) (err error)
 type AggregateAccessIsAppropriateHandler func(agg agg.Aggregate) (isSupported bool)
 
 const (
@@ -74,25 +74,22 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isG
 					)
 				}
 
-				isGranted, err = appropriateHandler(userAgg, aggregate)
-				if err != nil {
+				if err = appropriateHandler(userAgg, aggregate); err != nil {
 					return false, s.logger.LogPropagate(err)
-				}
-				if !isGranted {
-					return false, nil
 				}
 			}
 		}
 	}
 
+	// access is granted, no errors were occurred
 	return true, nil
 }
 
 // video
-func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate) (isGranted bool, err error) {
+func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
 	videoAgg, ok := aggregate.(*agg.Video)
 	if !ok {
-		return false, s.logger.LogPropagate(
+		return s.logger.LogPropagate(
 			fmt.Errorf(
 				"unable to check access for given aggregate of type '%v' in video access handler",
 				reflect.TypeOf(aggregate).Name(),
@@ -103,12 +100,14 @@ func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate)
 	for _, videoID := range userAgg.VideoIDs {
 		if videoID.Value == videoAgg.ID.Value {
 			// video match was found, access is granted for this user
-			return true, nil
+			return s.logger.LogPropagate(
+				errors.NewAccessDeniedError("you have not enough rights for access to video entity"),
+			)
 		}
 	}
 
 	// video was not matched, access is denied
-	return false, nil
+	return nil
 }
 func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Audio); ok {
@@ -118,10 +117,10 @@ func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // audio
-func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate) (isGranted bool, err error) {
+func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate) (err error) {
 	audioAgg, ok := aggregate.(*agg.Audio)
 	if !ok {
-		return false, s.logger.LogPropagate(
+		return s.logger.LogPropagate(
 			fmt.Errorf(
 				"unable to check access for given aggregate of type '%v' in audio access handler",
 				reflect.TypeOf(aggregate).Name(),
@@ -132,12 +131,14 @@ func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate)
 	for _, audioID := range userAgg.AudioIDs {
 		if audioID.Value == audioAgg.ID.Value {
 			// audio match was found, access is granted for this user
-			return true, nil
+			return s.logger.LogPropagate(
+				errors.NewAccessDeniedError("you have not enough rights for access to audio entity"),
+			)
 		}
 	}
 
 	// audio was not matched, access is denied
-	return false, nil
+	return nil
 }
 func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Video); ok {
@@ -167,8 +168,8 @@ func (s *AccessService) resourceIsAppropriateHandler(v agg.Aggregate) (isAppropr
 }
 
 // user
-func (s *AccessService) userHandler(userID vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
-	userAgg, ok := aggregate.(*agg.User)
+func (s *AccessService) userHandler(userAgg *agg.User, aggregate agg.Aggregate) (isGranted bool, err error) {
+	givenUserAgg, ok := aggregate.(*agg.User)
 	if !ok {
 		return false, s.logger.LogPropagate(
 			fmt.Errorf(
@@ -178,8 +179,10 @@ func (s *AccessService) userHandler(userID vo.ID, aggregate agg.Aggregate) (isGr
 		)
 	}
 
-	if userAgg.ID.Value != userID.Value {
-		return false, s.logger.LogPropagate(errors.NewAccessDeniedError("you have not enough rights"))
+	if userAgg.ID.Value != givenUserAgg.ID.Value {
+		return false, s.logger.LogPropagate(
+			errors.NewAccessDeniedError("you have not enough rights for access to user entity"),
+		)
 	}
 
 	return true, nil
