@@ -115,7 +115,7 @@ func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // audio
-func (s *AccessService) audioHandler(userId vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
+func (s *AccessService) audioHandler(userID vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
 	if !s.videoIsAppropriateHandler(aggregate) {
 		return false, s.logger.LogPropagate(
 			fmt.Errorf(
