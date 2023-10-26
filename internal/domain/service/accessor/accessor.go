@@ -100,14 +100,16 @@ func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate)
 	for _, videoID := range userAgg.VideoIDs {
 		if videoID.Value == videoAgg.ID.Value {
 			// video match was found, access is granted for this user
-			return s.logger.LogPropagate(
-				errors.NewAccessDeniedError("you have not enough rights for access to video entity"),
-			)
+			return nil
 		}
 	}
 
 	// video was not matched, access is denied
-	return nil
+	return s.logger.LogPropagate(
+		errors.NewAccessDeniedError(
+			"you have not enough rights, one of entities is video and it's not belong to you",
+		),
+	)
 }
 func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Audio); ok {
@@ -117,7 +119,7 @@ func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // audio
-func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate) (err error) {
+func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
 	audioAgg, ok := aggregate.(*agg.Audio)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -131,14 +133,16 @@ func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate)
 	for _, audioID := range userAgg.AudioIDs {
 		if audioID.Value == audioAgg.ID.Value {
 			// audio match was found, access is granted for this user
-			return s.logger.LogPropagate(
-				errors.NewAccessDeniedError("you have not enough rights for access to audio entity"),
-			)
+			return nil
 		}
 	}
 
 	// audio was not matched, access is denied
-	return nil
+	return s.logger.LogPropagate(
+		errors.NewAccessDeniedError(
+			"you have not enough rights, one of entities is audio and it's not belong to you",
+		),
+	)
 }
 func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Video); ok {
@@ -148,17 +152,30 @@ func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // resource
-func (s *AccessService) resourceHandler(userId vo.ID, aggregate agg.Aggregate) (isGranted bool, err error) {
-	if !s.resourceIsAppropriateHandler(aggregate) {
-		return false, s.logger.LogPropagate(
+func (s *AccessService) resourceHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
+	resourceAgg, ok := aggregate.(*agg.Resource)
+	if !ok {
+		return s.logger.LogPropagate(
 			fmt.Errorf(
 				"unable to check access for given aggregate of type '%v' in resource access handler",
 				reflect.TypeOf(aggregate).Name(),
 			),
 		)
 	}
-	// TODO must be implemented
-	return true, nil
+
+	for _, resourceID := range userAgg.ResourceIDs {
+		if resourceID.Value == resourceAgg.ID.Value {
+			// resource match was found, access is granted for this user
+			return nil
+		}
+	}
+
+	// resource was not matched, access is denied
+	return s.logger.LogPropagate(
+		errors.NewAccessDeniedError(
+			"you have not enough rights, one of entities is resource and it's not belong to you",
+		),
+	)
 }
 func (s *AccessService) resourceIsAppropriateHandler(v agg.Aggregate) (isAppropriate bool) {
 	if _, ok := v.(*agg.Resource); ok {
@@ -168,10 +185,10 @@ func (s *AccessService) resourceIsAppropriateHandler(v agg.Aggregate) (isAppropr
 }
 
 // user
-func (s *AccessService) userHandler(userAgg *agg.User, aggregate agg.Aggregate) (isGranted bool, err error) {
+func (s *AccessService) userHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
 	givenUserAgg, ok := aggregate.(*agg.User)
 	if !ok {
-		return false, s.logger.LogPropagate(
+		return s.logger.LogPropagate(
 			fmt.Errorf(
 				"unable to check access for given aggregate of type '%v' in user access handler",
 				reflect.TypeOf(aggregate).Name(),
@@ -179,13 +196,17 @@ func (s *AccessService) userHandler(userAgg *agg.User, aggregate agg.Aggregate) 
 		)
 	}
 
-	if userAgg.ID.Value != givenUserAgg.ID.Value {
-		return false, s.logger.LogPropagate(
-			errors.NewAccessDeniedError("you have not enough rights for access to user entity"),
-		)
+	if userAgg.ID.Value == givenUserAgg.ID.Value {
+		// user match was found, access is granted
+		return nil
 	}
 
-	return true, nil
+	// user was not matched, access is denied
+	return s.logger.LogPropagate(
+		errors.NewAccessDeniedError(
+			"you have not enough rights, one of entities is another user",
+		),
+	)
 }
 func (s *AccessService) userIsAppropriateHandler(v agg.Aggregate) (isAppropriate bool) {
 	if _, ok := v.(*agg.User); ok {
