@@ -1,6 +1,7 @@
 package accessor
 
 import (
+	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
@@ -22,6 +23,7 @@ const (
 )
 
 type AccessService struct {
+	ctx                       context.Context
 	logger                    logger.Logger
 	videoRepository           repository.Video
 	audioRepository           repository.Audio
@@ -32,6 +34,7 @@ type AccessService struct {
 }
 
 func NewAccessService(
+	ctx context.Context,
 	logger logger.Logger,
 	videoRepository repository.Video,
 	audioRepository repository.Audio,
@@ -39,6 +42,7 @@ func NewAccessService(
 	resourceRepository repository.Resource,
 ) *AccessService {
 	return (&AccessService{
+		ctx:                       ctx,
 		logger:                    logger,
 		videoRepository:           videoRepository,
 		audioRepository:           audioRepository,
