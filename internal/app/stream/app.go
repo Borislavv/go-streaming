@@ -2,10 +2,10 @@ package stream
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler"
@@ -38,7 +38,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. logger and close func.
-	loggerService, cls := stdout.NewLogger(ctx, 10, 10)
+	loggerService, cls := logger.NewStdOut(ctx, 10, 10)
 	defer func() {
 		cancel()
 		wg.Wait()

@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
+	domainlogger "github.com/Borislavv/video-streaming/internal/domain/logger"
 	domainauth "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	domainresource "github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	domainuploader "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
@@ -19,9 +20,9 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/logger/stdout"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
@@ -53,7 +54,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// init. loggerService and close func.
-	loggerService, cls := stdout.NewLogger(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
+	loggerService, cls := logger.NewStdOut(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
 	defer func() {
 		cancel()
 		wg.Wait()
@@ -217,7 +218,7 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
-	loggerService *stdout.Logger,
+	loggerService domainlogger.Logger,
 	responseService response.Responder,
 	// resource deps.
 	resourceBuilder builder.Resource,
@@ -319,7 +320,7 @@ func (app *ResourcesApp) InitRestApiControllers(
 }
 
 func (app *ResourcesApp) InitNativeRenderingControllers(
-	loggerService *stdout.Logger,
+	loggerService domainlogger.Logger,
 	responseService response.Responder,
 ) []controller.Controller {
 	return []controller.Controller{
@@ -328,7 +329,7 @@ func (app *ResourcesApp) InitNativeRenderingControllers(
 }
 
 func (app *ResourcesApp) InitStaticServingControllers(
-	loggerService *stdout.Logger,
+	loggerService domainlogger.Logger,
 	responseService response.Responder,
 ) []controller.Controller {
 	return []controller.Controller{
