@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type Logger struct {
+type abstract struct {
 	mu     *sync.Mutex
 	ctx    context.Context
 	writer io.Writer
@@ -21,8 +21,8 @@ type Logger struct {
 	reqCh  chan any
 }
 
-func NewLogger(ctx context.Context, w io.Writer, errBuff int, reqBuff int) (logger *Logger, closeFunc func()) {
-	l := &Logger{
+func newAbstractLogger(ctx context.Context, w io.Writer, errBuff int, reqBuff int) (logger *abstract, closeFunc func()) {
+	l := &abstract{
 		mu:     new(sync.Mutex),
 		ctx:    ctx,
 		writer: w,
@@ -33,49 +33,49 @@ func NewLogger(ctx context.Context, w io.Writer, errBuff int, reqBuff int) (logg
 	return l, l.Close()
 }
 
-func (l *Logger) Close() (closeFunc func()) {
+func (l *abstract) Close() (closeFunc func()) {
 	return func() {
 		close(l.errCh)
 		close(l.reqCh)
 	}
 }
 
-func (l *Logger) SetOutput(w io.Writer) {
+func (l *abstract) SetOutput(w io.Writer) {
 	defer l.mu.Unlock()
 	l.mu.Lock()
 	l.writer = w
 }
 
-func (l *Logger) Writer() io.Writer {
+func (l *abstract) Writer() io.Writer {
 	return l.writer
 }
 
-func (l *Logger) SetContext(ctx context.Context) {
+func (l *abstract) SetContext(ctx context.Context) {
 	defer l.mu.Unlock()
 	l.mu.Lock()
 	l.ctx = ctx
 }
 
-func (l *Logger) Context() context.Context {
+func (l *abstract) Context() context.Context {
 	return l.ctx
 }
 
-func (l *Logger) LogData(data any) {
+func (l *abstract) LogData(data any) {
 	l.reqCh <- data
 }
 
-func (l *Logger) Log(err error) {
+func (l *abstract) Log(err error) {
 	file, function, line := l.trace()
 	l.log(err, file, function, line)
 }
 
-func (l *Logger) LogPropagate(err error) error {
+func (l *abstract) LogPropagate(err error) error {
 	file, function, line := l.trace()
 	l.log(err, file, function, line)
 	return err
 }
 
-func (l *Logger) Info(strOrErr any) {
+func (l *abstract) Info(strOrErr any) {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -92,7 +92,7 @@ func (l *Logger) Info(strOrErr any) {
 	}
 }
 
-func (l *Logger) InfoPropagate(strOrErr any) error {
+func (l *abstract) InfoPropagate(strOrErr any) error {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -111,7 +111,7 @@ func (l *Logger) InfoPropagate(strOrErr any) error {
 	return err
 }
 
-func (l *Logger) Debug(strOrErr any) {
+func (l *abstract) Debug(strOrErr any) {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -128,7 +128,7 @@ func (l *Logger) Debug(strOrErr any) {
 	}
 }
 
-func (l *Logger) DebugPropagate(strOrErr any) error {
+func (l *abstract) DebugPropagate(strOrErr any) error {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -147,7 +147,7 @@ func (l *Logger) DebugPropagate(strOrErr any) error {
 	return err
 }
 
-func (l *Logger) Warning(strOrErr any) {
+func (l *abstract) Warning(strOrErr any) {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -164,7 +164,7 @@ func (l *Logger) Warning(strOrErr any) {
 	}
 }
 
-func (l *Logger) WarningPropagate(strOrErr any) error {
+func (l *abstract) WarningPropagate(strOrErr any) error {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -183,7 +183,7 @@ func (l *Logger) WarningPropagate(strOrErr any) error {
 	return err
 }
 
-func (l *Logger) Error(strOrErr any) {
+func (l *abstract) Error(strOrErr any) {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -200,7 +200,7 @@ func (l *Logger) Error(strOrErr any) {
 	}
 }
 
-func (l *Logger) ErrorPropagate(strOrErr any) error {
+func (l *abstract) ErrorPropagate(strOrErr any) error {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -219,7 +219,7 @@ func (l *Logger) ErrorPropagate(strOrErr any) error {
 	return err
 }
 
-func (l *Logger) Critical(strOrErr any) {
+func (l *abstract) Critical(strOrErr any) {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -236,7 +236,7 @@ func (l *Logger) Critical(strOrErr any) {
 	}
 }
 
-func (l *Logger) CriticalPropagate(strOrErr any) error {
+func (l *abstract) CriticalPropagate(strOrErr any) error {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -255,7 +255,7 @@ func (l *Logger) CriticalPropagate(strOrErr any) error {
 	return err
 }
 
-func (l *Logger) Emergency(strOrErr any) {
+func (l *abstract) Emergency(strOrErr any) {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -272,7 +272,7 @@ func (l *Logger) Emergency(strOrErr any) {
 	}
 }
 
-func (l *Logger) EmergencyPropagate(strOrErr any) error {
+func (l *abstract) EmergencyPropagate(strOrErr any) error {
 	file, function, line := l.trace()
 
 	err := l.error(strOrErr)
@@ -291,7 +291,7 @@ func (l *Logger) EmergencyPropagate(strOrErr any) error {
 	return err
 }
 
-func (l *Logger) handle() {
+func (l *abstract) handle() {
 	go func() {
 		for err := range l.errCh {
 			l.mu.Lock()
@@ -350,7 +350,7 @@ func (l *Logger) handle() {
 	}()
 }
 
-func (l *Logger) log(e error, file string, function string, line int) {
+func (l *abstract) log(e error, file string, function string, line int) {
 	err, isLoggableErr := e.(LoggableError)
 	if !isLoggableErr {
 		l.errCh <- &errorLevelError{
@@ -444,7 +444,7 @@ func (l *Logger) log(e error, file string, function string, line int) {
 	panic("logger.log(): undefined error level received")
 }
 
-func (l *Logger) trace() (file string, function string, line int) {
+func (l *abstract) trace() (file string, function string, line int) {
 	pc := make([]uintptr, 15)
 	n := runtime.Callers(3, pc)
 	frames := runtime.CallersFrames(pc[:n])
@@ -453,7 +453,7 @@ func (l *Logger) trace() (file string, function string, line int) {
 	return frame.File, frame.Func.Name(), frame.Line
 }
 
-func (l *Logger) error(strOrErr any) error {
+func (l *abstract) error(strOrErr any) error {
 	err, isErr := strOrErr.(error)
 	if isErr {
 		return err
