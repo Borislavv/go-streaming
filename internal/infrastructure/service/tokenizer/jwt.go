@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -11,9 +12,8 @@ import (
 	"time"
 )
 
-const TokenCookieKey = "access-token"
-
 type JwtService struct {
+	ctx                     context.Context
 	logger                  logger.Logger
 	blockedTokenRepository  repository.BlockedToken
 	jwtTokenAcceptedIssuers []string
@@ -24,14 +24,24 @@ type JwtService struct {
 }
 
 func NewJwtService(
+	ctx context.Context,
 	logger logger.Logger,
 	blockedTokenRepository repository.BlockedToken,
+	jwtTokenAcceptedIssuers []string,
 	jwtSecretSalt string,
+	jwtTokenIssuer string,
+	jwtTokenEncryptAlgo string,
+	jwtTokenExpiresAfter int64,
 ) *JwtService {
 	return &JwtService{
-		logger:                 logger,
-		blockedTokenRepository: blockedTokenRepository,
-		jwtSecretSalt:          []byte(jwtSecretSalt),
+		ctx:                     ctx,
+		logger:                  logger,
+		blockedTokenRepository:  blockedTokenRepository,
+		jwtTokenAcceptedIssuers: jwtTokenAcceptedIssuers,
+		jwtSecretSalt:           []byte(jwtSecretSalt),
+		jwtTokenIssuer:          jwtTokenIssuer,
+		jwtTokenEncryptAlgo:     jwtTokenEncryptAlgo,
+		jwtTokenExpiresAfter:    jwtTokenExpiresAfter,
 	}
 }
 
@@ -52,6 +62,15 @@ func (s *JwtService) New(user *agg.User) (token string, err error) {
 
 // Validate will decode the token and return a user ID or error, if it was occurred.
 func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
+	// checking that token is not blocked
+	found, err := s.blockedTokenRepository.Has(s.ctx, token)
+	if err != nil {
+		return vo.ID{}, s.logger.LogPropagate(err)
+	}
+	if found {
+		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenWasBlockedError())
+	}
+
 	parsedToken, err := jwt.Parse(token, func(decodedToken *jwt.Token) (interface{}, error) {
 		if decodedToken.Header["alg"] != s.jwtTokenEncryptAlgo {
 			// user must be banned here because the algo wasn't matched
@@ -89,7 +108,7 @@ func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
 
 // Block will mark the token as blocked into the storage.
 func (s *JwtService) Block(token string) error {
-	found, err := s.blockedTokenRepository.Has(token)
+	found, err := s.blockedTokenRepository.Has(s.ctx, token)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
