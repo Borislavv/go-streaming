@@ -10,6 +10,6 @@ type StdOut struct {
 }
 
 func NewStdOut(ctx context.Context, errBuff int, reqBuff int) (logger *StdOut, closeFunc func()) {
-	abstractLogger, closeFunc := newAbstractLogger(ctx, os.Stdout, errBuff, reqBuff)
+	abstractLogger, closeFunc := newAbstractLogger(ctx, os.Stderr, errBuff, reqBuff)
 	return &StdOut{abstract: abstractLogger}, closeFunc
 }
