@@ -77,9 +77,19 @@ func (c *MapCacheStorage) Delete(key string) {
 }
 
 func (c *MapCacheStorage) Displace() {
+	var keys []string
+
+	c.mu.RLock()
 	for key, item := range c.storage {
-		if !item.expiresAt.IsZero() && item.expiresAt.UnixNano() >= time.Now().UnixNano() {
-			c.Delete(key)
+		if !item.expiresAt.IsZero() && item.expiresAt.UnixNano() <= time.Now().UnixNano() {
+			keys = append(keys, key)
 		}
 	}
+	c.mu.RUnlock()
+
+	c.mu.Lock()
+	for _, key := range keys {
+		delete(c.storage, key)
+	}
+	c.mu.Unlock()
 }
