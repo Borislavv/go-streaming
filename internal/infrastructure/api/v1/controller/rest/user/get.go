@@ -13,6 +13,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/gorilla/mux"
 	"net/http"
+	"reflect"
 	"time"
 )
 
@@ -62,13 +63,15 @@ func (c *GetUserController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *GetUserController) getCached(reqDTO *dto.UserGetRequestDTO) (*agg.User, error) {
-	cacheKey, err := json.Marshal(reqDTO)
+	key, err := json.Marshal(reqDTO)
 	if err != nil {
 		return nil, c.logger.LogPropagate(err)
 	}
 
+	cacheKey := helper.MD5(key)
+
 	data, err := c.cacher.Get(
-		helper.MD5(cacheKey),
+		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
 			item.SetTTL(cacheTTL)
 			return c.service.Get(reqDTO)
@@ -80,7 +83,9 @@ func (c *GetUserController) getCached(reqDTO *dto.UserGetRequestDTO) (*agg.User,
 
 	userAgg, ok := data.(*agg.User)
 	if !ok {
-		return nil, errors.NewCachedDataTypeWasNotMatchedError(string(cacheKey))
+		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+			cacheKey, reflect.TypeOf(&agg.User{}), reflect.TypeOf(data),
+		)
 	}
 
 	return userAgg, err
