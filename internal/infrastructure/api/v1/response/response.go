@@ -66,7 +66,7 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 			if _, err = w.Write(
 				r.toBytes(
 					NewErrorResponse(
-						errors.NewInternalServerError(""),
+						errors.NewInternalServerError(),
 					),
 				),
 			); err != nil {
