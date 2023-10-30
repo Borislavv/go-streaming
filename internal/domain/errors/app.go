@@ -14,15 +14,12 @@ const (
 
 type InternalServerError struct{ publicError }
 
-func NewInternalServerError(msg string) InternalServerError {
-	if msg == "" {
-		msg = internalServerErrorMessage
-	}
+func NewInternalServerError() InternalServerError {
 	return InternalServerError{
 		publicError{
 			errored{
-				ErrorMessage: msg,
 				ErrorType:    applicationType,
+				ErrorMessage: internalServerErrorMessage,
 				errorStatus:  internalServerErrorStatusCode,
 				errorLevel:   internalServerErrorLevel,
 			},
