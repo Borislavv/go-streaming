@@ -1,6 +1,8 @@
 package cacher
 
-import "time"
+import (
+	"time"
+)
 
 type Item struct {
 	data      interface{}

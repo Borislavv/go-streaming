@@ -43,8 +43,9 @@ func (e *ParametersExtractor) GetParameter(param string, req *http.Request) (str
 	if param == "" {
 		return "", errors.NewFieldCannotBeEmptyError(param)
 	}
-	if v, ok := e.Parameters(req)[param]; ok {
-		return v, nil
+	v, ok := e.Parameters(req)[param]
+	if !ok {
+		return "", errors.NewFieldCannotBeEmptyError(param)
 	}
-	return "", errors.NewInternalServerError("parameter '" + param + "' not found into query or path")
+	return v, nil
 }

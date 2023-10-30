@@ -10,17 +10,19 @@ type MapCacheStorage struct {
 	*mapCacheStorage
 }
 type mapCacheStorage struct {
-	ctx     context.Context
-	mu      sync.RWMutex
-	storage map[string]CacheItem
+	ctx      context.Context
+	mu       sync.RWMutex
+	storage  map[string]*Item
+	capacity int64
 }
 
+// NewMapCacheStorage is a constructor of MapCacheStorage structure.
 func NewMapCacheStorage(ctx context.Context) *MapCacheStorage {
 	return &MapCacheStorage{
 		mapCacheStorage: &mapCacheStorage{
 			ctx:     ctx,
 			mu:      sync.RWMutex{},
-			storage: map[string]CacheItem{},
+			storage: map[string]*Item{},
 		},
 	}
 }
@@ -42,14 +44,8 @@ func (c *MapCacheStorage) Get(key string, fn func(CacheItem) (data interface{}, 
 func (c *MapCacheStorage) get(key string) (item *Item, found bool) {
 	defer c.mu.RUnlock()
 	c.mu.RLock()
-	cacheItem, found := c.storage[key]
-	if found {
-		foundItem, ok := cacheItem.(*Item)
-		if ok {
-			return foundItem, true
-		}
-	}
-	return nil, false
+	item, found = c.storage[key]
+	return item, found
 }
 
 func (c *MapCacheStorage) compute(fn func(CacheItem) (data interface{}, err error)) (item *Item, err error) {
@@ -68,17 +64,32 @@ func (c *MapCacheStorage) set(key string, item *Item) (data interface{}) {
 	c.mu.Lock()
 	cacheItem, found := c.storage[key]
 	if found {
-		foundItem, ok := cacheItem.(*Item)
-		if ok {
-			return foundItem.data
-		}
+		return cacheItem.data
 	}
 	c.storage[key] = item
 	return item.data
 }
 
-func (c *MapCacheStorage) Del(key string) {
+func (c *MapCacheStorage) Delete(key string) {
 	defer c.mu.Unlock()
 	c.mu.Lock()
 	delete(c.storage, key)
+}
+
+func (c *MapCacheStorage) Displace() {
+	var keys []string
+
+	c.mu.RLock()
+	for key, item := range c.storage {
+		if !item.expiresAt.IsZero() && item.expiresAt.UnixNano() <= time.Now().UnixNano() {
+			keys = append(keys, key)
+		}
+	}
+	c.mu.RUnlock()
+
+	c.mu.Lock()
+	for _, key := range keys {
+		delete(c.storage, key)
+	}
+	c.mu.Unlock()
 }

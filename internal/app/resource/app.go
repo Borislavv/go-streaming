@@ -22,6 +22,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
@@ -182,6 +183,11 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		loggerService, userService, authValidator, tokenService,
 	)
 
+	// cache
+	cacheMapStorage := cacher.NewMapCacheStorage(ctx)
+	cacheDisplacer := cacher.NewCacheDisplacer(ctx, time.Second*1)
+	cache := cacher.NewCache(cacheMapStorage, cacheDisplacer)
+
 	wg.Add(1)
 	go http.NewHttpServer(
 		ctx,
@@ -192,6 +198,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		app.cfg.RenderVersionPrefix,
 		app.cfg.StaticVersionPrefix,
 		app.InitRestApiControllers(
+			cache,
 			loggerService,
 			responseService,
 			resourceBuilder,
@@ -225,6 +232,7 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
+	cacheService cacher.Cacher,
 	loggerService domainlogger.Logger,
 	responseService response.Responder,
 	// resource deps.
@@ -302,6 +310,7 @@ func (app *ResourcesApp) InitRestApiControllers(
 			loggerService,
 			userBuilder,
 			userService,
+			cacheService,
 			responseService,
 		),
 		user.NewDeleteController(
