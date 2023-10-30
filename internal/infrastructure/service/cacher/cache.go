@@ -1,7 +1,5 @@
 package cacher
 
-import "runtime"
-
 type Cache struct {
 	storage   Storage
 	displacer Displacer
@@ -12,9 +10,7 @@ func NewCache(storage Storage, displacer Displacer) *Cache {
 		storage:   storage,
 		displacer: displacer,
 	}
-
-	runtime.SetFinalizer(c, displacer.Stop)
-
+	c.displacer.Run(storage)
 	return c
 }
 
