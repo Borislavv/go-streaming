@@ -2,11 +2,13 @@ package cacher
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"sync"
 	"time"
 )
 
 type CacheDisplacer struct {
+	logger   logger.Logger
 	ctx      context.Context
 	once     *sync.Once
 	wg       *sync.WaitGroup
@@ -15,8 +17,9 @@ type CacheDisplacer struct {
 	doneCh   chan struct{}
 }
 
-func NewCacheDisplacer(ctx context.Context, interval time.Duration) *CacheDisplacer {
+func NewCacheDisplacer(logger logger.Logger, ctx context.Context, interval time.Duration) *CacheDisplacer {
 	return &CacheDisplacer{
+		logger:   logger,
 		ctx:      ctx,
 		once:     &sync.Once{},
 		wg:       &sync.WaitGroup{},
@@ -53,7 +56,9 @@ func (d *CacheDisplacer) run(storage Storage) {
 func (d *CacheDisplacer) Stop() {
 	// broadcasting `stop` action by closing chan
 	close(d.stopCh)
+	d.logger.Info("CLOSED STOP CH")
 	d.wg.Wait()
+	d.logger.Info("STOPPED")
 }
 
 // stop is a simple fun-in pattern.
@@ -68,9 +73,11 @@ func (d *CacheDisplacer) listenStop() {
 		select {
 		case <-d.ctx.Done():
 			// awaiting all goroutines will be stopped in another goroutine
-			go d.Stop()
+			d.logger.Info("STOPPING BY CTX")
+			d.Stop()
 			return
 		case <-d.stopCh:
+			d.logger.Info("STOPPING BY STOP CH")
 			// used Stop func., WaitGroup will be awaited by Stop func.
 			return
 		}
