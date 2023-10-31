@@ -76,7 +76,6 @@ func (d *CacheDisplacer) listenStop() {
 			// awaiting all goroutines will be stopped in another goroutine
 			d.logger.Info("STOPPING BY CTX")
 			d.Stop()
-			return
 		case <-d.stopCh:
 			d.logger.Info("STOPPING BY STOP CH")
 			// used Stop func., WaitGroup will be awaited by Stop func.
