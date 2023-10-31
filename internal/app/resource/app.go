@@ -186,6 +186,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// cache
 	cacheMapStorage := cacher.NewMapCacheStorage(ctx)
 	cacheDisplacer := cacher.NewCacheDisplacer(loggerService, ctx, time.Second*1)
+	cacheDisplacer.Stop()
 	cache := cacher.NewCache(cacheMapStorage, cacheDisplacer)
 
 	wg.Add(1)
