@@ -46,6 +46,7 @@ func (d *CacheDisplacer) run(storage Storage) {
 	for {
 		select {
 		case <-d.doneCh:
+			d.logger.Info("RUN FINISHED BY DONE CH")
 			return
 		case <-ticker.C:
 			storage.Displace()
