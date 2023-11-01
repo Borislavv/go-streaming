@@ -183,13 +183,9 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		loggerService, userService, authValidator, tokenService,
 	)
 
-	time.Sleep(time.Second * 1)
 	// cache
 	cacheMapStorage := cacher.NewMapCacheStorage(ctx)
-	cacheDisplacer := cacher.NewCacheDisplacer(loggerService, ctx, time.Second*1)
-	cacheDisplacer.Stop()
-	time.Sleep(time.Second * 1)
-
+	cacheDisplacer := cacher.NewCacheDisplacer(ctx, time.Second*1)
 	cache := cacher.NewCache(cacheMapStorage, cacheDisplacer)
 
 	wg.Add(1)
@@ -239,16 +235,16 @@ func (app *ResourcesApp) InitRestApiControllers(
 	cacheService cacher.Cacher,
 	loggerService domainlogger.Logger,
 	responseService response.Responder,
-	// resource deps.
+// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService domainresource.CRUD,
-	// video deps.
+// video deps.
 	videoBuilder builder.Video,
 	videoService domainvideo.CRUD,
-	// user. deps.
+// user. deps.
 	userBuilder builder.User,
 	userService domainuser.CRUD,
-	// auth. deps.
+// auth. deps.
 	authBuilder builder.Auth,
 	authService domainauth.Authenticator,
 ) []controller.Controller {
