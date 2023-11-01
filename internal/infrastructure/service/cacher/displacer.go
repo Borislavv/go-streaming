@@ -13,14 +13,18 @@ type CacheDisplacer struct {
 	once     *sync.Once
 	wg       *sync.WaitGroup
 	interval time.Duration
+	cancel   context.CancelFunc
 	stopCh   chan struct{}
 	doneCh   chan struct{}
 }
 
 func NewCacheDisplacer(logger logger.Logger, ctx context.Context, interval time.Duration) *CacheDisplacer {
+	ctx, cancel := context.WithCancel(ctx)
+
 	return &CacheDisplacer{
 		logger:   logger,
 		ctx:      ctx,
+		cancel:   cancel,
 		once:     &sync.Once{},
 		wg:       &sync.WaitGroup{},
 		interval: interval,
@@ -56,8 +60,7 @@ func (d *CacheDisplacer) run(storage Storage) {
 
 func (d *CacheDisplacer) Stop() {
 	// broadcasting `stop` action by closing chan
-	close(d.stopCh)
-	d.logger.Info("CLOSED STOP CH")
+	d.cancel()
 	d.wg.Wait()
 	d.logger.Info("STOPPED")
 }
@@ -75,10 +78,6 @@ func (d *CacheDisplacer) listenStop() {
 		case <-d.ctx.Done():
 			// awaiting all goroutines will be stopped in another goroutine
 			d.logger.Info("STOPPING BY CTX")
-			go d.Stop()
-		case <-d.stopCh:
-			d.logger.Info("STOPPING BY STOP CH")
-			// used Stop func., WaitGroup will be awaited by Stop func.
 			return
 		}
 	}
