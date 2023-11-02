@@ -87,44 +87,14 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// response service
 	responseService := response.NewResponseService(loggerService)
 
-	// filesystem storage
-	filesystemStorage := storager.NewFilesystemStorage(ctx, loggerService)
-
-	// filename computer
-	filenameComputerService := file.NewNameService()
-
-	var uploaderStrategy uploaderservice.Uploader
-	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
-		// used parsing of full form into RAM
-		uploaderStrategy =
-			uploader.NewNativeUploader(
-				loggerService,
-				filesystemStorage,
-				filenameComputerService,
-				app.cfg.ResourceFormFilename,
-				app.cfg.InMemoryFileSizeThreshold,
-			)
-	} else if app.cfg.UploadingStrategy == uploader.MultipartPartUploadingType {
-		// used partial reading from multipart.Part
-		uploaderStrategy =
-			uploader.NewPartsUploader(
-				loggerService,
-				filesystemStorage,
-				filenameComputerService,
-			)
-	}
-
-	// blocked token repository
-	blockedTokenRepository := mongodb.NewBlockedTokenRepository(db, loggerService, DefaultDatabaseTimeout)
-
-	tokenService := tokenizer.NewJwtService(
-		ctx, loggerService, blockedTokenRepository, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
-		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
+	// Files uploader dependencies initialization
+	uploadingStorage, _, uploadingStrategy := app.InitUploaderServices(
+		ctx, loggerService,
 	)
 
 	// Resource dependencies initialization
 	resourceBuilder, resourceValidator, resourceService, resourceRepository := app.InitResourceServices(
-		ctx, loggerService, db, uploaderStrategy, filesystemStorage,
+		ctx, loggerService, db, uploadingStrategy, uploadingStorage,
 	)
 
 	// Video dependencies initialization
@@ -138,11 +108,20 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		ctx, loggerService, db, videoService, reqParamsExtractor,
 	)
 
-	// Cache dependencies initialization
-	cacheService := app.InitCacheService(ctx)
+	// Token dependencies initialization
+	_, tokenService := app.InitTokenServices(
+		ctx, loggerService, db,
+	)
 
 	// Auth dependencies initialization
-	authBuilder, _, authService := app.InitAuthServices(loggerService, tokenService, userService)
+	authBuilder, _, authService := app.InitAuthServices(
+		loggerService, tokenService, userService,
+	)
+
+	// Cache dependencies initialization
+	cacheService := app.InitCacheService(
+		ctx,
+	)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -280,6 +259,59 @@ func (app *ResourcesApp) InitAuthServices(
 	b := builder.NewAuthBuilder(logger)
 	s := authservice.NewAuthService(logger, userService, v, tokenService)
 	return b, v, s
+}
+
+func (app *ResourcesApp) InitTokenServices(
+	ctx context.Context,
+	logger loggerservice.Logger,
+	database *mongo.Database,
+) (
+	repository.BlockedToken,
+	tokenizerservice.Tokenizer,
+) {
+	r := mongodb.NewBlockedTokenRepository(database, logger, DefaultDatabaseTimeout)
+	s := tokenizer.NewJwtService(
+		ctx, logger, r, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
+		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
+	)
+	return r, s
+}
+
+func (app *ResourcesApp) InitUploaderServices(
+	ctx context.Context,
+	logger loggerservice.Logger,
+) (
+	storagerservice.Storage,
+	file.NameComputer,
+	uploaderservice.Uploader,
+) {
+	// filesystem storage
+	filesystemStorage := storager.NewFilesystemStorage(ctx, logger)
+
+	// filename computer
+	filenameComputer := file.NewNameService()
+
+	var uploaderService uploaderservice.Uploader
+	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
+		// used parsing of full form into RAM
+		uploaderService =
+			uploader.NewNativeUploader(
+				logger,
+				filesystemStorage,
+				filenameComputer,
+				app.cfg.ResourceFormFilename,
+				app.cfg.InMemoryFileSizeThreshold,
+			)
+	} else if app.cfg.UploadingStrategy == uploader.MultipartPartUploadingType {
+		// used partial reading from multipart.Part
+		uploaderService =
+			uploader.NewPartsUploader(
+				logger,
+				filesystemStorage,
+				filenameComputer,
+			)
+	}
+	return filesystemStorage, filenameComputer, uploaderService
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
