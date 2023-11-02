@@ -182,11 +182,8 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	authService := domainauth.NewAuthService(
 		loggerService, userService, authValidator, tokenService,
 	)
-
-	// cache
-	cacheMapStorage := cacher.NewMapCacheStorage(ctx)
-	cacheDisplacer := cacher.NewCacheDisplacer(ctx, time.Second*1)
-	cache := cacher.NewCache(cacheMapStorage, cacheDisplacer)
+	
+	cacheService := app.InitCacheService(ctx)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -198,7 +195,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		app.cfg.RenderVersionPrefix,
 		app.cfg.StaticVersionPrefix,
 		app.InitRestApiControllers(
-			cache,
+			cacheService,
 			loggerService,
 			responseService,
 			resourceBuilder,
@@ -229,6 +226,13 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
 	return stopCh
+}
+
+func (app *ResourcesApp) InitCacheService(ctx context.Context) cacher.Cacher {
+	s := cacher.NewMapCacheStorage(ctx)
+	d := cacher.NewCacheDisplacer(ctx, time.Second*1)
+	c := cacher.NewCache(s, d)
+	return c
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
