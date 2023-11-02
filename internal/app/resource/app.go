@@ -8,6 +8,8 @@ import (
 	authservice "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	resourceservice "github.com/Borislavv/video-streaming/internal/domain/service/resource"
+	storagerservice "github.com/Borislavv/video-streaming/internal/domain/service/storager"
+	tokenizerservice "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	uploaderservice "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	userservice "github.com/Borislavv/video-streaming/internal/domain/service/user"
 	videoservice "github.com/Borislavv/video-streaming/internal/domain/service/video"
@@ -91,15 +93,6 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// filename computer
 	filenameComputerService := file.NewNameService()
 
-	// user repository
-	userRepository := mongodb.NewUserRepository(db, loggerService, DefaultDatabaseTimeout)
-
-	// user builder
-	userBuilder := builder.NewUserBuilder(ctx, loggerService, reqParamsExtractor, userRepository)
-
-	// user validator
-	userValidator := validator.NewUserValidator(ctx, loggerService, userRepository, app.cfg.AdminContactEmail)
-
 	var uploaderStrategy uploaderservice.Uploader
 	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
 		// used parsing of full form into RAM
@@ -121,36 +114,35 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			)
 	}
 
-	// auth. validator
-	authValidator := validator.NewAuthValidator(loggerService, app.cfg.AdminContactEmail)
-
-	// auth. builder
-	authBuilder := builder.NewAuthBuilder(loggerService)
-
 	// blocked token repository
 	blockedTokenRepository := mongodb.NewBlockedTokenRepository(db, loggerService, DefaultDatabaseTimeout)
 
-	/**
-	 * CRUD services.
-	 */
+	tokenService := tokenizer.NewJwtService(
+		ctx, loggerService, blockedTokenRepository, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
+		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
+	)
 
+	// Resource dependencies initialization
+	resourceBuilder, resourceValidator, resourceService, resourceRepository := app.InitResourceServices(
+		ctx, loggerService, db, uploaderStrategy, filesystemStorage,
+	)
+
+	// Video dependencies initialization
 	videoBuilder, _, videoService, _ := app.InitVideoServices(
 		ctx, loggerService, db, resourceValidator,
 		resourceRepository, resourceService, reqParamsExtractor,
 	)
 
-	userService := userservice.NewCRUDService(
-		ctx, loggerService, userBuilder, userValidator, userRepository, videoService,
-	)
-	tokenService := tokenizer.NewJwtService(
-		ctx, loggerService, blockedTokenRepository, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
-		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
-	)
-	authService := authservice.NewAuthService(
-		loggerService, userService, authValidator, tokenService,
+	// User dependencies initialization
+	userBuilder, _, userService, _ := app.InitUserServices(
+		ctx, loggerService, db, videoService, reqParamsExtractor,
 	)
 
+	// Cache dependencies initialization
 	cacheService := app.InitCacheService(ctx)
+
+	// Auth dependencies initialization
+	authBuilder, _, authService := app.InitAuthServices(loggerService, tokenService, userService)
 
 	wg.Add(1)
 	go http.NewHttpServer(
@@ -241,8 +233,8 @@ func (app *ResourcesApp) InitResourceServices(
 	ctx context.Context,
 	logger loggerservice.Logger,
 	database *mongo.Database,
-	uploaderStrategy uploaderservice.Uploader,
-	reqParamsExtractor extractor.RequestParams,
+	uploader uploaderservice.Uploader,
+	storage storagerservice.Storage,
 ) (
 	builder.Resource,
 	validator.Resource,
@@ -252,9 +244,42 @@ func (app *ResourcesApp) InitResourceServices(
 	r := mongodb.NewResourceRepository(database, logger, time.Minute)
 	v := validator.NewResourceValidator(ctx, r, app.cfg.MaxFilesizeThreshold)
 	b := builder.NewResourceBuilder(logger, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
-	resourceService := resourceservice.NewResourceService(
-		ctx, logger, uploaderStrategy, v, b, r, filesystemStorage,
-	)
+	s := resourceservice.NewResourceService(ctx, logger, uploader, v, b, r, storage)
+	return b, v, s, r
+}
+
+func (app *ResourcesApp) InitUserServices(
+	ctx context.Context,
+	logger loggerservice.Logger,
+	database *mongo.Database,
+	videoService videoservice.CRUD,
+	reqParamsExtractor extractor.RequestParams,
+) (
+	builder.User,
+	validator.User,
+	userservice.CRUD,
+	repository.User,
+) {
+	r := mongodb.NewUserRepository(database, logger, DefaultDatabaseTimeout)
+	b := builder.NewUserBuilder(ctx, logger, reqParamsExtractor, r)
+	v := validator.NewUserValidator(ctx, logger, r, app.cfg.AdminContactEmail)
+	s := userservice.NewCRUDService(ctx, logger, b, v, r, videoService)
+	return b, v, s, r
+}
+
+func (app *ResourcesApp) InitAuthServices(
+	logger loggerservice.Logger,
+	tokenService tokenizerservice.Tokenizer,
+	userService userservice.CRUD,
+) (
+	builder.Auth,
+	validator.Auth,
+	authservice.Authenticator,
+) {
+	v := validator.NewAuthValidator(logger, app.cfg.AdminContactEmail)
+	b := builder.NewAuthBuilder(logger)
+	s := authservice.NewAuthService(logger, userService, v, tokenService)
+	return b, v, s
 }
 
 func (app *ResourcesApp) InitRestApiControllers(
