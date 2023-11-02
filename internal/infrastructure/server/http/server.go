@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
@@ -30,7 +31,7 @@ type Server struct {
 	staticControllers []controller.Controller
 
 	logger             logger.Logger
-	reqParamsExtractor *request.ParametersExtractor
+	reqParamsExtractor extractor.RequestParams
 }
 
 func NewHttpServer(
@@ -45,7 +46,7 @@ func NewHttpServer(
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
-	reqParamsExtractor *request.ParametersExtractor,
+	reqParamsExtractor extractor.RequestParams,
 ) *Server {
 	return &Server{
 		ctx:                 ctx,
