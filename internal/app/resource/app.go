@@ -57,7 +57,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// init. loggerService and close func.
+	// init. logger and close func.
 	loggerService, cls := logger.NewStdOut(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
 	defer func() {
 		cancel()
@@ -71,22 +71,12 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// init. mongodb client
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(app.cfg.MongoUri))
+	// connect to mongo database
+	db, err := app.InitMongoDatabase(ctx, loggerService)
 	if err != nil {
 		loggerService.Critical(err)
 		return
 	}
-	defer func() { _ = mongoClient.Disconnect(ctx) }()
-
-	// ping mongodb
-	if err = mongoClient.Ping(ctx, readpref.Primary()); err != nil {
-		loggerService.Critical(err)
-		return
-	}
-
-	// connect to target mongodb database
-	db := mongoClient.Database(app.cfg.MongoDb)
 
 	// request param. resolver
 	reqParamsExtractor := request.NewParametersExtractor()
@@ -182,7 +172,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	authService := domainauth.NewAuthService(
 		loggerService, userService, authValidator, tokenService,
 	)
-	
+
 	cacheService := app.InitCacheService(ctx)
 
 	wg.Add(1)
@@ -235,20 +225,34 @@ func (app *ResourcesApp) InitCacheService(ctx context.Context) cacher.Cacher {
 	return c
 }
 
+func (app *ResourcesApp) InitMongoDatabase(ctx context.Context, logger domainlogger.Logger) (*mongo.Database, error) {
+	c, err := mongo.Connect(ctx, options.Client().ApplyURI(app.cfg.MongoUri))
+	if err != nil {
+		return nil, logger.CriticalPropagate(err)
+	}
+	defer func() { _ = c.Disconnect(ctx) }()
+
+	if err = c.Ping(ctx, readpref.Primary()); err != nil {
+		return nil, logger.CriticalPropagate(err)
+	}
+
+	return c.Database(app.cfg.MongoDb), nil
+}
+
 func (app *ResourcesApp) InitRestApiControllers(
 	cacheService cacher.Cacher,
 	loggerService domainlogger.Logger,
 	responseService response.Responder,
-// resource deps.
+	// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService domainresource.CRUD,
-// video deps.
+	// video deps.
 	videoBuilder builder.Video,
 	videoService domainvideo.CRUD,
-// user. deps.
+	// user. deps.
 	userBuilder builder.User,
 	userService domainuser.CRUD,
-// auth. deps.
+	// auth. deps.
 	authBuilder builder.Auth,
 	authService domainauth.Authenticator,
 ) []controller.Controller {
