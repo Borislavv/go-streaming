@@ -235,16 +235,16 @@ func (app *ResourcesApp) InitRestApiControllers(
 	cacheService cacher.Cacher,
 	loggerService domainlogger.Logger,
 	responseService response.Responder,
-	// resource deps.
+// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService domainresource.CRUD,
-	// video deps.
+// video deps.
 	videoBuilder builder.Video,
 	videoService domainvideo.CRUD,
-	// user. deps.
+// user. deps.
 	userBuilder builder.User,
 	userService domainuser.CRUD,
-	// auth. deps.
+// auth. deps.
 	authBuilder builder.Auth,
 	authService domainauth.Authenticator,
 ) []controller.Controller {
