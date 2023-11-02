@@ -81,11 +81,8 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// request param. resolver
-	reqParamsExtractor := request.NewParametersExtractor()
-
-	// response service
-	responseService := response.NewResponseService(loggerService)
+	// Request-Response dependencies initialization
+	requestService, responseService := app.InitRequestResponseServices(loggerService)
 
 	// Files uploader dependencies initialization
 	uploadingStorage, _, uploadingStrategy := app.InitUploaderServices(
@@ -100,12 +97,12 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// Video dependencies initialization
 	videoBuilder, _, videoService, _ := app.InitVideoServices(
 		ctx, loggerService, db, resourceValidator,
-		resourceRepository, resourceService, reqParamsExtractor,
+		resourceRepository, resourceService, requestService,
 	)
 
 	// User dependencies initialization
 	userBuilder, _, userService, _ := app.InitUserServices(
-		ctx, loggerService, db, videoService, reqParamsExtractor,
+		ctx, loggerService, db, videoService, requestService,
 	)
 
 	// Token dependencies initialization
@@ -154,7 +151,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			responseService,
 		),
 		loggerService,
-		reqParamsExtractor,
+		requestService,
 	).Listen(ctx, wg)
 
 	<-app.shutdown()
@@ -314,20 +311,31 @@ func (app *ResourcesApp) InitUploaderServices(
 	return filesystemStorage, filenameComputer, uploaderService
 }
 
+func (app *ResourcesApp) InitRequestResponseServices(
+	logger loggerservice.Logger,
+) (
+	extractor.RequestParams,
+	response.Responder,
+) {
+	req := request.NewParametersExtractor()
+	resp := response.NewResponseService(logger)
+	return req, resp
+}
+
 func (app *ResourcesApp) InitRestApiControllers(
 	cacheService cacher.Cacher,
 	loggerService loggerservice.Logger,
 	responseService response.Responder,
-	// resource deps.
+// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService resourceservice.CRUD,
-	// video deps.
+// video deps.
 	videoBuilder builder.Video,
 	videoService videoservice.CRUD,
-	// user. deps.
+// user. deps.
 	userBuilder builder.User,
 	userService userservice.CRUD,
-	// auth. deps.
+// auth. deps.
 	authBuilder builder.Auth,
 	authService authservice.Authenticator,
 ) []controller.Controller {
