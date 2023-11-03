@@ -6,7 +6,7 @@ import (
 )
 
 type Resource struct {
-	entity.Resource `json:"resource" bson:",inline"`
+	entity.Resource `bson:",inline"`
 	Timestamp       vo.Timestamp `json:"timestamp" bson:",inline"`
 }
 
