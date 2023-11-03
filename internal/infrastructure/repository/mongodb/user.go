@@ -23,7 +23,6 @@ var (
 	UserWasNotDeletedError   = errors.NewInternalValidationError("user was not deleted")
 )
 
-// TODO need to implement cascade removing of related entities and files!
 type UserRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
