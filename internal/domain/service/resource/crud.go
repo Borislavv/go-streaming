@@ -43,20 +43,42 @@ func NewResourceService(
 }
 
 func (s *CRUDService) Upload(reqDTO dto.UploadResourceRequest) (resource *agg.Resource, err error) {
+	defer func() {
+		// handle the case when the file was uploaded, but error occurred while saving an aggregate
+		if err != nil && reqDTO.GetUploadedFilename() != "" { // in this case, we need remove the uploaded file
+			has, herr := s.storage.Has(reqDTO.GetUploadedFilename())
+			if herr != nil {
+				s.logger.Log(herr)
+				return
+			}
+			if has { // check that file exists, if so, then remove it
+				if rerr := s.storage.Remove(reqDTO.GetUploadedFilename()); rerr != nil {
+					s.logger.Log(rerr)
+					return
+				}
+			}
+		}
+	}()
+
+	// validation of raw uploading request
 	if err = s.validator.ValidateUploadRequestDTO(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
+	// uploading the target file
 	if err = s.uploader.Upload(reqDTO); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
+	// building resource aggregate
 	resource = s.builder.BuildAggFromUploadRequestDTO(reqDTO)
 
+	// validation of built aggregate
 	if err = s.validator.ValidateAggregate(resource); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
+	// saving the built aggregate
 	resource, err = s.repository.Insert(s.ctx, resource)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
