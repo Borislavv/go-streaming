@@ -75,11 +75,12 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	}
 
 	// connect to mongo database
-	db, err := app.InitMongoDatabase(ctx, loggerService)
+	client, db, err := app.InitMongoDatabase(ctx, loggerService)
 	if err != nil {
 		loggerService.Critical(err)
 		return
 	}
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	// Request-Response dependencies initialization
 	requestService, responseService := app.InitRequestResponseServices(loggerService)
@@ -170,18 +171,24 @@ func (app *ResourcesApp) InitCacheService(ctx context.Context) cacher.Cacher {
 	return c
 }
 
-func (app *ResourcesApp) InitMongoDatabase(ctx context.Context, logger loggerservice.Logger) (*mongo.Database, error) {
+func (app *ResourcesApp) InitMongoDatabase(
+	ctx context.Context,
+	logger loggerservice.Logger,
+) (
+	*mongo.Client,
+	*mongo.Database,
+	error,
+) {
 	c, err := mongo.Connect(ctx, options.Client().ApplyURI(app.cfg.MongoUri))
 	if err != nil {
-		return nil, logger.CriticalPropagate(err)
+		return nil, nil, logger.CriticalPropagate(err)
 	}
-	defer func() { _ = c.Disconnect(ctx) }()
 
 	if err = c.Ping(ctx, readpref.Primary()); err != nil {
-		return nil, logger.CriticalPropagate(err)
+		return nil, nil, logger.CriticalPropagate(err)
 	}
 
-	return c.Database(app.cfg.MongoDb), nil
+	return c, c.Database(app.cfg.MongoDb), nil
 }
 
 func (app *ResourcesApp) InitVideoServices(
@@ -326,16 +333,16 @@ func (app *ResourcesApp) InitRestApiControllers(
 	cacheService cacher.Cacher,
 	loggerService loggerservice.Logger,
 	responseService response.Responder,
-// resource deps.
+	// resource deps.
 	resourceBuilder builder.Resource,
 	resourceService resourceservice.CRUD,
-// video deps.
+	// video deps.
 	videoBuilder builder.Video,
 	videoService videoservice.CRUD,
-// user. deps.
+	// user. deps.
 	userBuilder builder.User,
 	userService userservice.CRUD,
-// auth. deps.
+	// auth. deps.
 	authBuilder builder.Auth,
 	authService authservice.Authenticator,
 ) []controller.Controller {
