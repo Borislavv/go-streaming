@@ -25,7 +25,6 @@ var (
 	VideoWasNotDeletedError        = errors.NewInternalValidationError("video was not deleted")
 )
 
-// TODO need to implement cascade removing of related entities and files!
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
