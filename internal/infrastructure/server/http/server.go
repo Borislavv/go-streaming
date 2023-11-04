@@ -26,9 +26,10 @@ type Server struct {
 	renderVersionPrefix string // example: ""
 	staticVersionPrefix string // example: ""
 
-	restControllers   []controller.Controller
-	renderControllers []controller.Controller
-	staticControllers []controller.Controller
+	restAuthedControllers   []controller.Controller
+	restUnauthedControllers []controller.Controller
+	renderControllers       []controller.Controller
+	staticControllers       []controller.Controller
 
 	logger             logger.Logger
 	reqParamsExtractor extractor.RequestParams
@@ -42,25 +43,27 @@ func NewHttpServer(
 	apiVersionPrefix string,
 	renderVersionPrefix string,
 	staticVersionPrefix string,
-	restControllers []controller.Controller,
+	restAuthedControllers []controller.Controller,
+	restUnauthedControllers []controller.Controller,
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
 	reqParamsExtractor extractor.RequestParams,
 ) *Server {
 	return &Server{
-		ctx:                 ctx,
-		host:                host,
-		port:                port,
-		transportProto:      transportProto,
-		apiVersionPrefix:    apiVersionPrefix,
-		renderVersionPrefix: renderVersionPrefix,
-		staticVersionPrefix: staticVersionPrefix,
-		restControllers:     restControllers,
-		renderControllers:   renderControllers,
-		staticControllers:   staticControllers,
-		logger:              logger,
-		reqParamsExtractor:  reqParamsExtractor,
+		ctx:                     ctx,
+		host:                    host,
+		port:                    port,
+		transportProto:          transportProto,
+		apiVersionPrefix:        apiVersionPrefix,
+		renderVersionPrefix:     renderVersionPrefix,
+		staticVersionPrefix:     staticVersionPrefix,
+		restAuthedControllers:   restAuthedControllers,
+		restUnauthedControllers: restUnauthedControllers,
+		renderControllers:       renderControllers,
+		staticControllers:       staticControllers,
+		logger:                  logger,
+		reqParamsExtractor:      reqParamsExtractor,
 	}
 }
 
@@ -103,18 +106,32 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 func (s *Server) addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
-	// rest api controllers
-	restRouterV1 := router.
+	// rest api controllers which requires authorization token
+	restAuthedRouterV1 := router.
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
-	restRouterV1.
+	restAuthedRouterV1.
 		Use(
 			s.restApiHeaderMiddleware,
 			s.requestsLoggingMiddleware,
 		)
 
-	for _, c := range s.restControllers {
-		c.AddRoute(restRouterV1)
+	for _, c := range s.restAuthedControllers {
+		c.AddRoute(restAuthedRouterV1)
+	}
+
+	// rest api controllers which is not requires authorization token
+	restUnauthedRouterV1 := router.
+		PathPrefix(s.apiVersionPrefix).
+		Subrouter()
+	restUnauthedRouterV1.
+		Use(
+			s.restApiHeaderMiddleware,
+			s.requestsLoggingMiddleware,
+		)
+
+	for _, c := range s.restUnauthedControllers {
+		c.AddRoute(restUnauthedRouterV1)
 	}
 
 	// native templates rendering controllers
