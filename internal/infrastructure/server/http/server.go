@@ -108,9 +108,10 @@ func (s *Server) addRoutes() *mux.Router {
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
 	restRouterV1.
-		Use(s.restApiHeaderMiddleware)
-	restRouterV1.
-		Use(s.requestsLoggingMiddleware)
+		Use(
+			s.restApiHeaderMiddleware,
+			s.requestsLoggingMiddleware,
+		)
 
 	for _, c := range s.restControllers {
 		c.AddRoute(restRouterV1)
