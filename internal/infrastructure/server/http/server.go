@@ -155,6 +155,10 @@ func (s *Server) addRoutes() *mux.Router {
 	return router
 }
 
+func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
+	
+}
+
 func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
