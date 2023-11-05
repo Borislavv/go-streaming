@@ -37,12 +37,6 @@ func NewCreateController(
 }
 
 func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
-	userID, err := c.authService.IsAuthed(r)
-	if err != nil {
-		c.response.Respond(w, c.logger.LogPropagate(err))
-		return
-	}
-
 	videoDTO, err := c.builder.BuildCreateRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
