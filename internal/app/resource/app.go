@@ -130,7 +130,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		app.cfg.ApiVersionPrefix,
 		app.cfg.RenderVersionPrefix,
 		app.cfg.StaticVersionPrefix,
-		app.InitRestApiControllers(
+		app.InitAuthedRestApiControllers(
 			cacheService,
 			loggerService,
 			responseService,
@@ -138,6 +138,13 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			resourceService,
 			videoBuilder,
 			videoService,
+			userBuilder,
+			userService,
+			authService,
+		),
+		app.InitUnauthedRestApiControllers(
+			loggerService,
+			responseService,
 			userBuilder,
 			userService,
 			authBuilder,
@@ -329,7 +336,7 @@ func (app *ResourcesApp) InitRequestResponseServices(
 	return req, resp
 }
 
-func (app *ResourcesApp) InitRestApiControllers(
+func (app *ResourcesApp) InitAuthedRestApiControllers(
 	cacheService cacher.Cacher,
 	loggerService loggerservice.Logger,
 	responseService response.Responder,
@@ -343,7 +350,6 @@ func (app *ResourcesApp) InitRestApiControllers(
 	userBuilder builder.User,
 	userService userservice.CRUD,
 	// auth. deps.
-	authBuilder builder.Auth,
 	authService authservice.Authenticator,
 ) []controller.Controller {
 	return []controller.Controller{
@@ -359,6 +365,7 @@ func (app *ResourcesApp) InitRestApiControllers(
 			loggerService,
 			videoBuilder,
 			videoService,
+			authService,
 			responseService,
 		),
 		video.NewDeleteController(
@@ -417,6 +424,20 @@ func (app *ResourcesApp) InitRestApiControllers(
 			userService,
 			responseService,
 		),
+	}
+}
+
+func (app *ResourcesApp) InitUnauthedRestApiControllers(
+	loggerService loggerservice.Logger,
+	responseService response.Responder,
+	// user. deps.
+	userBuilder builder.User,
+	userService userservice.CRUD,
+	// auth. deps.
+	authBuilder builder.Auth,
+	authService authservice.Authenticator,
+) []controller.Controller {
+	return []controller.Controller{
 		// auth
 		auth.NewAuthorizationController(
 			loggerService,
