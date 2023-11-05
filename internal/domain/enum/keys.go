@@ -1,3 +1,3 @@
 package enum
 
-const UniqueRequestIdKey = "UniqueRequestId"
+const UniqueRequestIDKey = "UniqueRequestId"

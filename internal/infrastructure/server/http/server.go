@@ -167,7 +167,7 @@ func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
 				s.responder.Respond(w, s.logger.LogPropagate(err))
 				return
 			}
-			// pass the userID through entire app.
+			// pass a userID through entire app.
 			s.logger.SetContext(context.WithValue(s.ctx, enum.UserIDContextKey, userID))
 			// serve the next layer
 			handler.ServeHTTP(w, r)
@@ -201,8 +201,8 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 			}
 			// request logging
 			s.logger.LogData(requestData)
-			// pass the requestId through entire app.
-			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIdKey, requestData.ReqID))
+			// pass a requestID through entire app.
+			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIDKey, requestData.ReqID))
 			// serve the next layer
 			handler.ServeHTTP(w, r)
 		},

@@ -295,7 +295,7 @@ func (l *abstract) handle() {
 	go func() {
 		for err := range l.errCh {
 			l.mu.Lock()
-			if uniqReqID := l.ctx.Value(enum.UniqueRequestIdKey); uniqReqID != nil {
+			if uniqReqID := l.ctx.Value(enum.UniqueRequestIDKey); uniqReqID != nil {
 				if strUniqReqID, ok := uniqReqID.(string); ok {
 
 					err.SetRequestId(strUniqReqID)
@@ -323,7 +323,7 @@ func (l *abstract) handle() {
 	go func() {
 		for info := range l.reqCh {
 			l.mu.Lock()
-			if uniqReqID := l.ctx.Value(enum.UniqueRequestIdKey); uniqReqID != nil {
+			if uniqReqID := l.ctx.Value(enum.UniqueRequestIDKey); uniqReqID != nil {
 				if strUniqReqID, ok := uniqReqID.(string); ok {
 					if infoObj, iok := info.(RequestIdAware); iok {
 						infoObj.SetRequestID(strUniqReqID)
