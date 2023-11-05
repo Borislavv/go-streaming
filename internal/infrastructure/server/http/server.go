@@ -120,8 +120,9 @@ func (s *Server) addRoutes() *mux.Router {
 		Subrouter()
 	restAuthedRouterV1.
 		Use(
-			s.restApiHeaderMiddleware,
 			s.requestsLoggingMiddleware,
+			s.restApiHeaderMiddleware,
+			s.authorizationMiddleware,
 		)
 
 	for _, c := range s.restAuthedControllers {
@@ -171,10 +172,10 @@ func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
 				s.responder.Respond(w, s.logger.LogPropagate(err))
 				return
 			}
-			// pass a userID through entire app.
-			s.logger.SetContext(context.WithValue(s.ctx, enum.UserIDContextKey, userID))
+			// create a new context with userID value
+			ctx := context.WithValue(s.ctx, enum.UserIDContextKey, userID)
 			// serve the next layer
-			handler.ServeHTTP(w, r)
+			handler.ServeHTTP(w, r.WithContext(ctx))
 		},
 	)
 }
