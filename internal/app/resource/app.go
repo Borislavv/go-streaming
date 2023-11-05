@@ -159,7 +159,9 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			responseService,
 		),
 		loggerService,
+		authService,
 		requestService,
+		responseService,
 	).Listen(ctx, wg)
 
 	<-app.shutdown()
