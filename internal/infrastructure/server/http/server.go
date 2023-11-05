@@ -52,7 +52,9 @@ func NewHttpServer(
 	renderControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
+	authService authenticator.Authenticator,
 	reqParamsExtractor extractor.RequestParams,
+	responder response.Responder,
 ) *Server {
 	return &Server{
 		ctx:                     ctx,
@@ -67,7 +69,9 @@ func NewHttpServer(
 		renderControllers:       renderControllers,
 		staticControllers:       staticControllers,
 		logger:                  logger,
+		authService:             authService,
 		reqParamsExtractor:      reqParamsExtractor,
+		responder:               responder,
 	}
 }
 
