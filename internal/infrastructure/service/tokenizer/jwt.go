@@ -48,7 +48,7 @@ func NewJwtService(
 // New will generate a new JWT.
 func (s *JwtService) New(user *agg.User) (token string, err error) {
 	tkn := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
+		"sub": user.ID.Value.Hex(),
 		"iss": s.jwtTokenIssuer,
 		"exp": &jwt.NumericDate{Time: time.Now().Add(time.Second * time.Duration(s.jwtTokenExpiresAfter))},
 	})
@@ -94,7 +94,7 @@ func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
 			return vo.ID{}, s.logger.LogPropagate(err)
 		}
 
-		userID, err = s.getUser(claims)
+		userID, err = s.getUserID(claims)
 		if err != nil {
 			return vo.ID{}, s.logger.LogPropagate(err)
 		}
@@ -139,7 +139,7 @@ func (s *JwtService) isValidIssuer(token string, claims jwt.Claims) error {
 	return nil
 }
 
-func (s *JwtService) getUser(claims jwt.Claims) (userID vo.ID, err error) {
+func (s *JwtService) getUserID(claims jwt.Claims) (userID vo.ID, err error) {
 	// extracting subject (hexID) from the claims
 	hexID, err := claims.GetSubject()
 	if err != nil {
