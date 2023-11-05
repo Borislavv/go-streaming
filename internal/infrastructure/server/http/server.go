@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
 	"github.com/gorilla/mux"
 	"net"
@@ -32,7 +34,9 @@ type Server struct {
 	staticControllers       []controller.Controller
 
 	logger             logger.Logger
+	authService        authenticator.Authenticator
 	reqParamsExtractor extractor.RequestParams
+	responder          response.Responder
 }
 
 func NewHttpServer(
@@ -156,7 +160,19 @@ func (s *Server) addRoutes() *mux.Router {
 }
 
 func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
-	
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			userID, err := s.authService.IsAuthed(r)
+			if err != nil {
+				s.responder.Respond(w, s.logger.LogPropagate(err))
+				return
+			}
+			// pass the userID through entire app.
+			s.logger.SetContext(context.WithValue(s.ctx, enum.UserIDContextKey, userID))
+			// serve the next layer
+			handler.ServeHTTP(w, r)
+		},
+	)
 }
 
 func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
@@ -164,7 +180,7 @@ func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			// adding the rest api header
 			w.Header().Set("Content-Type", "application/json")
-			// service the next layer
+			// serve the next layer
 			handler.ServeHTTP(w, r)
 		},
 	)
@@ -173,7 +189,6 @@ func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-
 			requestData := &request.LoggableData{
 				Date:       time.Now(),
 				ReqID:      ruid.RequestUniqueID(r),
@@ -188,7 +203,7 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 			s.logger.LogData(requestData)
 			// pass the requestId through entire app.
 			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIdKey, requestData.ReqID))
-			// service the next layer
+			// serve the next layer
 			handler.ServeHTTP(w, r)
 		},
 	)
