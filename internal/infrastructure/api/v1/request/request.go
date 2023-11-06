@@ -39,11 +39,11 @@ func (e *ParametersExtractor) HasParameter(param string, req *http.Request) bool
 }
 
 // GetParameter - checking if the param. is existing in request, it will be returned
-func (e *ParametersExtractor) GetParameter(param string, req *http.Request) (string, error) {
+func (e *ParametersExtractor) GetParameter(param string, r *http.Request) (string, error) {
 	if param == "" {
 		return "", errors.NewFieldCannotBeEmptyError(param)
 	}
-	v, ok := e.Parameters(req)[param]
+	v, ok := e.Parameters(r)[param]
 	if !ok {
 		return "", errors.NewFieldCannotBeEmptyError(param)
 	}
