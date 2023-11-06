@@ -173,7 +173,7 @@ func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
 				return
 			}
 			// create a new context with userID value
-			ctx := context.WithValue(s.ctx, enum.UserIDContextKey, userID)
+			ctx := context.WithValue(r.Context(), enum.UserIDContextKey, userID)
 			// serve the next layer
 			handler.ServeHTTP(w, r.WithContext(ctx))
 		},
