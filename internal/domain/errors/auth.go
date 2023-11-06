@@ -51,6 +51,21 @@ func NewAccessTokenIsEmptyOrOmittedError() *AccessTokenIsEmptyOrOmittedError {
 	}
 }
 
+type AccessTokenIsInvalidError struct{ publicError }
+
+func NewAccessTokenIsInvalidError() *AccessTokenIsInvalidError {
+	return &AccessTokenIsInvalidError{
+		publicError{
+			errored{
+				ErrorMessage: "authorization failed: provided token is invalid",
+				ErrorType:    authErrType,
+				errorStatus:  publicAuthErrStatus,
+				errorLevel:   publicAuthErrLevel,
+			},
+		},
+	}
+}
+
 type AccessTokenWasBlockedError struct{ publicError }
 
 func NewAccessTokenWasBlockedError() *AccessTokenWasBlockedError {
@@ -68,7 +83,7 @@ func NewAccessTokenWasBlockedError() *AccessTokenWasBlockedError {
 
 type TokenAlgoWasNotMatchedError struct{ internalError }
 
-func NewTokenAlgoWasNotMatchedError(token string) *TokenAlgoWasNotMatchedError {
+func NewTokenAlgoWasNotMatchedInternalError(token string) *TokenAlgoWasNotMatchedError {
 	return &TokenAlgoWasNotMatchedError{
 		internalError{
 			errored{
@@ -83,7 +98,7 @@ func NewTokenAlgoWasNotMatchedError(token string) *TokenAlgoWasNotMatchedError {
 
 type TokenUnexpectedSigningMethodError struct{ internalError }
 
-func NewTokenUnexpectedSigningMethodError(token string, algo interface{}) *TokenUnexpectedSigningMethodError {
+func NewTokenUnexpectedSigningMethodInternalError(token string, algo interface{}) *TokenUnexpectedSigningMethodError {
 	return &TokenUnexpectedSigningMethodError{
 		internalError{
 			errored{
@@ -98,7 +113,7 @@ func NewTokenUnexpectedSigningMethodError(token string, algo interface{}) *Token
 
 type TokenInvalidError struct{ internalError }
 
-func NewTokenInvalidError(token string) *TokenInvalidError {
+func NewTokenInvalidInternalError(token string) *TokenInvalidError {
 	return &TokenInvalidError{
 		internalError{
 			errored{
@@ -113,7 +128,7 @@ func NewTokenInvalidError(token string) *TokenInvalidError {
 
 type TokenIssuerWasNotMatchedError struct{ internalError }
 
-func NewTokenIssuerWasNotMatchedError(token string) *TokenIssuerWasNotMatchedError {
+func NewTokenIssuerWasNotMatchedInternalError(token string) *TokenIssuerWasNotMatchedError {
 	return &TokenIssuerWasNotMatchedError{
 		internalError{
 			errored{
