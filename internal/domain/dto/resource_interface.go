@@ -11,6 +11,7 @@ type Resource interface {
 }
 
 type UploadResourceRequest interface {
+	GetUserID() vo.ID
 	GetRequest() *http.Request
 	GetOriginFilename() string
 	SetOriginFilename(filename string)
