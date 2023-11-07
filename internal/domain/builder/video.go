@@ -6,6 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
+	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
@@ -60,6 +61,11 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 	if err := json.NewDecoder(r.Body).Decode(videoDTO); err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
+
+	if userID, ok := r.Context().Value(enum.UserIDContextKey).(vo.ID); ok {
+		videoDTO.UserID = userID
+	}
+
 	return videoDTO, nil
 }
 
@@ -72,6 +78,7 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateVideoReques
 
 	return &agg.Video{
 		Video: entity.Video{
+			UserID:      reqDTO.GetUserID(),
 			Name:        reqDTO.GetName(),
 			Description: reqDTO.GetDescription(),
 		},
