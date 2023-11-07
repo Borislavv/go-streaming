@@ -8,12 +8,16 @@ import (
 // VideoCreateRequestDTO - used when u want to create a new one video
 type VideoCreateRequestDTO struct {
 	Name        string `json:"name"`
+	UserID      vo.ID
 	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
 
 func (req *VideoCreateRequestDTO) GetName() string {
 	return req.Name
+}
+func (req *VideoCreateRequestDTO) GetUserID() vo.ID {
+	return req.UserID
 }
 func (req *VideoCreateRequestDTO) GetResourceID() vo.ID {
 	return req.ResourceID
