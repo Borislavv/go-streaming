@@ -7,7 +7,8 @@ import (
 
 type Resource struct {
 	entity.Resource `bson:",inline"`
-	Timestamp       vo.Timestamp `json:"timestamp" bson:",inline"`
+
+	Timestamp vo.Timestamp `json:"timestamp" bson:",inline"`
 }
 
 func (r *Resource) GetName() string {
