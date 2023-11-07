@@ -6,6 +6,7 @@ import (
 )
 
 type ResourceUploadRequestDTO struct {
+	UserID           vo.ID
 	request          *http.Request
 	originFilename   string
 	contentLength    int64
@@ -19,6 +20,12 @@ func NewResourceUploadRequest(r *http.Request) (dto *ResourceUploadRequestDTO) {
 	return &ResourceUploadRequestDTO{request: r}
 }
 
+func (r *ResourceUploadRequestDTO) GetUserID() vo.ID {
+	return r.UserID
+}
+func (r *ResourceUploadRequestDTO) SetUserID(id vo.ID) {
+	r.UserID = id
+}
 func (r *ResourceUploadRequestDTO) GetRequest() *http.Request {
 	return r.request
 }
