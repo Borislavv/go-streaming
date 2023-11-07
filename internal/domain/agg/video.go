@@ -7,6 +7,7 @@ import (
 
 type Video struct {
 	entity.Video `bson:",inline"`
-	Resource     entity.Resource `json:"resource" bson:"resource"`
-	Timestamp    vo.Timestamp    `json:"timestamp" bson:",inline"`
+
+	Resource  entity.Resource `json:"resource" bson:"resource"`
+	Timestamp vo.Timestamp    `json:"timestamp" bson:",inline"`
 }
