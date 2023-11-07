@@ -7,6 +7,7 @@ import (
 
 type CreateVideoRequest interface {
 	GetName() string
+	GetUserID() vo.ID
 	GetResourceID() vo.ID
 	GetDescription() string
 }
