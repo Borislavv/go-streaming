@@ -25,6 +25,9 @@ func NewResourceValidator(ctx context.Context, repository repository.Resource, m
 }
 
 func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadResourceRequest) error {
+	if req.GetUserID().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(userIDField)
+	}
 	if req.GetRequest().ContentLength == 0 {
 		return errors.NewInvalidUploadedFileError("request form file is empty")
 	}
@@ -37,6 +40,9 @@ func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadResourceReque
 }
 
 func (v *ResourceValidator) ValidateEntity(entity entity.Resource) error {
+	if entity.UserID.Value.IsZero() {
+		return errors.NewInternalValidationError("field 'userID' cannot be empty")
+	}
 	if entity.GetName() == "" {
 		return errors.NewInternalValidationError("field 'name' cannot be empty")
 	}
