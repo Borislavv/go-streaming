@@ -7,7 +7,6 @@ import (
 )
 
 type Resource interface {
-	// TODO renamed method according to input param name
 	ValidateUploadRequestDTO(req dto.UploadResourceRequest) error
 	ValidateEntity(entity entity.Resource) error
 	ValidateAggregate(agg *agg.Resource) error
