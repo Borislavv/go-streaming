@@ -11,6 +11,7 @@ import (
 
 const (
 	idField         = "id"
+	userIDField     = "userID"
 	nameField       = "name"
 	resourceIDField = "resourceID"
 )
@@ -57,6 +58,9 @@ func (v *VideoValidator) ValidateListRequestDTO(req dto.ListVideoRequest) error 
 }
 
 func (v *VideoValidator) ValidateCreateRequestDTO(req dto.CreateVideoRequest) error {
+	if req.GetUserID().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(userIDField)
+	}
 	if req.GetName() == "" {
 		return errors.NewFieldCannotBeEmptyError(nameField)
 	}
@@ -83,6 +87,8 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 		return errors.NewInternalValidationError("'name' cannot be empty")
 	} else if agg.Resource.ID.Value.IsZero() {
 		return errors.NewInternalValidationError("'resource.id' cannot be empty")
+	} else if agg.UserID.Value.IsZero() {
+		return errors.NewInternalValidationError("'userID' cannot be empty")
 	}
 
 	// resource fields validation
