@@ -83,7 +83,6 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest)
 			Email:    reqDTO.GetEmail(),
 			Birthday: birthday,
 		},
-		VideoIDs: []vo.ID{},
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),
 		},
