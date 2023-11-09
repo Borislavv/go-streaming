@@ -96,6 +96,12 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 		return nil, b.logger.LogPropagate(err)
 	}
 
+	// setting up a user id
+	if userID, ok := r.Context().Value(enum.UserIDContextKey).(vo.ID); ok {
+		videoDTO.UserID = userID
+	}
+
+	// setting up a video id
 	hexID, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
