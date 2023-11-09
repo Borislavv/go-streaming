@@ -6,6 +6,6 @@ import (
 )
 
 type Accessor interface {
-	// IsGranted is a method which will check the access to target entities scope.
-	IsGranted(userID vo.ID, entities []agg.Aggregate) (isGranted bool, err error)
+	// IsGranted is a method which will check the access to target aggregates scope.
+	IsGranted(userID vo.ID, aggregates ...agg.Aggregate) error
 }
