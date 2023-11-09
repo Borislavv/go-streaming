@@ -7,6 +7,7 @@ import (
 
 type Audio struct {
 	entity.Audio `bson:",inline"`
-	Resource     entity.Resource `json:"resource" bson:"resource"`
-	Timestamp    vo.Timestamp    `bson:",inline"`
+
+	Resource  entity.Resource `json:"resource" bson:"resource"`
+	Timestamp vo.Timestamp    `bson:",inline"`
 }
