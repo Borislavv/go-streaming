@@ -30,6 +30,7 @@ func (req *VideoCreateRequestDTO) GetDescription() string {
 type VideoUpdateRequestDTO struct {
 	ID          vo.ID  `json:"id"`
 	Name        string `json:"name"`
+	UserID      vo.ID
 	ResourceID  vo.ID  `json:"resourceID"`
 	Description string `json:"description,omitempty"`
 }
@@ -40,6 +41,9 @@ func (req *VideoUpdateRequestDTO) GetID() vo.ID {
 func (req *VideoUpdateRequestDTO) GetName() string {
 	return req.Name
 }
+func (req *VideoUpdateRequestDTO) GetUserID() vo.ID {
+	return req.UserID
+}
 func (req *VideoUpdateRequestDTO) GetResourceID() vo.ID {
 	return req.ResourceID
 }
@@ -49,11 +53,15 @@ func (req *VideoUpdateRequestDTO) GetDescription() string {
 
 // VideoGetRequestDTO - used when u want to find a single video
 type VideoGetRequestDTO struct {
-	ID vo.ID `json:"id"`
+	ID     vo.ID `json:"id"`
+	UserID vo.ID
 }
 
 func (req *VideoGetRequestDTO) GetID() vo.ID {
 	return req.ID
+}
+func (req *VideoGetRequestDTO) GetUserID() vo.ID {
+	return req.UserID
 }
 
 // VideoListRequestDTO - used when u want to find a collection of videos
