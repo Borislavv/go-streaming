@@ -7,6 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
 )
 
 const (
@@ -20,6 +21,7 @@ type VideoValidator struct {
 	ctx                context.Context
 	logger             logger.Logger
 	resourceValidator  Resource
+	accessService      accessor.Accessor
 	videoRepository    repository.Video
 	resourceRepository repository.Resource
 }
@@ -28,6 +30,7 @@ func NewVideoValidator(
 	ctx context.Context,
 	logger logger.Logger,
 	resourceValidator Resource,
+	accessService accessor.Accessor,
 	videoRepository repository.Video,
 	resourceRepository repository.Resource,
 ) *VideoValidator {
@@ -35,6 +38,7 @@ func NewVideoValidator(
 		ctx:                ctx,
 		logger:             logger,
 		resourceValidator:  resourceValidator,
+		accessService:      accessService,
 		videoRepository:    videoRepository,
 		resourceRepository: resourceRepository,
 	}
@@ -43,6 +47,9 @@ func NewVideoValidator(
 func (v *VideoValidator) ValidateGetRequestDTO(req dto.GetVideoRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
+	}
+	if req.GetUserID().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(userIDField)
 	}
 	return nil
 }
