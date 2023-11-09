@@ -6,13 +6,12 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"reflect"
 )
 
 type AggregateAccessType int
-type AggregateAccessHandler func(userAgg *agg.User, agg agg.Aggregate) (err error)
+type AggregateAccessHandler func(userID vo.ID, agg agg.Aggregate) (err error)
 type AggregateAccessIsAppropriateHandler func(agg agg.Aggregate) (isSupported bool)
 
 const (
@@ -23,50 +22,27 @@ const (
 )
 
 type AccessService struct {
-	ctx                       context.Context
 	logger                    logger.Logger
-	videoRepository           repository.Video
-	audioRepository           repository.Audio
-	userRepository            repository.User
-	resourceRepository        repository.Resource
 	handlers                  map[AggregateAccessType]AggregateAccessHandler
 	isAppropriateHandlerFuncs map[AggregateAccessType]AggregateAccessIsAppropriateHandler
 }
 
-func NewAccessService(
-	ctx context.Context,
-	logger logger.Logger,
-	videoRepository repository.Video,
-	audioRepository repository.Audio,
-	userRepository repository.User,
-	resourceRepository repository.Resource,
-) *AccessService {
+func NewAccessService(ctx context.Context, logger logger.Logger) *AccessService {
 	return (&AccessService{
-		ctx:                       ctx,
 		logger:                    logger,
-		videoRepository:           videoRepository,
-		audioRepository:           audioRepository,
-		userRepository:            userRepository,
-		resourceRepository:        resourceRepository,
 		handlers:                  map[AggregateAccessType]AggregateAccessHandler{},
 		isAppropriateHandlerFuncs: map[AggregateAccessType]AggregateAccessIsAppropriateHandler{},
 	}).setHandlers()
 }
 
 // IsGranted is a method which will check the access to target scope of aggregates.
-func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isGranted bool, err error) {
-	// TODO must be implemented cache and its interface for storing users and get users from cache later
-	userAgg, err := s.userRepository.Find(s.ctx, userID)
-	if err != nil {
-		return false, s.logger.LogPropagate(err)
-	}
-
+func (s *AccessService) IsGranted(userID vo.ID, aggregates ...agg.Aggregate) error {
 	for _, aggregate := range aggregates {
 		for aggregateAccessType, isAppropriateHandler := range s.isAppropriateHandlerFuncs {
 			if isAppropriateHandler(aggregate) {
 				appropriateHandler, found := s.handlers[aggregateAccessType]
 				if !found {
-					return false, s.logger.LogPropagate(
+					return s.logger.LogPropagate(
 						fmt.Errorf(
 							"appropriate handler was not found by type '%d' into the handlers map",
 							aggregateAccessType,
@@ -74,19 +50,19 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates []agg.Aggregate) (isG
 					)
 				}
 
-				if err = appropriateHandler(userAgg, aggregate); err != nil {
-					return false, s.logger.LogPropagate(err)
+				if err := appropriateHandler(userID, aggregate); err != nil {
+					return s.logger.LogPropagate(err)
 				}
 			}
 		}
 	}
 
 	// access is granted, no errors were occurred
-	return true, nil
+	return nil
 }
 
 // video
-func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
+func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) error {
 	videoAgg, ok := aggregate.(*agg.Video)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -97,11 +73,12 @@ func (s *AccessService) videoHandler(userAgg *agg.User, aggregate agg.Aggregate)
 		)
 	}
 
-	for _, videoID := range userAgg.VideoIDs {
-		if videoID.Value == videoAgg.ID.Value {
-			// video match was found, access is granted for this user
-			return nil
+	if userID.Value == videoAgg.UserID.Value {
+		if err := s.resourceHandler(userID, videoAgg.Resource); err != nil {
+			return s.logger.LogPropagate(err)
 		}
+		// user is owner of video
+		return nil
 	}
 
 	// video was not matched, access is denied
@@ -119,7 +96,7 @@ func (s *AccessService) audioIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // audio
-func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
+func (s *AccessService) audioHandler(userID vo.ID, aggregate agg.Aggregate) error {
 	audioAgg, ok := aggregate.(*agg.Audio)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -130,11 +107,9 @@ func (s *AccessService) audioHandler(userAgg *agg.User, aggregate agg.Aggregate)
 		)
 	}
 
-	for _, audioID := range userAgg.AudioIDs {
-		if audioID.Value == audioAgg.ID.Value {
-			// audio match was found, access is granted for this user
-			return nil
-		}
+	if userID.Value == audioAgg.UserID.Value {
+		// user is owner of audio
+		return nil
 	}
 
 	// audio was not matched, access is denied
@@ -152,7 +127,7 @@ func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 }
 
 // resource
-func (s *AccessService) resourceHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
+func (s *AccessService) resourceHandler(userID vo.ID, aggregate agg.Aggregate) error {
 	resourceAgg, ok := aggregate.(*agg.Resource)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -163,11 +138,9 @@ func (s *AccessService) resourceHandler(userAgg *agg.User, aggregate agg.Aggrega
 		)
 	}
 
-	for _, resourceID := range userAgg.ResourceIDs {
-		if resourceID.Value == resourceAgg.ID.Value {
-			// resource match was found, access is granted for this user
-			return nil
-		}
+	if userID.Value == resourceAgg.UserID.Value {
+		// user is owner of resource
+		return nil
 	}
 
 	// resource was not matched, access is denied
@@ -185,8 +158,8 @@ func (s *AccessService) resourceIsAppropriateHandler(v agg.Aggregate) (isAppropr
 }
 
 // user
-func (s *AccessService) userHandler(userAgg *agg.User, aggregate agg.Aggregate) error {
-	givenUserAgg, ok := aggregate.(*agg.User)
+func (s *AccessService) userHandler(userID vo.ID, aggregate agg.Aggregate) error {
+	userAgg, ok := aggregate.(*agg.User)
 	if !ok {
 		return s.logger.LogPropagate(
 			fmt.Errorf(
@@ -196,11 +169,10 @@ func (s *AccessService) userHandler(userAgg *agg.User, aggregate agg.Aggregate) 
 		)
 	}
 
-	if userAgg.ID.Value == givenUserAgg.ID.Value {
-		// user match was found, access is granted
+	if userID.Value == userAgg.ID.Value {
+		// users are equal
 		return nil
 	}
-
 	// user was not matched, access is denied
 	return s.logger.LogPropagate(
 		errors.NewAccessDeniedError(
