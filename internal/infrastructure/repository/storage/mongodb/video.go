@@ -7,6 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -41,12 +42,17 @@ func NewVideoRepository(db *mongo.Database, logger logger.Logger, timeout time.D
 	}
 }
 
-func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error) {
+func (r *VideoRepository) Find(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
+	filter := bson.M{
+		"_id":    bson.M{"$eq": q.GetID().Value},
+		"userID": bson.M{"$eq": q.GetUserID().Value},
+	}
+
 	video := &agg.Video{}
-	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(video); err != nil {
+	if err := r.db.FindOne(qCtx, filter).Decode(video); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, r.logger.InfoPropagate(VideoNotFoundByIdError)
 		}
@@ -56,45 +62,38 @@ func (r *VideoRepository) Find(ctx context.Context, id vo.ID) (*agg.Video, error
 	return video, nil
 }
 
-func (r *VideoRepository) FindList(
-	ctx context.Context,
-	dto dto.ListVideoRequest,
-) (
-	list []*agg.Video,
-	total int64,
-	err error,
-) {
+func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (list []*agg.Video, total int64, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{}
+	filter := bson.M{"userID": q.GetUserID().Value}
 
-	if dto.GetName() != "" {
-		filter["name"] = primitive.Regex{Pattern: dto.GetName(), Options: "i"}
+	if q.GetName() != "" {
+		filter["name"] = primitive.Regex{Pattern: q.GetName(), Options: "i"}
 	}
-	if !dto.GetCreatedAt().IsZero() {
-		y := dto.GetCreatedAt().Year()
-		m := dto.GetCreatedAt().Month()
-		d := dto.GetCreatedAt().Day()
+	if !q.GetCreatedAt().IsZero() {
+		y := q.GetCreatedAt().Year()
+		m := q.GetCreatedAt().Month()
+		d := q.GetCreatedAt().Day()
 
 		filter["createdAt"] = bson.M{
 			"$gt":  time.Date(y, m, d, 0, 0, 0, 0, time.UTC),
 			"$lte": time.Date(y, m, d, 23, 59, 59, 0, time.UTC),
 		}
-	} else if !dto.GetFrom().IsZero() || !dto.GetTo().IsZero() {
+	} else if !q.GetFrom().IsZero() || !q.GetTo().IsZero() {
 		createdAtFilter := bson.M{}
-		if !dto.GetFrom().IsZero() {
-			createdAtFilter["$gt"] = dto.GetFrom()
+		if !q.GetFrom().IsZero() {
+			createdAtFilter["$gt"] = q.GetFrom()
 		}
-		if !dto.GetTo().IsZero() {
-			createdAtFilter["$lte"] = dto.GetTo()
+		if !q.GetTo().IsZero() {
+			createdAtFilter["$lte"] = q.GetTo()
 		}
 		filter["createdAt"] = createdAtFilter
 	}
 
 	opts := options.Find().
-		SetSkip((int64(dto.GetPage()) - 1) * int64(dto.GetLimit())).
-		SetLimit(int64(dto.GetLimit()))
+		SetSkip((int64(q.GetPage()) - 1) * int64(q.GetLimit())).
+		SetLimit(int64(q.GetLimit()))
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
@@ -133,6 +132,40 @@ func (r *VideoRepository) FindList(
 	return list, total, nil
 }
 
+func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	filter := bson.M{"name": q.GetName(), "userID": q.GetUserID().Value}
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, filter).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, VideoNotFoundByNameError
+		}
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	return video, nil
+}
+
+func (r *VideoRepository) FindOneByResourceId(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	filter := bson.M{"resource._id": q.GetResourceID().Value, "userID": q.GetUserID().Value}
+
+	video := &agg.Video{}
+	if err := r.db.FindOne(qCtx, filter).Decode(video); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, VideoNotFoundByResourceIdError
+		}
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	return video, nil
+}
+
 func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
@@ -143,7 +176,7 @@ func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Vi
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.Find(qCtx, vo.ID{Value: oid})
+		return r.Find(qCtx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, video.UserID))
 	}
 
 	return nil, r.logger.CriticalPropagate(VideoInsertingFailedError)
@@ -160,40 +193,10 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 
 	// check the record is really updated
 	if res.ModifiedCount > 0 {
-		return r.Find(qCtx, video.ID)
+		return r.Find(qCtx, dto.NewVideoGetRequestDTO(video.ID, video.UserID))
 	}
 
 	// if changes is not exists, then return the original data
-	return video, nil
-}
-
-func (r *VideoRepository) FindOneByName(ctx context.Context, name string) (*agg.Video, error) {
-	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
-	defer cancel()
-
-	video := &agg.Video{}
-	if err := r.db.FindOne(qCtx, bson.M{"name": name}).Decode(video); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, VideoNotFoundByNameError
-		}
-		return nil, r.logger.LogPropagate(err)
-	}
-
-	return video, nil
-}
-
-func (r *VideoRepository) FindOneByResourceId(ctx context.Context, resourceID vo.ID) (*agg.Video, error) {
-	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
-	defer cancel()
-
-	video := &agg.Video{}
-	if err := r.db.FindOne(qCtx, bson.M{"resource._id": resourceID.Value}).Decode(video); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, VideoNotFoundByResourceIdError
-		}
-		return nil, r.logger.LogPropagate(err)
-	}
-
 	return video, nil
 }
 
