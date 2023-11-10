@@ -76,6 +76,8 @@ func (s *CRUDService) List(reqDTO dto.ListVideoRequest) (list []*agg.Video, tota
 	return list, total, err
 }
 
+// Create - will make a new video by given request for specified user. Have an access check for resource
+// which exists into the request.
 func (s *CRUDService) Create(reqDTO dto.CreateVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateCreateRequestDTO(reqDTO); err != nil {
@@ -107,6 +109,7 @@ func (s *CRUDService) Create(reqDTO dto.CreateVideoRequest) (*agg.Video, error) 
 	return videoAgg, nil
 }
 
+// Update - will change the video by given request. Have an access check for video.resource.
 func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateUpdateRequestDTO(reqDTO); err != nil {
@@ -125,7 +128,7 @@ func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) 
 	}
 
 	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(reqDTO.GetUserID(), videoAgg); err != nil {
+	if err = s.accessor.IsGranted(reqDTO.GetUserID(), videoAgg.Resource); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
@@ -138,6 +141,7 @@ func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) 
 	return videoAgg, nil
 }
 
+// Delete - will remove the video from the storage.
 func (s *CRUDService) Delete(reqDTO dto.DeleteVideoRequest) (err error) {
 	// validation of input request
 	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
