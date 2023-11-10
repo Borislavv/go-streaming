@@ -42,7 +42,7 @@ func NewVideoRepository(db *mongo.Database, logger logger.Logger, timeout time.D
 	}
 }
 
-func (r *VideoRepository) Find(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -149,7 +149,7 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVide
 	return video, nil
 }
 
-func (r *VideoRepository) FindOneByResourceId(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -176,7 +176,7 @@ func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Vi
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.Find(qCtx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, video.UserID))
+		return r.FindOneByID(qCtx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, video.UserID))
 	}
 
 	return nil, r.logger.CriticalPropagate(VideoInsertingFailedError)
@@ -193,7 +193,7 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 
 	// check the record is really updated
 	if res.ModifiedCount > 0 {
-		return r.Find(qCtx, dto.NewVideoGetRequestDTO(video.ID, video.UserID))
+		return r.FindOneByID(qCtx, dto.NewVideoGetRequestDTO(video.ID, video.UserID))
 	}
 
 	// if changes is not exists, then return the original data
