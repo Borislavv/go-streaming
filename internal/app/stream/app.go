@@ -2,7 +2,7 @@ package stream
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/mongodb"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	server "github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
