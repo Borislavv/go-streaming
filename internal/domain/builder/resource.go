@@ -39,15 +39,15 @@ func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dt
 }
 
 // BuildAggFromUploadRequestDTO will be make an agg.Resource from dto.UploadResourceRequest
-func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(reqDTO dto.UploadResourceRequest) *agg.Resource {
+func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto.UploadResourceRequest) *agg.Resource {
 	return &agg.Resource{
 		Resource: entity.Resource{
-			UserID:   reqDTO.GetUserID(),
-			Name:     reqDTO.GetOriginFilename(),
-			Filename: reqDTO.GetUploadedFilename(),
-			Filepath: reqDTO.GetUploadedFilepath(),
-			Filesize: reqDTO.GetUploadedFilesize(),
-			Filetype: reqDTO.GetUploadedFiletype(),
+			UserID:   req.GetUserID(),
+			Name:     req.GetOriginFilename(),
+			Filename: req.GetUploadedFilename(),
+			Filepath: req.GetUploadedFilepath(),
+			Filesize: req.GetUploadedFilesize(),
+			Filetype: req.GetUploadedFiletype(),
 		},
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),
