@@ -30,7 +30,7 @@ func NewUserRepository(
 	}
 }
 
-func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByID(ctx context.Context, id vo.ID) (user *agg.User, err error) {
 	// building a cache key
 	cacheKey := fmt.Sprintf("userID_%v", id.Value.Hex())
 
@@ -38,7 +38,7 @@ func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, er
 	userInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
-			userAgg, err := r.UserRepository.Find(ctx, id)
+			userAgg, err := r.UserRepository.FindOneByID(ctx, id)
 			if err != nil {
 				return false, r.logger.LogPropagate(err)
 			}
@@ -59,7 +59,7 @@ func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, er
 	return userAgg, nil
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByEmail(ctx context.Context, email string) (user *agg.User, err error) {
 	// building a cache key
 	cacheKey := fmt.Sprintf("user_email_%v", email)
 
@@ -67,7 +67,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user *a
 	userInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
-			userAgg, err := r.UserRepository.FindByEmail(ctx, email)
+			userAgg, err := r.UserRepository.FindOneByEmail(ctx, email)
 			if err != nil {
 				return false, r.logger.LogPropagate(err)
 			}
