@@ -27,6 +27,7 @@ type UploadResourceRequest interface {
 
 type GetResourceRequest interface {
 	GetID() vo.ID
+	GetUserID() vo.ID
 }
 
 type DeleteResourceRequest GetResourceRequest
