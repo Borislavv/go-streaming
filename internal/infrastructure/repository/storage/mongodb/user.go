@@ -5,7 +5,9 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	domainquery "github.com/Borislavv/video-streaming/internal/domain/repository/query"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -39,12 +41,14 @@ func NewUserRepository(db *mongo.Database, logger logger.Logger, timeout time.Du
 	}
 }
 
-func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByID) (user *agg.User, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
+	filter := bson.M{"_id": bson.M{"$eq": q.GetID().Value}}
+
 	user = &agg.User{}
-	if err = r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(user); err != nil {
+	if err = r.db.FindOne(qCtx, filter).Decode(user); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, r.logger.InfoPropagate(UserNotFoundByIdError)
 		}
@@ -54,12 +58,14 @@ func (r *UserRepository) Find(ctx context.Context, id vo.ID) (user *agg.User, er
 	return user, nil
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUserByEmail) (user *agg.User, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
+	filter := bson.M{"email": bson.M{"$eq": q.GetEmail()}}
+
 	user = &agg.User{}
-	if err = r.db.FindOne(qCtx, bson.M{"email": bson.M{"$eq": email}}).Decode(user); err != nil {
+	if err = r.db.FindOne(qCtx, filter).Decode(user); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, r.logger.InfoPropagate(UserNotFoundByEmailError)
 		}
@@ -79,7 +85,7 @@ func (r *UserRepository) Insert(ctx context.Context, user *agg.User) (*agg.User,
 	}
 
 	if oID, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.Find(qCtx, vo.ID{Value: oID})
+		return r.FindOneByID(qCtx, domainquery.NewFindOneUserByID(vo.NewID(oID)))
 	}
 
 	return nil, r.logger.CriticalPropagate(UserInsertingFailedError)
@@ -96,7 +102,7 @@ func (r *UserRepository) Update(ctx context.Context, user *agg.User) (*agg.User,
 
 	// check the record is really updated
 	if res.ModifiedCount > 0 {
-		return r.Find(qCtx, user.ID)
+		return r.FindOneByID(qCtx, domainquery.NewFindOneUserByID(user.ID))
 	}
 
 	// if changes is not exists, then return the original data

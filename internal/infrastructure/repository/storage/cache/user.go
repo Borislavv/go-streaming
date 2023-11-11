@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"reflect"
@@ -30,15 +30,15 @@ func NewUserRepository(
 	}
 }
 
-func (r *UserRepository) FindOneByID(ctx context.Context, id vo.ID) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByID) (user *agg.User, err error) {
 	// building a cache key
-	cacheKey := fmt.Sprintf("userID_%v", id.Value.Hex())
+	cacheKey := fmt.Sprintf("userID_%v", q.GetID().Value.Hex())
 
 	// fetching data from cache/storage
 	userInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
-			userAgg, err := r.UserRepository.FindOneByID(ctx, id)
+			userAgg, err := r.UserRepository.FindOneByID(ctx, q)
 			if err != nil {
 				return false, r.logger.LogPropagate(err)
 			}
@@ -59,15 +59,15 @@ func (r *UserRepository) FindOneByID(ctx context.Context, id vo.ID) (user *agg.U
 	return userAgg, nil
 }
 
-func (r *UserRepository) FindOneByEmail(ctx context.Context, email string) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUserByEmail) (user *agg.User, err error) {
 	// building a cache key
-	cacheKey := fmt.Sprintf("user_email_%v", email)
+	cacheKey := fmt.Sprintf("user_email_%v", q.GetEmail())
 
 	// fetching data from cache/storage
 	userInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
-			userAgg, err := r.UserRepository.FindOneByEmail(ctx, email)
+			userAgg, err := r.UserRepository.FindOneByEmail(ctx, q)
 			if err != nil {
 				return false, r.logger.LogPropagate(err)
 			}
