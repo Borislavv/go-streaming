@@ -6,7 +6,7 @@ import (
 )
 
 type ResourceUploadRequestDTO struct {
-	UserID           vo.ID
+	userID           vo.ID
 	request          *http.Request
 	originFilename   string
 	contentLength    int64
@@ -21,10 +21,10 @@ func NewResourceUploadRequest(r *http.Request) (dto *ResourceUploadRequestDTO) {
 }
 
 func (r *ResourceUploadRequestDTO) GetUserID() vo.ID {
-	return r.UserID
+	return r.userID
 }
 func (r *ResourceUploadRequestDTO) SetUserID(id vo.ID) {
-	r.UserID = id
+	r.userID = id
 }
 func (r *ResourceUploadRequestDTO) GetRequest() *http.Request {
 	return r.request
@@ -61,17 +61,31 @@ func (r *ResourceUploadRequestDTO) SetUploadedFiletype(filetype string) {
 }
 
 type GetResourceRequestDTO struct {
-	ID vo.ID `json:"id"`
+	ID     vo.ID `json:"id"`
+	UserID vo.ID
 }
 
+func NewGetResourceRequestDTO(id vo.ID, userID vo.ID) *GetResourceRequestDTO {
+	return &GetResourceRequestDTO{
+		ID:     id,
+		UserID: userID,
+	}
+}
 func (req *GetResourceRequestDTO) GetID() vo.ID {
 	return req.ID
 }
+func (req *GetResourceRequestDTO) GetUserID() vo.ID {
+	return req.UserID
+}
 
 type DeleteResourceRequestDTO struct {
-	ID vo.ID `json:"id"`
+	ID     vo.ID `json:"id"`
+	UserID vo.ID
 }
 
 func (req *DeleteResourceRequestDTO) GetID() vo.ID {
 	return req.ID
+}
+func (req *DeleteResourceRequestDTO) GetUserID() vo.ID {
+	return req.UserID
 }
