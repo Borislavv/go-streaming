@@ -62,6 +62,7 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 		return nil, b.logger.LogPropagate(err)
 	}
 
+	// setting up a user id
 	if userID, ok := r.Context().Value(enum.UserIDContextKey).(vo.ID); ok {
 		videoDTO.UserID = userID
 	}
@@ -70,17 +71,17 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.Video from dto.CreateVideoRequest
-func (b *VideoBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateVideoRequest) (*agg.Video, error) {
-	resource, err := b.resourceRepository.Find(b.ctx, reqDTO.GetResourceID())
+func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dto.CreateVideoRequest) (*agg.Video, error) {
+	resource, err := b.resourceRepository.Find(b.ctx, req.GetResourceID())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	return &agg.Video{
 		Video: entity.Video{
-			UserID:      reqDTO.GetUserID(),
-			Name:        reqDTO.GetName(),
-			Description: reqDTO.GetDescription(),
+			UserID:      req.GetUserID(),
+			Name:        req.GetName(),
+			Description: req.GetDescription(),
 		},
 		Resource: resource.Resource,
 		Timestamp: vo.Timestamp{
@@ -116,23 +117,23 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
-func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) {
-	video, err := b.videoRepository.Find(b.ctx, reqDTO.GetID())
+func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateVideoRequest) (*agg.Video, error) {
+	video, err := b.videoRepository.FindOneByID(b.ctx, req)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	changes := 0
-	if video.Name != reqDTO.GetName() {
-		video.Name = reqDTO.GetName()
+	if video.Name != req.GetName() {
+		video.Name = req.GetName()
 		changes++
 	}
-	if video.Description != reqDTO.GetDescription() {
-		video.Description = reqDTO.GetDescription()
+	if video.Description != req.GetDescription() {
+		video.Description = req.GetDescription()
 		changes++
 	}
-	if !reqDTO.GetResourceID().Value.IsZero() {
-		resource, ferr := b.resourceRepository.Find(b.ctx, reqDTO.GetResourceID())
+	if !req.GetResourceID().Value.IsZero() {
+		resource, ferr := b.resourceRepository.Find(b.ctx, req.GetResourceID())
 		if ferr != nil {
 			return nil, b.logger.LogPropagate(ferr)
 		}
@@ -152,6 +153,11 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateVideoReques
 func (b *VideoBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.VideoGetRequestDTO, error) {
 	videoDTO := &dto.VideoGetRequestDTO{}
 
+	// setting up a user id
+	if userID, ok := r.Context().Value(enum.UserIDContextKey).(vo.ID); ok {
+		videoDTO.UserID = userID
+	}
+
 	hexID, err := b.extractor.GetParameter(idField, r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
@@ -168,6 +174,11 @@ func (b *VideoBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.Vide
 // BuildListRequestDTOFromRequest - build a dto.ListVideoRequest from raw *http.Request
 func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.VideoListRequestDTO, error) {
 	videoDTO := &dto.VideoListRequestDTO{}
+
+	// setting up a user id
+	if userID, ok := r.Context().Value(enum.UserIDContextKey).(vo.ID); ok {
+		videoDTO.UserID = userID
+	}
 
 	if b.extractor.HasParameter(nameField, r) {
 		if nm, err := b.extractor.GetParameter(nameField, r); err == nil {
@@ -235,5 +246,5 @@ func (b *VideoBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.V
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	return &dto.VideoDeleteRequestDto{ID: videoGetDTO.ID}, nil
+	return &dto.VideoDeleteRequestDto{ID: videoGetDTO.ID, UserID: videoGetDTO.UserID}, nil
 }
