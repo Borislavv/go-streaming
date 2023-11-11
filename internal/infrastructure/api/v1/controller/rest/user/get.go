@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	GetPath  = "/user/{id}"
+	GetPath  = "/user"
 	cacheTTL = time.Minute * 60
 )
 
@@ -47,13 +47,13 @@ func NewGetController(
 }
 
 func (c *GetUserController) Get(w http.ResponseWriter, r *http.Request) {
-	reqDTO, err := c.builder.BuildGetRequestDTOFromRequest(r)
+	req, err := c.builder.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	userAgg, err := c.getCached(reqDTO)
+	userAgg, err := c.getCached(req)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
