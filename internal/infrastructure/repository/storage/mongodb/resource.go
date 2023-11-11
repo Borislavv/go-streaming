@@ -5,7 +5,9 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	domainquery "github.com/Borislavv/video-streaming/internal/domain/repository/query"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,12 +39,17 @@ func NewResourceRepository(db *mongo.Database, logger logger.Logger, timeout tim
 	}
 }
 
-func (r *ResourceRepository) Find(ctx context.Context, id vo.ID) (*agg.Resource, error) {
+func (r *ResourceRepository) FindOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
+	filter := bson.M{
+		"_id":    bson.M{"$eq": q.GetID().Value},
+		"userID": bson.M{"$eq": q.GetUserID().Value},
+	}
+
 	resourceAgg := &agg.Resource{}
-	if err := r.db.FindOne(qCtx, bson.M{"_id": bson.M{"$eq": id.Value}}).Decode(resourceAgg); err != nil {
+	if err := r.db.FindOne(qCtx, filter).Decode(resourceAgg); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, r.logger.InfoPropagate(ResourceNotFoundByIdError)
 		}
@@ -62,7 +69,7 @@ func (r *ResourceRepository) Insert(ctx context.Context, resource *agg.Resource)
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.Find(qCtx, vo.ID{Value: oid})
+		return r.FindOneByID(qCtx, domainquery.NewFindOneResourceByID(vo.ID{Value: oid}, resource.UserID))
 	}
 
 	return nil, r.logger.CriticalPropagate(ResourceInsertingFailedError)
