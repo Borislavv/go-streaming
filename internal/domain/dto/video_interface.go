@@ -25,7 +25,7 @@ type GetVideoRequest interface {
 	GetUserID() vo.ID
 }
 type ListVideoRequest interface {
-	GetName() string         // path of name
+	GetName() string         // part of name
 	GetUserID() vo.ID        // user identifier
 	GetCreatedAt() time.Time // concrete search date point
 	GetFrom() time.Time      // search date limit from
