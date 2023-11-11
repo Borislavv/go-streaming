@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
 	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
 	"github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
@@ -87,14 +87,14 @@ func (s *CRUDService) Upload(reqDTO dto.UploadResourceRequest) (resource *agg.Re
 	return resource, nil
 }
 
-func (s *CRUDService) Delete(reqDTO dto.DeleteResourceRequest) (err error) {
+func (s *CRUDService) Delete(req dto.DeleteResourceRequest) (err error) {
 	// validation of raw delete request
-	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
+	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
 	// fetching the target resource aggregate
-	resourceAgg, err := s.repository.Find(s.ctx, reqDTO.GetID())
+	resourceAgg, err := s.repository.FindOneByID(s.ctx, req)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
