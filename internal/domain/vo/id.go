@@ -10,6 +10,10 @@ type ID struct {
 	Value primitive.ObjectID `json:"value" bson:"_id,omitempty"`
 }
 
+func NewID(oid primitive.ObjectID) ID {
+	return ID{Value: oid}
+}
+
 func (id *ID) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("\"%v\"", id.Value.Hex())), nil
 }
