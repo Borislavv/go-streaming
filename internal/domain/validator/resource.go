@@ -7,7 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
 )
 
 type ResourceValidator struct {
@@ -68,6 +68,9 @@ func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
 func (v *ResourceValidator) ValidateGetRequestDTO(req dto.GetResourceRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
+	}
+	if req.GetUserID().Value.IsZero() {
+		return errors.NewFieldCannotBeEmptyError(userIDField)
 	}
 	return nil
 }
