@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,22 +33,11 @@ func NewBlockedTokenRepository(db *mongo.Database, logger logger.Logger, timeout
 	}
 }
 
-func (r *BlockedTokenRepository) Insert(ctx context.Context, token string) error {
+func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedToken) error {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	blockedToken := agg.BlockedToken{
-		BlockedToken: entity.BlockedToken{
-			Value:     token,
-			BlockedAt: time.Now(),
-		},
-		Timestamp: vo.Timestamp{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Time{},
-		},
-	}
-
-	res, err := r.db.InsertOne(qCtx, blockedToken, options.InsertOne())
+	res, err := r.db.InsertOne(qCtx, token, options.InsertOne())
 	if err != nil {
 		return r.logger.ErrorPropagate(err)
 	}
@@ -57,7 +45,10 @@ func (r *BlockedTokenRepository) Insert(ctx context.Context, token string) error
 	if _, ok := res.InsertedID.(primitive.ObjectID); !ok {
 		return r.logger.LogPropagate(
 			errors.NewInternalValidationError(
-				fmt.Sprintf("error occurred while inserting a blocked token '%v'", token),
+				fmt.Sprintf(
+					"error occurred while inserting a blocked token '%v' for user '%v'",
+					token.Value, token.UserID,
+				),
 			),
 		)
 	}
@@ -65,11 +56,16 @@ func (r *BlockedTokenRepository) Insert(ctx context.Context, token string) error
 	return nil
 }
 
-func (r *BlockedTokenRepository) Has(ctx context.Context, token string) (found bool, err error) {
+func (r *BlockedTokenRepository) Has(ctx context.Context, q query.HasBlockedToken) (found bool, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	if err = r.db.FindOne(qCtx, bson.M{"value": bson.M{"$eq": token}}).Decode(&agg.BlockedToken{}); err != nil {
+	filter := bson.M{
+		"value":  bson.M{"$eq": q.GetToken()},
+		"userID": bson.M{"$eq": q.GetUserID().Value},
+	}
+
+	if err = r.db.FindOne(qCtx, filter).Decode(&agg.BlockedToken{}); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
 		}
