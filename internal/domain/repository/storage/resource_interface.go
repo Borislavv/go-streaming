@@ -3,11 +3,11 @@ package repository
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 )
 
 type Resource interface {
-	Find(ctx context.Context, id vo.ID) (*agg.Resource, error)
+	FindOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error)
 	Insert(ctx context.Context, resource *agg.Resource) (*agg.Resource, error)
 	Remove(ctx context.Context, resource *agg.Resource) error
 }
