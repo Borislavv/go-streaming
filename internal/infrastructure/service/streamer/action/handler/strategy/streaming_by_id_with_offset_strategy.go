@@ -3,10 +3,11 @@ package strategy
 import (
 	"context"
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
@@ -56,6 +57,7 @@ func (s *StreamByIDWithOffsetActionStrategy) IsAppropriate(action model.Action) 
 
 // Do - will be streaming a target resource by ID from given offset.
 func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
+	// check the data is eligible
 	data, ok := action.Data.(model.StreamByIdWithOffsetData)
 	if !ok {
 		return s.logger.CriticalPropagate(
@@ -63,11 +65,15 @@ func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 		)
 	}
 
+	// // parse the given video resource identifier
 	oid, err := primitive.ObjectIDFromHex(data.ID)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
-	v, err := s.videoRepository.Find(s.ctx, vo.ID{Value: oid})
+
+	// TODO need to past token from the client and parse it on each request (actually fetch from cache)
+	// searching the requested video resource
+	v, err := s.videoRepository.FindOneByID(s.ctx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, vo.ID{Value: oid})) // TODO this will not work at now because video oid passed as user oid
 	if err != nil {
 		if errors.IsEntityNotFoundError(err) {
 			if err = s.communicator.Error(err, action.Conn); err != nil {
@@ -78,6 +84,7 @@ func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 	}
 	s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", action.Conn.RemoteAddr(), v.Resource.Name))
 
+	// video resource streaming
 	s.stream(v.Resource, data, action.Conn)
 
 	return nil

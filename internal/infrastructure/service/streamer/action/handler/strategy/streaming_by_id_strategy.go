@@ -3,10 +3,11 @@ package strategy
 import (
 	"context"
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
@@ -62,13 +63,15 @@ func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 		)
 	}
 
-	// parse the given resource identifier
+	// parse the given video resource identifier
 	oid, err := primitive.ObjectIDFromHex(data.ID)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
+
+	// TODO need to past token from the client and parse it on each request (actually fetch from cache)
 	// find the target resource
-	v, err := s.videoRepository.Find(s.ctx, vo.ID{Value: oid})
+	v, err := s.videoRepository.FindOneByID(s.ctx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, vo.ID{Value: oid})) // TODO this will not work at now because video oid passed as user oid
 	if err != nil {
 		if errors.IsEntityNotFoundError(err) {
 			if err = s.communicator.Error(err, action.Conn); err != nil {
@@ -79,7 +82,7 @@ func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	}
 	s.logger.Info(fmt.Sprintf("[%v]: streaming 'resource':'%v'", action.Conn.RemoteAddr(), v.Resource.Name))
 
-	// start streaming the target resource
+	// video resource streaming
 	s.stream(v.Resource, action.Conn)
 
 	return nil
