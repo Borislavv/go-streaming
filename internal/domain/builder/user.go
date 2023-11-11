@@ -9,7 +9,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -24,7 +24,7 @@ type UserBuilder struct {
 	userRepository repository.User
 }
 
-// NewUserBuilder is a constructor of UserBuilder
+// NewUserBuilder is a constructor of UserBuilder.
 func NewUserBuilder(
 	ctx context.Context,
 	logger logger.Logger,
@@ -39,24 +39,16 @@ func NewUserBuilder(
 	}
 }
 
-// BuildGetRequestDTOFromRequest - build a dto.GetUserRequest from raw *http.Request
+// BuildGetRequestDTOFromRequest - build a dto.GetUserRequest from raw *http.Request.
 func (b *UserBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.UserGetRequestDTO, error) {
 	userDTO := &dto.UserGetRequestDTO{}
-
-	hexID, err := b.extractor.GetParameter(idField, r)
-	if err != nil {
-		return nil, b.logger.LogPropagate(err)
+	if userID, ok := r.Context().Value(enum.UserIDContextKey).(vo.ID); ok {
+		userDTO.ID = userID
 	}
-	oID, err := primitive.ObjectIDFromHex(hexID)
-	if err != nil {
-		return nil, b.logger.LogPropagate(err)
-	}
-	userDTO.ID = vo.ID{Value: oID}
-
 	return userDTO, nil
 }
 
-// BuildCreateRequestDTOFromRequest - build a dto.CreateUserRequest from raw *http.Request
+// BuildCreateRequestDTOFromRequest - build a dto.CreateUserRequest from raw *http.Request.
 func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.UserCreateRequestDTO, error) {
 	userDTO := &dto.UserCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(userDTO); err != nil {
@@ -89,7 +81,7 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest)
 	}, nil
 }
 
-// BuildUpdateRequestDTOFromRequest - build a dto.UserUpdateRequestDTO from raw *http.Request
+// BuildUpdateRequestDTOFromRequest - build a dto.UserUpdateRequestDTO from raw *http.Request.
 func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.UserUpdateRequestDTO, error) {
 	userDTO := &dto.UserUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
@@ -109,7 +101,7 @@ func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.Us
 	return userDTO, nil
 }
 
-// BuildAggFromUpdateRequestDTO - build an agg.User from dto.UpdateUserRequest
+// BuildAggFromUpdateRequestDTO - build an agg.User from dto.UpdateUserRequest.
 func (b *UserBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateUserRequest) (*agg.User, error) {
 	user, err := b.userRepository.Find(b.ctx, reqDTO.GetID())
 	if err != nil {
@@ -145,7 +137,7 @@ func (b *UserBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateUserRequest)
 	return user, nil
 }
 
-// BuildDeleteRequestDTOFromRequest - build a dto.DeleteVideoRequest from raw *http.Request
+// BuildDeleteRequestDTOFromRequest - build a dto.DeleteVideoRequest from raw *http.Request.
 func (b *UserBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDto, error) {
 	getReqDTO, err := b.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
