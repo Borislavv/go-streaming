@@ -57,6 +57,12 @@ type VideoGetRequestDTO struct {
 	UserID vo.ID
 }
 
+func NewVideoGetRequestDTO(id vo.ID, userID vo.ID) *VideoGetRequestDTO {
+	return &VideoGetRequestDTO{
+		ID:     id,
+		UserID: userID,
+	}
+}
 func (req *VideoGetRequestDTO) GetID() vo.ID {
 	return req.ID
 }
@@ -66,7 +72,8 @@ func (req *VideoGetRequestDTO) GetUserID() vo.ID {
 
 // VideoListRequestDTO - used when u want to find a collection of videos
 type VideoListRequestDTO struct {
-	Name      string    `json:"name"` // part of name
+	Name      string `json:"name"` // part of name
+	UserID    vo.ID
 	CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
 	From      time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
 	To        time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
@@ -75,6 +82,9 @@ type VideoListRequestDTO struct {
 
 func (req *VideoListRequestDTO) GetName() string {
 	return req.Name
+}
+func (req *VideoListRequestDTO) GetUserID() vo.ID {
+	return req.UserID
 }
 func (req *VideoListRequestDTO) GetCreatedAt() time.Time {
 	return req.CreatedAt
@@ -88,9 +98,13 @@ func (req *VideoListRequestDTO) GetTo() time.Time {
 
 // VideoDeleteRequestDto - used when u want to remove the video
 type VideoDeleteRequestDto struct {
-	ID vo.ID `json:"id"`
+	ID     vo.ID `json:"id"`
+	UserID vo.ID
 }
 
 func (req *VideoDeleteRequestDto) GetID() vo.ID {
 	return req.ID
+}
+func (req *VideoDeleteRequestDto) GetUserID() vo.ID {
+	return req.UserID
 }
