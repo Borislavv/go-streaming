@@ -7,7 +7,7 @@ import (
 )
 
 type Resource interface {
-	FindOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error)
-	Insert(ctx context.Context, resource *agg.Resource) (*agg.Resource, error)
-	Remove(ctx context.Context, resource *agg.Resource) error
+	FindOneByID(context.Context, query.FindOneResourceByID) (*agg.Resource, error)
+	Insert(context.Context, *agg.Resource) (*agg.Resource, error)
+	Remove(context.Context, *agg.Resource) error
 }
