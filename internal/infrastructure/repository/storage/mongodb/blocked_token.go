@@ -6,7 +6,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -56,14 +55,11 @@ func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedT
 	return nil
 }
 
-func (r *BlockedTokenRepository) Has(ctx context.Context, q query.HasBlockedToken) (found bool, err error) {
+func (r *BlockedTokenRepository) Has(ctx context.Context, token string) (found bool, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{
-		"value":  bson.M{"$eq": q.GetToken()},
-		"userID": bson.M{"$eq": q.GetUserID().Value},
-	}
+	filter := bson.M{"value": bson.M{"$eq": token}}
 
 	if err = r.db.FindOne(qCtx, filter).Decode(&agg.BlockedToken{}); err != nil {
 		if err == mongo.ErrNoDocuments {
