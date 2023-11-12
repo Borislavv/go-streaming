@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository2 "github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
 	authservice "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	resourceservice "github.com/Borislavv/video-streaming/internal/domain/service/resource"
@@ -85,6 +86,9 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// Request-Response dependencies initialization
 	requestService, responseService := app.InitRequestResponseServices(loggerService)
 
+	// Access service
+	accessService := accessor.NewAccessService(ctx, loggerService)
+
 	// Files uploader dependencies initialization
 	uploadingStorage, _, uploadingStrategy := app.InitUploaderServices(
 		ctx, loggerService,
@@ -98,7 +102,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// Video dependencies initialization
 	videoBuilder, _, videoService, _ := app.InitVideoServices(
 		ctx, loggerService, db, resourceValidator,
-		resourceRepository, resourceService, requestService,
+		resourceRepository, resourceService, requestService, accessService,
 	)
 
 	// User dependencies initialization
@@ -205,19 +209,20 @@ func (app *ResourcesApp) InitVideoServices(
 	logger loggerservice.Logger,
 	database *mongo.Database,
 	resourceValidator validator.Resource,
-	resourceRepository repository.Resource,
+	resourceRepository repository2.Resource,
 	resourceService resourceservice.CRUD,
 	reqParamsExtractor extractor.RequestParams,
+	accessService accessor.Accessor,
 ) (
 	builder.Video,
 	validator.Video,
 	videoservice.CRUD,
-	repository.Video,
+	repository2.Video,
 ) {
 	r := mongodb.NewVideoRepository(database, logger, time.Minute)
-	v := validator.NewVideoValidator(ctx, logger, resourceValidator, r, resourceRepository)
+	v := validator.NewVideoValidator(ctx, logger, resourceValidator, accessService, r, resourceRepository)
 	b := builder.NewVideoBuilder(ctx, logger, reqParamsExtractor, r, resourceRepository)
-	s := videoservice.NewCRUDService(ctx, logger, b, v, r, resourceService)
+	s := videoservice.NewCRUDService(ctx, logger, b, v, accessService, r, resourceService)
 	return b, v, s, r
 }
 
@@ -231,7 +236,7 @@ func (app *ResourcesApp) InitResourceServices(
 	builder.Resource,
 	validator.Resource,
 	resourceservice.CRUD,
-	repository.Resource,
+	repository2.Resource,
 ) {
 	r := mongodb.NewResourceRepository(database, logger, time.Minute)
 	v := validator.NewResourceValidator(ctx, r, app.cfg.MaxFilesizeThreshold)
@@ -250,7 +255,7 @@ func (app *ResourcesApp) InitUserServices(
 	builder.User,
 	validator.User,
 	userservice.CRUD,
-	repository.User,
+	repository2.User,
 ) {
 	r := mongodb.NewUserRepository(database, logger, DefaultDatabaseTimeout)
 	b := builder.NewUserBuilder(ctx, logger, reqParamsExtractor, r)
@@ -279,7 +284,7 @@ func (app *ResourcesApp) InitTokenServices(
 	logger loggerservice.Logger,
 	database *mongo.Database,
 ) (
-	repository.BlockedToken,
+	repository2.BlockedToken,
 	tokenizerservice.Tokenizer,
 ) {
 	r := mongodb.NewBlockedTokenRepository(database, logger, DefaultDatabaseTimeout)
