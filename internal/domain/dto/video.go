@@ -80,6 +80,23 @@ type VideoListRequestDTO struct {
 	PaginationRequestDTO
 }
 
+func NewVideoListRequestDTO(
+	name string, userID vo.ID,
+	createdAt time.Time, from time.Time, to time.Time,
+	page int, limit int,
+) *VideoListRequestDTO {
+	return &VideoListRequestDTO{
+		Name:      name,
+		UserID:    userID,
+		CreatedAt: createdAt,
+		From:      from,
+		To:        to,
+		PaginationRequestDTO: PaginationRequestDTO{
+			Page:  page,
+			Limit: limit,
+		},
+	}
+}
 func (req *VideoListRequestDTO) GetName() string {
 	return req.Name
 }
@@ -102,6 +119,12 @@ type VideoDeleteRequestDto struct {
 	UserID vo.ID
 }
 
+func NewVideoDeleteRequestDto(id vo.ID, userID vo.ID) *VideoDeleteRequestDto {
+	return &VideoDeleteRequestDto{
+		ID:     id,
+		UserID: userID,
+	}
+}
 func (req *VideoDeleteRequestDto) GetID() vo.ID {
 	return req.ID
 }
