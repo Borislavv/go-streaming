@@ -32,7 +32,7 @@ func NewBlockedTokenRepository(db *mongo.Database, logger logger.Logger, timeout
 	}
 }
 
-func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedToken) error {
+func (r *BlockedTokenRepository) Insert(ctx context.Context, token string) error {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -44,10 +44,7 @@ func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedT
 	if _, ok := res.InsertedID.(primitive.ObjectID); !ok {
 		return r.logger.LogPropagate(
 			errors.NewInternalValidationError(
-				fmt.Sprintf(
-					"error occurred while inserting a blocked token '%v' for user '%v'",
-					token.Value, token.UserID,
-				),
+				fmt.Sprintf("error occurred while inserting a blocked token '%v'", token),
 			),
 		)
 	}
