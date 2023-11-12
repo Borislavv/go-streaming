@@ -9,7 +9,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -102,21 +102,21 @@ func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.Us
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.User from dto.UpdateUserRequest.
-func (b *UserBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateUserRequest) (*agg.User, error) {
-	user, err := b.userRepository.Find(b.ctx, reqDTO.GetID())
+func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateUserRequest) (*agg.User, error) {
+	user, err := b.userRepository.FindOneByID(b.ctx, req)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
 	changes := 0
-	if reqDTO.GetUsername() != user.Username {
-		user.Username = reqDTO.GetUsername()
+	if req.GetUsername() != user.Username {
+		user.Username = req.GetUsername()
 		changes++
 	}
 
-	if reqDTO.GetBirthday() != user.Birthday.String() {
+	if req.GetBirthday() != user.Birthday.String() {
 		// this validation checked previously into the DTO validator
-		birthday, err := time.Parse(enum.BirthdayDatePattern, reqDTO.GetBirthday())
+		birthday, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
 		if err != nil {
 			// here, we must have a valid date or occurred internal error
 			return nil, b.logger.CriticalPropagate(err)
@@ -125,8 +125,8 @@ func (b *UserBuilder) BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateUserRequest)
 		changes++
 	}
 
-	if reqDTO.GetPassword() != user.Password {
-		user.Password = reqDTO.GetPassword()
+	if req.GetPassword() != user.Password {
+		user.Password = req.GetPassword()
 		changes++
 	}
 
