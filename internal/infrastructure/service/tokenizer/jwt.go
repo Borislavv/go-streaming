@@ -115,7 +115,12 @@ func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
 
 // Block will mark the token as blocked into the storage.
 func (s *JwtService) Block(token string) error {
-	if err := s.blockedTokenRepository.Insert(s.ctx, token); err != nil {
+	userID, err := s.Validate(s.ctx, token)
+	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	if err = s.blockedTokenRepository.Insert(s.ctx, agg.NewBlockedToken(token, userID)); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 	return nil
@@ -148,7 +153,7 @@ func (s *JwtService) getUserID(claims jwt.Claims) (userID vo.ID, err error) {
 	if err != nil {
 		return vo.ID{}, s.logger.LogPropagate(err)
 	}
-	// creating an user object ID from hex
+	// creating a user object ID from hex
 	oID, err := primitive.ObjectIDFromHex(hexID)
 	if err != nil {
 		return vo.ID{}, s.logger.LogPropagate(err)
