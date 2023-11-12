@@ -72,7 +72,9 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 
 // BuildAggFromCreateRequestDTO - build an agg.Video from dto.CreateVideoRequest
 func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dto.CreateVideoRequest) (*agg.Video, error) {
-	resource, err := b.resourceRepository.Find(b.ctx, req.GetResourceID())
+	resource, err := b.resourceRepository.FindOneByID(
+		b.ctx, dto.NewGetResourceRequestDTO(req.GetResourceID(), req.GetUserID()),
+	)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -133,7 +135,9 @@ func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateVideoRequest) 
 		changes++
 	}
 	if !req.GetResourceID().Value.IsZero() {
-		resource, ferr := b.resourceRepository.Find(b.ctx, req.GetResourceID())
+		resource, ferr := b.resourceRepository.FindOneByID(
+			b.ctx, dto.NewGetResourceRequestDTO(req.GetResourceID(), req.GetUserID()),
+		)
 		if ferr != nil {
 			return nil, b.logger.LogPropagate(ferr)
 		}
