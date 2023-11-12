@@ -2,6 +2,9 @@ package stream
 
 import (
 	"context"
+	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	tokenizerservice "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	server "github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
@@ -12,16 +15,20 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/ws"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 )
+
+const DefaultDatabaseTimeout = time.Second * 10
 
 type StreamingApp struct {
 	cfg config
@@ -82,13 +89,17 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	// websocket actions listener
 	actionsListener := listener.NewWebSocketActionsListener(loggerService, wsCommunicator)
 
+	// Tokenizer service
+	_, tokenService := app.InitTokenServices(ctx, loggerService, db)
+
 	// websocket actions handler
 	actionsHandler := handler.NewWebSocketActionsHandler(
 		ctx,
 		loggerService,
 		[]strategy.ActionStrategy{
 			strategy.NewStreamByIDActionStrategy(
-				ctx, loggerService, videoRepository, readerService, codecsDetector, wsCommunicator,
+				ctx, loggerService, videoRepository, readerService,
+				codecsDetector, wsCommunicator, tokenService,
 			),
 		},
 	)
@@ -108,4 +119,20 @@ func (app *StreamingApp) shutdown() chan os.Signal {
 	stopCh := make(chan os.Signal, 1)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
 	return stopCh
+}
+
+func (app *StreamingApp) InitTokenServices(
+	ctx context.Context,
+	logger loggerservice.Logger,
+	database *mongo.Database,
+) (
+	repository.BlockedToken,
+	tokenizerservice.Tokenizer,
+) {
+	r := mongodb.NewBlockedTokenRepository(database, logger, DefaultDatabaseTimeout)
+	s := tokenizer.NewJwtService(
+		ctx, logger, r, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
+		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
+	)
+	return r, s
 }
