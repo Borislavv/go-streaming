@@ -7,7 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
 )
 
 type ResourceValidator struct {

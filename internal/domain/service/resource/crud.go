@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
 	"github.com/Borislavv/video-streaming/internal/domain/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
