@@ -8,6 +8,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 )
 
 const (
@@ -92,9 +93,11 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	// video fields validation
 	if agg.Name == "" {
 		return errors.NewInternalValidationError("'name' cannot be empty")
-	} else if agg.Resource.ID.Value.IsZero() {
+	}
+	if agg.Resource.ID.Value.IsZero() {
 		return errors.NewInternalValidationError("'resource.id' cannot be empty")
-	} else if agg.UserID.Value.IsZero() {
+	}
+	if agg.UserID.Value.IsZero() {
 		return errors.NewInternalValidationError("'userID' cannot be empty")
 	}
 
@@ -104,7 +107,8 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	}
 
 	// video validation by name which must be unique
-	video, err := v.videoRepository.FindOneByName(v.ctx, agg.Name)
+	q := dto.NewVideoGetRequestDTO(vo.ID{}, agg.Name, vo.ID{}, agg.UserID)
+	video, err := v.videoRepository.FindOneByName(v.ctx, q)
 	if err != nil {
 		if !errors.IsEntityNotFoundError(err) {
 			return v.logger.LogPropagate(err)
@@ -120,7 +124,8 @@ func (v *VideoValidator) ValidateAggregate(agg *agg.Video) error {
 	}
 
 	// video validation by resource.id which must be unique too
-	video, err = v.videoRepository.FindOneByResourceId(v.ctx, agg.Resource.ID)
+	q = dto.NewVideoGetRequestDTO(vo.ID{}, "", agg.Resource.ID, agg.UserID)
+	video, err = v.videoRepository.FindOneByResourceID(v.ctx, q)
 	if err != nil {
 		if !errors.IsEntityNotFoundError(err) {
 			return v.logger.LogPropagate(err)
