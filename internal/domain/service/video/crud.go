@@ -155,7 +155,7 @@ func (s *CRUDService) Delete(req dto.DeleteVideoRequest) (err error) {
 	}
 
 	// resource removing first
-	if err = s.resourceService.Delete(&dto.DeleteResourceRequestDTO{ID: videoAgg.Resource.ID}); err != nil {
+	if err = s.resourceService.Delete(&dto.ResourceDeleteRequestDTO{ID: videoAgg.Resource.ID}); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
