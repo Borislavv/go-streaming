@@ -47,8 +47,8 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoB
 	defer cancel()
 
 	filter := bson.M{
-		"_id":    bson.M{"$eq": q.GetID().Value},
-		"userID": bson.M{"$eq": q.GetUserID().Value},
+		"_id":    q.GetID().Value,
+		"userID": q.GetUserID().Value,
 	}
 
 	video := &agg.Video{}
@@ -136,7 +136,10 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVide
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{"name": q.GetName(), "userID": q.GetUserID().Value}
+	filter := bson.M{
+		"name":   q.GetName(),
+		"userID": q.GetUserID().Value,
+	}
 
 	video := &agg.Video{}
 	if err := r.db.FindOne(qCtx, filter).Decode(video); err != nil {
@@ -153,7 +156,10 @@ func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindO
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{"resource._id": q.GetResourceID().Value, "userID": q.GetUserID().Value}
+	filter := bson.M{
+		"resource._id": q.GetResourceID().Value,
+		"userID":       q.GetUserID().Value,
+	}
 
 	video := &agg.Video{}
 	if err := r.db.FindOne(qCtx, filter).Decode(video); err != nil {
@@ -176,7 +182,8 @@ func (r *VideoRepository) Insert(ctx context.Context, video *agg.Video) (*agg.Vi
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.FindOneByID(qCtx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, video.UserID))
+		q := dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, "", vo.ID{}, video.UserID)
+		return r.FindOneByID(qCtx, q)
 	}
 
 	return nil, r.logger.CriticalPropagate(VideoInsertingFailedError)
@@ -193,7 +200,8 @@ func (r *VideoRepository) Update(ctx context.Context, video *agg.Video) (*agg.Vi
 
 	// check the record is really updated
 	if res.ModifiedCount > 0 {
-		return r.FindOneByID(qCtx, dto.NewVideoGetRequestDTO(video.ID, video.UserID))
+		q := dto.NewVideoGetRequestDTO(video.ID, "", vo.ID{}, video.UserID)
+		return r.FindOneByID(qCtx, q)
 	}
 
 	// if changes is not exists, then return the original data
