@@ -60,32 +60,32 @@ func (r *ResourceUploadRequestDTO) SetUploadedFiletype(filetype string) {
 	r.uploadedFiletype = filetype
 }
 
-type GetResourceRequestDTO struct {
+type ResourceGetRequestDTO struct {
 	ID     vo.ID `json:"id"`
 	UserID vo.ID
 }
 
-func NewGetResourceRequestDTO(id vo.ID, userID vo.ID) *GetResourceRequestDTO {
-	return &GetResourceRequestDTO{
+func NewResourceGetRequestDTO(id vo.ID, userID vo.ID) *ResourceGetRequestDTO {
+	return &ResourceGetRequestDTO{
 		ID:     id,
 		UserID: userID,
 	}
 }
-func (req *GetResourceRequestDTO) GetID() vo.ID {
+func (req *ResourceGetRequestDTO) GetID() vo.ID {
 	return req.ID
 }
-func (req *GetResourceRequestDTO) GetUserID() vo.ID {
+func (req *ResourceGetRequestDTO) GetUserID() vo.ID {
 	return req.UserID
 }
 
-type DeleteResourceRequestDTO struct {
+type ResourceDeleteRequestDTO struct {
 	ID     vo.ID `json:"id"`
 	UserID vo.ID
 }
 
-func (req *DeleteResourceRequestDTO) GetID() vo.ID {
+func (req *ResourceDeleteRequestDTO) GetID() vo.ID {
 	return req.ID
 }
-func (req *DeleteResourceRequestDTO) GetUserID() vo.ID {
+func (req *ResourceDeleteRequestDTO) GetUserID() vo.ID {
 	return req.UserID
 }
