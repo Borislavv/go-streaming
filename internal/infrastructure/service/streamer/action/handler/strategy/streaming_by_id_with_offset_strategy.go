@@ -7,7 +7,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	repository "github.com/Borislavv/video-streaming/internal/domain/repository/storage"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
@@ -27,6 +28,7 @@ type StreamByIDWithOffsetActionStrategy struct {
 	reader          reader.FileReader
 	codecInfo       detector.Detector
 	communicator    proto.Communicator
+	tokenizer       tokenizer.Tokenizer
 	chunkSize       int
 }
 
@@ -37,6 +39,7 @@ func NewStreamByIDWithOffsetActionStrategy(
 	reader reader.FileReader,
 	codecInfo detector.Detector,
 	communicator proto.Communicator,
+	tokenizer tokenizer.Tokenizer,
 	chunkSize int,
 ) *StreamByIDWithOffsetActionStrategy {
 	return &StreamByIDWithOffsetActionStrategy{
@@ -46,6 +49,7 @@ func NewStreamByIDWithOffsetActionStrategy(
 		reader:          reader,
 		codecInfo:       codecInfo,
 		communicator:    communicator,
+		tokenizer:       tokenizer,
 		chunkSize:       chunkSize,
 	}
 }
@@ -65,15 +69,20 @@ func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 		)
 	}
 
-	// // parse the given video resource identifier
+	// user authentication
+	userID, err := s.tokenizer.Validate(data.Token)
+	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	// parse the given video resource identifier
 	oid, err := primitive.ObjectIDFromHex(data.ID)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
-	// TODO need to past token from the client and parse it on each request (actually fetch from cache)
 	// searching the requested video resource
-	v, err := s.videoRepository.FindOneByID(s.ctx, dto.NewVideoGetRequestDTO(vo.ID{Value: oid}, vo.ID{Value: oid})) // TODO this will not work at now because video oid passed as user oid
+	v, err := s.videoRepository.FindOneByID(s.ctx, dto.NewVideoGetRequestDTO(vo.NewID(oid), userID))
 	if err != nil {
 		if errors.IsEntityNotFoundError(err) {
 			if err = s.communicator.Error(err, action.Conn); err != nil {
