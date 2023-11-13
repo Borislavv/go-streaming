@@ -3,9 +3,9 @@ package mongodb
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	domainquery "github.com/Borislavv/video-streaming/internal/domain/repository/query"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
@@ -85,7 +85,8 @@ func (r *UserRepository) Insert(ctx context.Context, user *agg.User) (*agg.User,
 	}
 
 	if oID, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.FindOneByID(qCtx, domainquery.NewFindOneUserByID(vo.NewID(oID)))
+		q := dto.NewUserGetRequestDTO(vo.NewID(oID), "")
+		return r.FindOneByID(qCtx, q)
 	}
 
 	return nil, r.logger.CriticalPropagate(UserInsertingFailedError)
@@ -102,7 +103,8 @@ func (r *UserRepository) Update(ctx context.Context, user *agg.User) (*agg.User,
 
 	// check the record is really updated
 	if res.ModifiedCount > 0 {
-		return r.FindOneByID(qCtx, domainquery.NewFindOneUserByID(user.ID))
+		q := dto.NewUserGetRequestDTO(user.ID, "")
+		return r.FindOneByID(qCtx, q)
 	}
 
 	// if changes is not exists, then return the original data
