@@ -55,14 +55,16 @@ func (req *VideoUpdateRequestDTO) GetDescription() string {
 type VideoGetRequestDTO struct {
 	/*Optional*/ ID vo.ID `json:"id"`
 	/*Optional*/ Name string
+	/*Optional*/ ResourceID vo.ID
 	/*Required*/ UserID vo.ID
 }
 
-func NewVideoGetRequestDTO(id vo.ID, name string, userID vo.ID) *VideoGetRequestDTO {
+func NewVideoGetRequestDTO(id vo.ID, name string, resourceID vo.ID, userID vo.ID) *VideoGetRequestDTO {
 	return &VideoGetRequestDTO{
-		ID:     id,
-		Name:   name,
-		UserID: userID,
+		ID:         id,
+		Name:       name,
+		ResourceID: resourceID,
+		UserID:     userID,
 	}
 }
 func (req *VideoGetRequestDTO) GetID() vo.ID {
@@ -70,6 +72,9 @@ func (req *VideoGetRequestDTO) GetID() vo.ID {
 }
 func (req *VideoGetRequestDTO) GetName() string {
 	return req.Name
+}
+func (req *VideoGetRequestDTO) GetResourceID() vo.ID {
+	return req.ResourceID
 }
 func (req *VideoGetRequestDTO) GetUserID() vo.ID {
 	return req.UserID
