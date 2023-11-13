@@ -3,9 +3,9 @@ package mongodb
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	domainquery "github.com/Borislavv/video-streaming/internal/domain/repository/query"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"go.mongodb.org/mongo-driver/bson"
@@ -69,7 +69,8 @@ func (r *ResourceRepository) Insert(ctx context.Context, resource *agg.Resource)
 	}
 
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		return r.FindOneByID(qCtx, domainquery.NewFindOneResourceByID(vo.ID{Value: oid}, resource.UserID))
+		q := dto.NewResourceGetRequestDTO(vo.ID{Value: oid}, resource.UserID)
+		return r.FindOneByID(qCtx, q)
 	}
 
 	return nil, r.logger.CriticalPropagate(ResourceInsertingFailedError)
