@@ -7,6 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 )
 
@@ -37,31 +38,31 @@ func NewUserValidator(
 	}
 }
 
-func (v *UserValidator) ValidateGetRequestDTO(reqDTO dto.GetUserRequest) error {
-	if reqDTO.GetID().Value.IsZero() && reqDTO.GetEmail() == "" {
+func (v *UserValidator) ValidateGetRequestDTO(req dto.GetUserRequest) error {
+	if req.GetID().Value.IsZero() && req.GetEmail() == "" {
 		return errors.NewAtLeastOneFieldMustBeDefinedError(idField, emailField)
 	}
 	return nil
 }
 
-func (v *UserValidator) ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) error {
-	if reqDTO.GetUsername() == "" {
+func (v *UserValidator) ValidateCreateRequestDTO(req dto.CreateUserRequest) error {
+	if req.GetUsername() == "" {
 		return errors.NewFieldCannotBeEmptyError(nameField)
 	}
-	if reqDTO.GetPassword() == "" {
+	if req.GetPassword() == "" {
 		return errors.NewFieldCannotBeEmptyError(passwordField)
 	}
-	if reqDTO.GetEmail() == "" {
+	if req.GetEmail() == "" {
 		return errors.NewFieldCannotBeEmptyError(emailField)
 	}
-	if reqDTO.GetBirthday() == "" {
+	if req.GetBirthday() == "" {
 		return errors.NewFieldCannotBeEmptyError(birthdayField)
 	}
 	return nil
 }
 
-func (v *UserValidator) ValidateUpdateRequestDTO(reqDTO dto.UpdateUserRequest) error {
-	if reqDTO.GetID().Value.IsZero() {
+func (v *UserValidator) ValidateUpdateRequestDTO(req dto.UpdateUserRequest) error {
+	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
@@ -100,7 +101,7 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	}
 
 	// check the user uniqueness
-	user, err := v.userRepository.FindByEmail(v.ctx, agg.Email)
+	user, err := v.userRepository.FindOneByEmail(v.ctx, dto.NewUserGetRequestDTO(vo.ID{}, agg.Email))
 	if err != nil {
 		if !errors.IsEntityNotFoundError(err) {
 			return v.logger.LogPropagate(err)
@@ -121,8 +122,8 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	return nil
 }
 
-func (v *UserValidator) ValidateDeleteRequestDTO(reqDTO dto.DeleteUserRequest) error {
-	if reqDTO.GetID().Value.IsZero() {
+func (v *UserValidator) ValidateDeleteRequestDTO(req dto.DeleteUserRequest) error {
+	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
