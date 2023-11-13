@@ -44,14 +44,14 @@ func NewCRUDService(
 
 // Get - will fetch a single video aggregate by ID and specified user.
 // Access check to video is unnecessary because the query will fetch video only for specified user.
-func (s *CRUDService) Get(reqDTO dto.GetVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateGetRequestDTO(reqDTO); err != nil {
+	if err := s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// fetching a video by id and user
-	video, err := s.repository.Find(s.ctx, reqDTO.GetID())
+	video, err := s.repository.FindOneByID(s.ctx, req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -61,14 +61,14 @@ func (s *CRUDService) Get(reqDTO dto.GetVideoRequest) (*agg.Video, error) {
 
 // List - will fetch a video list of aggregates by given request and specified user.
 // Access check to video is unnecessary because the query will fetch a video list only for specified user.
-func (s *CRUDService) List(reqDTO dto.ListVideoRequest) (list []*agg.Video, total int64, err error) {
+func (s *CRUDService) List(req dto.ListVideoRequest) (list []*agg.Video, total int64, err error) {
 	// validation of input request
-	if err = s.validator.ValidateListRequestDTO(reqDTO); err != nil {
+	if err = s.validator.ValidateListRequestDTO(req); err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
 	}
 
 	// fetching a video list by request params. and user
-	list, total, err = s.repository.FindList(s.ctx, reqDTO)
+	list, total, err = s.repository.FindList(s.ctx, req)
 	if err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
 	}
@@ -78,14 +78,14 @@ func (s *CRUDService) List(reqDTO dto.ListVideoRequest) (list []*agg.Video, tota
 
 // Create - will make a new video by given request for specified user. Have an access check for resource
 // which exists into the request.
-func (s *CRUDService) Create(reqDTO dto.CreateVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Create(req dto.CreateVideoRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDTO(reqDTO); err != nil {
+	if err := s.validator.ValidateCreateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	videoAgg, err := s.builder.BuildAggFromCreateRequestDTO(reqDTO)
+	videoAgg, err := s.builder.BuildAggFromCreateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -96,7 +96,7 @@ func (s *CRUDService) Create(reqDTO dto.CreateVideoRequest) (*agg.Video, error) 
 	}
 
 	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(reqDTO.GetUserID(), videoAgg); err != nil {
+	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
@@ -110,14 +110,14 @@ func (s *CRUDService) Create(reqDTO dto.CreateVideoRequest) (*agg.Video, error) 
 }
 
 // Update - will change the video by given request. Have an access check for video.resource.
-func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
 	// validation of input request
-	if err := s.validator.ValidateUpdateRequestDTO(reqDTO); err != nil {
+	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	videoAgg, err := s.builder.BuildAggFromUpdateRequestDTO(reqDTO)
+	videoAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -128,7 +128,7 @@ func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) 
 	}
 
 	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(reqDTO.GetUserID(), videoAgg.Resource); err != nil {
+	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg.Resource); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
@@ -142,14 +142,14 @@ func (s *CRUDService) Update(reqDTO dto.UpdateVideoRequest) (*agg.Video, error) 
 }
 
 // Delete - will remove the video from the storage.
-func (s *CRUDService) Delete(reqDTO dto.DeleteVideoRequest) (err error) {
+func (s *CRUDService) Delete(req dto.DeleteVideoRequest) (err error) {
 	// validation of input request
-	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
+	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
 	// fetching a video which will be deleted
-	videoAgg, err := s.repository.Find(s.ctx, reqDTO.GetID())
+	videoAgg, err := s.repository.FindOneByID(s.ctx, req)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
