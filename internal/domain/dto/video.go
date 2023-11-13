@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-// VideoCreateRequestDTO - used when u want to create a new one video
+// VideoCreateRequestDTO - used when u want to create a new one video.
 type VideoCreateRequestDTO struct {
-	Name        string `json:"name"`
-	UserID      vo.ID
-	ResourceID  vo.ID  `json:"resourceID"`
-	Description string `json:"description,omitempty"`
+	/*Required*/ Name string `json:"name"`
+	/*Required*/ UserID vo.ID
+	/*Required*/ ResourceID vo.ID `json:"resourceID"`
+	/*Optional*/ Description string `json:"description,omitempty"`
 }
 
 func (req *VideoCreateRequestDTO) GetName() string {
@@ -26,13 +26,13 @@ func (req *VideoCreateRequestDTO) GetDescription() string {
 	return req.Description
 }
 
-// VideoUpdateRequestDTO - used when u want to update a video record
+// VideoUpdateRequestDTO - used when u want to update a video record.
 type VideoUpdateRequestDTO struct {
-	ID          vo.ID  `json:"id"`
-	Name        string `json:"name"`
-	UserID      vo.ID
-	ResourceID  vo.ID  `json:"resourceID"`
-	Description string `json:"description,omitempty"`
+	/*Required*/ ID vo.ID `json:"id"`
+	/*Optional*/ Name string `json:"name"`
+	/*Optional*/ UserID vo.ID
+	/*Optional*/ ResourceID vo.ID `json:"resourceID"`
+	/*Optional*/ Description string `json:"description,omitempty"`
 }
 
 func (req *VideoUpdateRequestDTO) GetID() vo.ID {
@@ -51,33 +51,38 @@ func (req *VideoUpdateRequestDTO) GetDescription() string {
 	return req.Description
 }
 
-// VideoGetRequestDTO - used when u want to find a single video
+// VideoGetRequestDTO - used when you want to find a single video by Name or ID, but you always must specify a UserID.
 type VideoGetRequestDTO struct {
-	ID     vo.ID `json:"id"`
-	UserID vo.ID
+	/*Optional*/ ID vo.ID `json:"id"`
+	/*Optional*/ Name string
+	/*Required*/ UserID vo.ID
 }
 
-func NewVideoGetRequestDTO(id vo.ID, userID vo.ID) *VideoGetRequestDTO {
+func NewVideoGetRequestDTO(id vo.ID, name string, userID vo.ID) *VideoGetRequestDTO {
 	return &VideoGetRequestDTO{
 		ID:     id,
+		Name:   name,
 		UserID: userID,
 	}
 }
 func (req *VideoGetRequestDTO) GetID() vo.ID {
 	return req.ID
 }
+func (req *VideoGetRequestDTO) GetName() string {
+	return req.Name
+}
 func (req *VideoGetRequestDTO) GetUserID() vo.ID {
 	return req.UserID
 }
 
-// VideoListRequestDTO - used when u want to find a collection of videos
+// VideoListRequestDTO - used when u want to find a collection of videos.
 type VideoListRequestDTO struct {
-	Name      string `json:"name"` // part of name
-	UserID    vo.ID
-	CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
-	From      time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
-	To        time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
-	PaginationRequestDTO
+	/*Required*/ UserID vo.ID
+	/*Optional*/ Name string `json:"name"` // part of name
+	/*Optional*/ CreatedAt time.Time `json:"createdAt" format:"2006-01-02T15:04:05Z07:00"`
+	/*Optional*/ From time.Time `json:"from" format:"2006-01-02T15:04:05Z07:00"`
+	/*Optional*/ To time.Time `json:"to" format:"2006-01-02T15:04:05Z07:00"`
+	/*Optional*/ PaginationRequestDTO
 }
 
 func NewVideoListRequestDTO(
@@ -113,10 +118,10 @@ func (req *VideoListRequestDTO) GetTo() time.Time {
 	return req.To
 }
 
-// VideoDeleteRequestDto - used when u want to remove the video
+// VideoDeleteRequestDto - used when you want to remove the video.
 type VideoDeleteRequestDto struct {
-	ID     vo.ID `json:"id"`
-	UserID vo.ID
+	/*Required*/ ID vo.ID `json:"id"`
+	/*Required*/ UserID vo.ID
 }
 
 func NewVideoDeleteRequestDto(id vo.ID, userID vo.ID) *VideoDeleteRequestDto {
