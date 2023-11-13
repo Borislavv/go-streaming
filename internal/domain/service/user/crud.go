@@ -40,18 +40,18 @@ func NewCRUDService(
 	}
 }
 
-func (s *CRUDService) Get(reqDTO dto.GetUserRequest) (user *agg.User, err error) {
-	if err = s.validator.ValidateGetRequestDTO(reqDTO); err != nil {
+func (s *CRUDService) Get(req dto.GetUserRequest) (user *agg.User, err error) {
+	if err = s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	if !reqDTO.GetID().Value.IsZero() {
-		user, err = s.repository.Find(s.ctx, reqDTO.GetID())
+	if !req.GetID().Value.IsZero() {
+		user, err = s.repository.FindOneByID(s.ctx, req)
 		if err != nil {
 			return nil, s.logger.LogPropagate(err)
 		}
-	} else if reqDTO.GetEmail() != "" {
-		user, err = s.repository.FindByEmail(s.ctx, reqDTO.GetEmail())
+	} else if req.GetEmail() != "" {
+		user, err = s.repository.FindOneByEmail(s.ctx, req)
 		if err != nil {
 			return nil, s.logger.LogPropagate(err)
 		}
@@ -60,14 +60,14 @@ func (s *CRUDService) Get(reqDTO dto.GetUserRequest) (user *agg.User, err error)
 	return user, nil
 }
 
-func (s *CRUDService) Create(reqDTO dto.CreateUserRequest) (*agg.User, error) {
+func (s *CRUDService) Create(req dto.CreateUserRequest) (*agg.User, error) {
 	// validation of input request
-	if err := s.validator.ValidateCreateRequestDTO(reqDTO); err != nil {
+	if err := s.validator.ValidateCreateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	userAgg, err := s.builder.BuildAggFromCreateRequestDTO(reqDTO)
+	userAgg, err := s.builder.BuildAggFromCreateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -86,14 +86,14 @@ func (s *CRUDService) Create(reqDTO dto.CreateUserRequest) (*agg.User, error) {
 	return userAgg, nil
 }
 
-func (s *CRUDService) Update(reqDTO dto.UpdateUserRequest) (*agg.User, error) {
+func (s *CRUDService) Update(req dto.UpdateUserRequest) (*agg.User, error) {
 	// validation of input request
-	if err := s.validator.ValidateUpdateRequestDTO(reqDTO); err != nil {
+	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
 	// building an aggregate
-	userAgg, err := s.builder.BuildAggFromUpdateRequestDTO(reqDTO)
+	userAgg, err := s.builder.BuildAggFromUpdateRequestDTO(req)
 	if err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -112,25 +112,31 @@ func (s *CRUDService) Update(reqDTO dto.UpdateUserRequest) (*agg.User, error) {
 	return userAgg, nil
 }
 
-func (s *CRUDService) Delete(reqDTO dto.DeleteUserRequest) (err error) {
+func (s *CRUDService) Delete(req dto.DeleteUserRequest) (err error) {
 	// validation of input request
-	if err = s.validator.ValidateDeleteRequestDTO(reqDTO); err != nil {
+	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
 	// fetching a user which will be deleted
-	userAgg, err := s.repository.Find(s.ctx, reqDTO.GetID())
+	userAgg, err := s.repository.FindOneByID(s.ctx, req)
+	if err != nil {
+		return s.logger.LogPropagate(err)
+	}
+
+	// fetching a video list which will be deleted
+	videoAggs, total, err := s.videoService.List(&dto.VideoListRequestDTO{UserID: userAgg.ID})
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
 	// removing the references video first
-	if len(userAgg.VideoIDs) > 0 {
-		for _, videoID := range userAgg.VideoIDs {
-			if err = s.videoService.Delete(&dto.VideoDeleteRequestDto{ID: videoID}); err != nil {
+	if total > 0 {
+		for _, videoAgg := range videoAggs {
+			if err = s.videoService.Delete(dto.NewVideoDeleteRequestDto(videoAgg.ID, userAgg.ID)); err != nil {
 				if errors.IsEntityNotFoundError(err) {
 					s.logger.Warning(
-						fmt.Sprintf("user remobing error: references video '%v' is not exists", videoID.Value),
+						fmt.Sprintf("user delete warning: reference video '%v' is not exists", videoAgg.ID.Value),
 					)
 					continue
 				}
