@@ -82,7 +82,8 @@ func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 	}
 
 	// searching the requested video resource
-	v, err := s.videoRepository.FindOneByID(s.ctx, dto.NewVideoGetRequestDTO(vo.NewID(oid), userID))
+	q := dto.NewVideoGetRequestDTO(vo.NewID(oid), "", vo.ID{}, userID)
+	v, err := s.videoRepository.FindOneByID(s.ctx, q)
 	if err != nil {
 		if errors.IsEntityNotFoundError(err) {
 			if err = s.communicator.Error(err, action.Conn); err != nil {
