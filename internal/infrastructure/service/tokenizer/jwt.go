@@ -115,6 +115,9 @@ func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
 
 // Block will mark the token as blocked into the storage.
 func (s *JwtService) Block(token string) error {
+	// TODO must be implemented parse method for extract user
+	// 	pass into insert an aggregate
+
 	if err := s.blockedTokenRepository.Insert(s.ctx, token); err != nil {
 		return s.logger.LogPropagate(err)
 	}
