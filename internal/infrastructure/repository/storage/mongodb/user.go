@@ -45,7 +45,7 @@ func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByI
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{"_id": bson.M{"$eq": q.GetID().Value}}
+	filter := bson.M{"_id": q.GetID().Value}
 
 	user = &agg.User{}
 	if err = r.db.FindOne(qCtx, filter).Decode(user); err != nil {
@@ -62,7 +62,7 @@ func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUser
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{"email": bson.M{"$eq": q.GetEmail()}}
+	filter := bson.M{"email": q.GetEmail()}
 
 	user = &agg.User{}
 	if err = r.db.FindOne(qCtx, filter).Decode(user); err != nil {
