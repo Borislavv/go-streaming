@@ -11,7 +11,7 @@ const (
 
 type Resource struct {
 	ID       vo.ID  `json:"id" bson:",inline"`
-	UserID   vo.ID  `json:"userID" bson:"userID"`     // user identifier
+	UserID   vo.ID  `json:"userID" bson:"user"`       // user identifier
 	Name     string `json:"name" bson:"name"`         // original filename
 	Filename string `json:"filename" bson:"filename"` // uploaded filename
 	Filepath string `json:"filepath" bson:"filepath"` // path to uploaded file
