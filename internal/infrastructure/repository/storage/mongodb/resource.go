@@ -44,8 +44,8 @@ func (r *ResourceRepository) FindOneByID(ctx context.Context, q query.FindOneRes
 	defer cancel()
 
 	filter := bson.M{
-		"_id":    bson.M{"$eq": q.GetID().Value},
-		"userID": bson.M{"$eq": q.GetUserID().Value},
+		"_id":      q.GetID().Value,
+		"user._id": q.GetUserID().Value,
 	}
 
 	resourceAgg := &agg.Resource{}
