@@ -56,7 +56,7 @@ func (r *BlockedTokenRepository) Has(ctx context.Context, token string) (found b
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{"value": bson.M{"$eq": token}}
+	filter := bson.M{"value": token}
 
 	if err = r.db.FindOne(qCtx, filter).Decode(&agg.BlockedToken{}); err != nil {
 		if err == mongo.ErrNoDocuments {
