@@ -114,14 +114,50 @@ func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
 }
 
 // Block will mark the token as blocked into the storage.
-func (s *JwtService) Block(token string) error {
-	// TODO must be implemented parse method for extract user
-	// 	pass into insert an aggregate
+func (s *JwtService) Block(token string, reason string) error {
+	userID, err := s.parseUserID(token)
+	if err != nil {
+		// block token anyway and log message,
+		// because the token may be is invalid but must be blocked.
+		// in this case a user will be undetermined
+		s.logger.Log(err)
+	}
 
-	if err := s.blockedTokenRepository.Insert(s.ctx, token); err != nil {
+	if err = s.blockedTokenRepository.Insert(s.ctx, agg.NewBlockedToken(token, reason, userID)); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 	return nil
+}
+
+func (s *JwtService) parseUserID(token string) (userID vo.ID, err error) {
+	parsedToken, err := jwt.Parse(token, func(decodedToken *jwt.Token) (interface{}, error) {
+		if decodedToken.Header["alg"] != s.jwtTokenEncryptAlgo {
+			// user must be banned here because the algo wasn't matched
+			return nil, errors.NewTokenAlgoWasNotMatchedInternalError(token)
+		}
+		// cast to the configured givenToken signature type (stored in `s.jwtTokenEncryptAlgo`)
+		if _, success := decodedToken.Method.(*jwt.SigningMethodHMAC); !success {
+			return nil, errors.NewTokenUnexpectedSigningMethodInternalError(token, decodedToken.Header["alg"])
+		}
+		// jwtSecretSalt is a string containing your secret, but you need pass the []byte
+		return s.jwtSecretSalt, nil
+	})
+	if err != nil {
+		// parsing givenToken error occurred
+		s.logger.Log(err)
+		// return a token invalid error
+		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+	}
+
+	if claims, success := parsedToken.Claims.(jwt.MapClaims); success {
+		if userID, err = s.getUserID(claims); err != nil {
+			return vo.ID{}, s.logger.LogPropagate(err)
+		} else {
+			return userID, nil
+		}
+	} else {
+		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+	}
 }
 
 func (s *JwtService) isValidIssuer(token string, claims jwt.Claims) error {
