@@ -32,7 +32,7 @@ func NewBlockedTokenRepository(db *mongo.Database, logger logger.Logger, timeout
 	}
 }
 
-func (r *BlockedTokenRepository) Insert(ctx context.Context, token string) error {
+func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedToken) error {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
