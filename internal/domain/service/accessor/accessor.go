@@ -128,6 +128,7 @@ func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 
 // resource
 func (s *AccessService) resourceHandler(userID vo.ID, aggregate agg.Aggregate) error {
+	// TODO FUCKED UP because variable aggregate has an entity Resource not an aggregate!
 	resourceAgg, ok := aggregate.(*agg.Resource)
 	if !ok {
 		return s.logger.LogPropagate(
