@@ -1,7 +1,6 @@
 package accessor
 
 import (
-	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
@@ -27,7 +26,7 @@ type AccessService struct {
 	isAppropriateHandlerFuncs map[AggregateAccessType]AggregateAccessIsAppropriateHandler
 }
 
-func NewAccessService(ctx context.Context, logger logger.Logger) *AccessService {
+func NewAccessService(logger logger.Logger) *AccessService {
 	return (&AccessService{
 		logger:                    logger,
 		handlers:                  map[AggregateAccessType]AggregateAccessHandler{},
