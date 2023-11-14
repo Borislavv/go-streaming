@@ -87,7 +87,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	requestService, responseService := app.InitRequestResponseServices(loggerService)
 
 	// Access service
-	accessService := accessor.NewAccessService(ctx, loggerService)
+	accessService := accessor.NewAccessService(loggerService)
 
 	// Files uploader dependencies initialization
 	uploadingStorage, _, uploadingStrategy := app.InitUploaderServices(
