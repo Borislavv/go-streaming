@@ -12,11 +12,12 @@ type BlockedToken struct {
 	Timestamp vo.Timestamp `json:"timestamp" bson:",inline"`
 }
 
-func NewBlockedToken(token string, userID vo.ID) *BlockedToken {
+func NewBlockedToken(token string, reason string, userID vo.ID) *BlockedToken {
 	return &BlockedToken{
 		BlockedToken: entity.BlockedToken{
 			Value:     token,
 			UserID:    userID,
+			Reason:    reason,
 			BlockedAt: time.Now(),
 		},
 		Timestamp: vo.Timestamp{
