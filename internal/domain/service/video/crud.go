@@ -96,7 +96,7 @@ func (s *CRUDService) Create(req dto.CreateVideoRequest) (*agg.Video, error) {
 	}
 
 	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg); err != nil {
+	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg.Resource); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
@@ -128,7 +128,7 @@ func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
 	}
 
 	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg.Resource); err != nil {
+	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
 
