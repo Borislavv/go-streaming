@@ -47,8 +47,8 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoB
 	defer cancel()
 
 	filter := bson.M{
-		"_id":    q.GetID().Value,
-		"userID": q.GetUserID().Value,
+		"_id":      q.GetID().Value,
+		"user._id": q.GetUserID().Value,
 	}
 
 	video := &agg.Video{}
@@ -66,7 +66,7 @@ func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	filter := bson.M{"userID": q.GetUserID().Value}
+	filter := bson.M{"user._id": q.GetUserID().Value}
 
 	if q.GetName() != "" {
 		filter["name"] = primitive.Regex{Pattern: q.GetName(), Options: "i"}
@@ -137,8 +137,8 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVide
 	defer cancel()
 
 	filter := bson.M{
-		"name":   q.GetName(),
-		"userID": q.GetUserID().Value,
+		"name":     q.GetName(),
+		"user._id": q.GetUserID().Value,
 	}
 
 	video := &agg.Video{}
@@ -158,7 +158,7 @@ func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindO
 
 	filter := bson.M{
 		"resource._id": q.GetResourceID().Value,
-		"userID":       q.GetUserID().Value,
+		"user._id":     q.GetUserID().Value,
 	}
 
 	video := &agg.Video{}
