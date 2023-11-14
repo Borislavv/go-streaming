@@ -7,8 +7,9 @@ import (
 
 type BlockedToken struct {
 	ID        vo.ID     `json:"id,omitempty" bson:"_id,omitempty,inline"`
-	Value     string    `bson:"value"`
 	UserID    vo.ID     `bson:"user"`
+	Value     string    `bson:"value"`
+	Reason    string    `bson:"reason"`
 	BlockedAt time.Time `bson:"blockedAt"`
 }
 
