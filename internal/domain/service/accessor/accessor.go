@@ -72,10 +72,7 @@ func (s *AccessService) videoHandler(userID vo.ID, aggregate agg.Aggregate) erro
 		)
 	}
 
-	if userID.Value == videoAgg.UserID.Value {
-		if err := s.resourceHandler(userID, videoAgg.Resource); err != nil {
-			return s.logger.LogPropagate(err)
-		}
+	if userID.Value == videoAgg.UserID.Value && userID.Value == videoAgg.Resource.UserID.Value {
 		// user is owner of video
 		return nil
 	}
@@ -127,7 +124,6 @@ func (s *AccessService) videoIsAppropriateHandler(aggregate agg.Aggregate) (isAp
 
 // resource
 func (s *AccessService) resourceHandler(userID vo.ID, aggregate agg.Aggregate) error {
-	// TODO FUCKED UP because variable aggregate has an entity Resource not an aggregate!
 	resourceAgg, ok := aggregate.(*agg.Resource)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -173,6 +169,7 @@ func (s *AccessService) userHandler(userID vo.ID, aggregate agg.Aggregate) error
 		// users are equal
 		return nil
 	}
+
 	// user was not matched, access is denied
 	return s.logger.LogPropagate(
 		errors.NewAccessDeniedError(
