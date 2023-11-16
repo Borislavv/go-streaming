@@ -72,6 +72,7 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest)
 		return nil, b.logger.LogPropagate(errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday()))
 	}
 
+	// hash user's real password
 	passwordHash, err := b.passwordHasher.Hash(reqDTO.GetPassword())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
