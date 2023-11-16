@@ -8,8 +8,8 @@ import (
 type User struct {
 	ID       vo.ID     `json:"id" bson:",inline"`
 	Username string    `json:"username" bson:"username"`
-	Password string    `json:"password" bson:"password"`
-	Email    string    `json:"email" bson:"email"` // unique key
+	Password string    `json:"password" bson:"password"` // hash
+	Email    string    `json:"email" bson:"email"`       // unique key
 	Birthday time.Time `json:"birthday" bson:"birthday,omitempty"`
 }
 
