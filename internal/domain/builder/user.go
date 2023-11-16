@@ -11,6 +11,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
+	"github.com/Borislavv/video-streaming/internal/domain/service/security"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
@@ -22,6 +23,7 @@ type UserBuilder struct {
 	ctx            context.Context
 	extractor      extractor.RequestParams
 	userRepository repository.User
+	passwordHasher security.PasswordHasher
 }
 
 // NewUserBuilder is a constructor of UserBuilder.
@@ -30,12 +32,14 @@ func NewUserBuilder(
 	logger logger.Logger,
 	extractor extractor.RequestParams,
 	userRepository repository.User,
+	passwordHasher security.PasswordHasher,
 ) *UserBuilder {
 	return &UserBuilder{
 		ctx:            ctx,
 		logger:         logger,
 		extractor:      extractor,
 		userRepository: userRepository,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -68,11 +72,16 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest)
 		return nil, b.logger.LogPropagate(errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday()))
 	}
 
+	passwordHash, err := b.passwordHasher.Hash(reqDTO.GetPassword())
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
 	return &agg.User{
 		User: entity.User{
 			Username: reqDTO.GetUsername(),
-			Password: reqDTO.GetPassword(),
 			Email:    reqDTO.GetEmail(),
+			Password: passwordHash,
 			Birthday: birthday,
 		},
 		Timestamp: vo.Timestamp{
