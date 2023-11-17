@@ -5,6 +5,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/security"
 	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/domain/service/user"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
@@ -13,10 +14,11 @@ import (
 )
 
 type AuthService struct {
-	logger      logger.Logger
-	userService user.CRUD
-	validator   validator.Auth
-	tokenizer   tokenizer.Tokenizer
+	logger         logger.Logger
+	userService    user.CRUD
+	validator      validator.Auth
+	tokenizer      tokenizer.Tokenizer
+	passwordHasher security.PasswordHasher
 }
 
 func NewAuthService(
@@ -24,31 +26,33 @@ func NewAuthService(
 	userService user.CRUD,
 	validator validator.Auth,
 	tokenizer tokenizer.Tokenizer,
+	passwordHasher security.PasswordHasher,
 ) *AuthService {
 	return &AuthService{
-		logger:      logger,
-		userService: userService,
-		validator:   validator,
-		tokenizer:   tokenizer,
+		logger:         logger,
+		userService:    userService,
+		validator:      validator,
+		tokenizer:      tokenizer,
+		passwordHasher: passwordHasher,
 	}
 }
 
 // Auth will check raw credentials and generate a new access token for given user.
-func (s *AuthService) Auth(reqDTO dto.AuthRequest) (token string, err error) {
+func (s *AuthService) Auth(req dto.AuthRequest) (token string, err error) {
 	// raw request validation (checking that email and pass is not empty)
-	if err = s.validator.ValidateAuthRequest(reqDTO); err != nil {
+	if err = s.validator.ValidateAuthRequest(req); err != nil {
 		return "", s.logger.LogPropagate(err)
 	}
 
 	// getting the target user agg. by email
-	userAgg, err := s.userService.Get(dto.NewUserGetRequestDTO(vo.ID{}, reqDTO.GetEmail()))
+	userAgg, err := s.userService.Get(dto.NewUserGetRequestDTO(vo.ID{}, req.GetEmail()))
 	if err != nil {
 		return "", s.logger.LogPropagate(err)
 	}
 
 	// checking that credentials are valid
-	if userAgg.Password != reqDTO.GetPassword() {
-		return "", errors.NewAuthFailedError("passwords did not match")
+	if err = s.passwordHasher.Verify(userAgg, req.GetPassword()); err != nil {
+		return "", s.logger.LogPropagate(err)
 	}
 
 	// generating a new access token string
