@@ -2,6 +2,7 @@ package security
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -30,5 +31,12 @@ func (s *PasswordHasher) Hash(password string) (hash string, err error) {
 }
 
 func (s *PasswordHasher) Verify(userAgg *agg.User, password string) (err error) {
-	return bcrypt.CompareHashAndPassword([]byte(userAgg.Password), []byte(password))
+	if err = bcrypt.CompareHashAndPassword([]byte(userAgg.Password), []byte(password)); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return errors.NewAuthFailedError("passwords did not match")
+		} else {
+			return s.logger.LogPropagate(err)
+		}
+	}
+	return nil
 }
