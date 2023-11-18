@@ -58,7 +58,6 @@ func (s *AuthService) Auth(req dto.AuthRequest) (token string, err error) {
 	// generating a new access token string
 	token, err = s.tokenizer.New(userAgg)
 	if err != nil {
-		// TODO check if the user has a valid tokens then disable it (close all sessions)
 		return "", s.logger.LogPropagate(err)
 	}
 
@@ -79,8 +78,11 @@ func (s *AuthService) IsAuthed(r *http.Request) (userID vo.ID, err error) {
 	}
 
 	// validate token and extract userID from it
-	userID, err = s.tokenizer.Validate(token)
+	userID, err = s.tokenizer.Verify(token)
 	if err != nil {
+		if err = s.tokenizer.Block(token, "token verification failed"); err != nil {
+			return vo.ID{}, s.logger.LogPropagate(err)
+		}
 		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 
