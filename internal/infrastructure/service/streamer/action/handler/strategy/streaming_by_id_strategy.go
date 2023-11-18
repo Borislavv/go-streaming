@@ -68,7 +68,7 @@ func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	}
 
 	// user authentication
-	userID, err := s.tokenizer.Validate(data.Token)
+	userID, err := s.tokenizer.Verify(data.Token)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
