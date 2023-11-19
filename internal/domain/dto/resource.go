@@ -83,6 +83,12 @@ type ResourceDeleteRequestDTO struct {
 	UserID vo.ID
 }
 
+func NewResourceDeleteRequestDTO(id vo.ID, userID vo.ID) *ResourceDeleteRequestDTO {
+	return &ResourceDeleteRequestDTO{
+		ID:     id,
+		UserID: userID,
+	}
+}
 func (req *ResourceDeleteRequestDTO) GetID() vo.ID {
 	return req.ID
 }
