@@ -100,6 +100,7 @@ func (s *CRUDService) onUploadingFailed(req dto.UploadResourceRequest) error {
 	return nil
 }
 
+// Delete - will remove a single video by id with dependencies.
 func (s *CRUDService) Delete(req dto.DeleteResourceRequest) (err error) {
 	// validation of raw delete request
 	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
