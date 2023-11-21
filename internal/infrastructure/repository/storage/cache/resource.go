@@ -7,7 +7,19 @@ import (
 )
 
 type ResourceRepository struct {
-	*mongodb.UserRepository
+	*mongodb.ResourceRepository
 	logger logger.Logger
 	cache  cacher.Cacher
+}
+
+func NewResourceRepository(
+	logger logger.Logger,
+	cache cacher.Cacher,
+	resourceMongoDbRepository *mongodb.ResourceRepository,
+) *ResourceRepository {
+	return &ResourceRepository{
+		ResourceRepository: resourceMongoDbRepository,
+		logger:             logger,
+		cache:              cache,
+	}
 }
