@@ -7,7 +7,19 @@ import (
 )
 
 type VideoRepository struct {
-	*mongodb.UserRepository
+	*mongodb.VideoRepository
 	logger logger.Logger
 	cache  cacher.Cacher
+}
+
+func NewVideoRepository(
+	logger logger.Logger,
+	cache cacher.Cacher,
+	videoMongoDbRepository *mongodb.VideoRepository,
+) *VideoRepository {
+	return &VideoRepository{
+		VideoRepository: videoMongoDbRepository,
+		logger:          logger,
+		cache:           cache,
+	}
 }
