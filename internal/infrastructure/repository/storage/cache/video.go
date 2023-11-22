@@ -10,6 +10,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	"reflect"
+	"time"
 )
 
 type VideoRepository struct {
@@ -38,6 +39,8 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoB
 	videoInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
+			item.SetTTL(time.Hour)
+
 			userAgg, err := r.VideoRepository.FindOneByID(ctx, q)
 			if err != nil {
 				return false, r.logger.LogPropagate(err)
