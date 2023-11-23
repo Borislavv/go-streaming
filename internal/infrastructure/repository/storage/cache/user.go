@@ -74,7 +74,7 @@ func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUser
 
 			userAgg, err := r.UserRepository.FindOneByEmail(ctx, q)
 			if err != nil {
-				return false, r.logger.LogPropagate(err)
+				return nil, r.logger.LogPropagate(err)
 			}
 			return userAgg, nil
 		})
