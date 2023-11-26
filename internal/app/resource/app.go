@@ -4,11 +4,13 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
 	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger"
-	repository2 "github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
 	authservice "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
+	cacheservice "github.com/Borislavv/video-streaming/internal/domain/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	resourceservice "github.com/Borislavv/video-streaming/internal/domain/service/resource"
+	securityservice "github.com/Borislavv/video-streaming/internal/domain/service/security"
 	storagerservice "github.com/Borislavv/video-streaming/internal/domain/service/storager"
 	tokenizerservice "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
 	uploaderservice "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
@@ -29,6 +31,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/service/security"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
@@ -105,9 +108,11 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		resourceRepository, resourceService, requestService, accessService,
 	)
 
+	passwordService := app.InitPasswordService(loggerService)
+
 	// User dependencies initialization
 	userBuilder, _, userService, _ := app.InitUserServices(
-		ctx, loggerService, db, videoService, requestService,
+		ctx, loggerService, db, videoService, requestService, passwordService,
 	)
 
 	// Token dependencies initialization
@@ -117,7 +122,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 	// Auth dependencies initialization
 	authBuilder, _, authService := app.InitAuthServices(
-		loggerService, tokenService, userService,
+		loggerService, tokenService, userService, passwordService,
 	)
 
 	// Cache dependencies initialization
@@ -177,7 +182,11 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 	return stopCh
 }
 
-func (app *ResourcesApp) InitCacheService(ctx context.Context) cacher.Cacher {
+func (app *ResourcesApp) InitPasswordService(logger loggerservice.Logger) securityservice.PasswordHasher {
+	return security.NewPasswordHasher(logger, 14)
+}
+
+func (app *ResourcesApp) InitCacheService(ctx context.Context) cacheservice.Cacher {
 	s := cacher.NewMapCacheStorage(ctx)
 	d := cacher.NewCacheDisplacer(ctx, time.Second*1)
 	c := cacher.NewCache(s, d)
@@ -209,7 +218,7 @@ func (app *ResourcesApp) InitVideoServices(
 	logger loggerservice.Logger,
 	database *mongo.Database,
 	resourceValidator validator.Resource,
-	resourceRepository repository2.Resource,
+	resourceRepository repository.Resource,
 	resourceService resourceservice.CRUD,
 	reqParamsExtractor extractor.RequestParams,
 	accessService accessor.Accessor,
@@ -217,12 +226,12 @@ func (app *ResourcesApp) InitVideoServices(
 	builder.Video,
 	validator.Video,
 	videoservice.CRUD,
-	repository2.Video,
+	repository.Video,
 ) {
 	r := mongodb.NewVideoRepository(database, logger, time.Minute)
 	v := validator.NewVideoValidator(ctx, logger, resourceValidator, accessService, r, resourceRepository)
 	b := builder.NewVideoBuilder(ctx, logger, reqParamsExtractor, r, resourceRepository)
-	s := videoservice.NewCRUDService(ctx, logger, b, v, accessService, r, resourceService)
+	s := videoservice.NewCRUDService(ctx, logger, b, v, r, resourceService)
 	return b, v, s, r
 }
 
@@ -236,7 +245,7 @@ func (app *ResourcesApp) InitResourceServices(
 	builder.Resource,
 	validator.Resource,
 	resourceservice.CRUD,
-	repository2.Resource,
+	repository.Resource,
 ) {
 	r := mongodb.NewResourceRepository(database, logger, time.Minute)
 	v := validator.NewResourceValidator(ctx, r, app.cfg.MaxFilesizeThreshold)
@@ -251,14 +260,15 @@ func (app *ResourcesApp) InitUserServices(
 	database *mongo.Database,
 	videoService videoservice.CRUD,
 	reqParamsExtractor extractor.RequestParams,
+	passwordHasher securityservice.PasswordHasher,
 ) (
 	builder.User,
 	validator.User,
 	userservice.CRUD,
-	repository2.User,
+	repository.User,
 ) {
 	r := mongodb.NewUserRepository(database, logger, DefaultDatabaseTimeout)
-	b := builder.NewUserBuilder(ctx, logger, reqParamsExtractor, r)
+	b := builder.NewUserBuilder(ctx, logger, reqParamsExtractor, r, passwordHasher)
 	v := validator.NewUserValidator(ctx, logger, r, app.cfg.AdminContactEmail)
 	s := userservice.NewCRUDService(ctx, logger, b, v, r, videoService)
 	return b, v, s, r
@@ -268,6 +278,7 @@ func (app *ResourcesApp) InitAuthServices(
 	logger loggerservice.Logger,
 	tokenService tokenizerservice.Tokenizer,
 	userService userservice.CRUD,
+	passwordHasher securityservice.PasswordHasher,
 ) (
 	builder.Auth,
 	validator.Auth,
@@ -275,7 +286,7 @@ func (app *ResourcesApp) InitAuthServices(
 ) {
 	v := validator.NewAuthValidator(logger, app.cfg.AdminContactEmail)
 	b := builder.NewAuthBuilder(logger)
-	s := authservice.NewAuthService(logger, userService, v, tokenService)
+	s := authservice.NewAuthService(logger, userService, v, tokenService, passwordHasher)
 	return b, v, s
 }
 
@@ -284,7 +295,7 @@ func (app *ResourcesApp) InitTokenServices(
 	logger loggerservice.Logger,
 	database *mongo.Database,
 ) (
-	repository2.BlockedToken,
+	repository.BlockedToken,
 	tokenizerservice.Tokenizer,
 ) {
 	r := mongodb.NewBlockedTokenRepository(database, logger, DefaultDatabaseTimeout)
@@ -344,7 +355,7 @@ func (app *ResourcesApp) InitRequestResponseServices(
 }
 
 func (app *ResourcesApp) InitAuthedRestApiControllers(
-	cacheService cacher.Cacher,
+	cacheService cacheservice.Cacher,
 	loggerService loggerservice.Logger,
 	responseService response.Responder,
 	// resource deps.
