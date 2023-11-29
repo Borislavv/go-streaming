@@ -42,20 +42,14 @@ func NewResourceService(
 	}
 }
 
+// Upload - will be prepared and  will be saved a file from the request. Important: the input request's DTO will
+// mutate per uploading. Also, of course will be created a new instance of agg.Resource as the contract says and
+// will be saved into the database.
 func (s *CRUDService) Upload(req dto.UploadResourceRequest) (resource *agg.Resource, err error) {
 	defer func() {
-		// handle the case when the file was uploaded, but error occurred while saving an aggregate
-		if err != nil && req.GetUploadedFilename() != "" { // in this case, we need remove the uploaded file
-			has, herr := s.storage.Has(req.GetUploadedFilename())
-			if herr != nil {
-				s.logger.Log(herr)
-				return
-			}
-			if has { // check that file exists, if so, then remove it
-				if rerr := s.storage.Remove(req.GetUploadedFilename()); rerr != nil {
-					s.logger.Log(rerr)
-					return
-				}
+		if err != nil {
+			if e := s.onUploadingFailed(req); e != nil {
+				s.logger.Log(e)
 			}
 		}
 	}()
@@ -87,6 +81,26 @@ func (s *CRUDService) Upload(req dto.UploadResourceRequest) (resource *agg.Resou
 	return resource, nil
 }
 
+// onUploadingFailed - will check that created file is removed.
+func (s *CRUDService) onUploadingFailed(req dto.UploadResourceRequest) error {
+	// handle the case when the file was uploaded, but error occurred while saving an aggregate
+	if req.GetUploadedFilename() != "" { // in this case, we need remove the uploaded file
+		has, err := s.storage.Has(req.GetUploadedFilename())
+		if err != nil {
+			s.logger.Log(err)
+			return s.logger.LogPropagate(err)
+		}
+		if has { // check that file exists, if so, then remove it
+			if err = s.storage.Remove(req.GetUploadedFilename()); err != nil {
+				return s.logger.LogPropagate(err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Delete - will remove a single video by id with dependencies.
 func (s *CRUDService) Delete(req dto.DeleteResourceRequest) (err error) {
 	// validation of raw delete request
 	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {

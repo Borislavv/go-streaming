@@ -10,6 +10,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"reflect"
+	"time"
 )
 
 type UserRepository struct {
@@ -38,6 +39,8 @@ func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByI
 	userInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
+			item.SetTTL(time.Hour)
+
 			userAgg, err := r.UserRepository.FindOneByID(ctx, q)
 			if err != nil {
 				return false, r.logger.LogPropagate(err)
@@ -67,9 +70,11 @@ func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUser
 	userInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
+			item.SetTTL(time.Hour)
+
 			userAgg, err := r.UserRepository.FindOneByEmail(ctx, q)
 			if err != nil {
-				return false, r.logger.LogPropagate(err)
+				return nil, r.logger.LogPropagate(err)
 			}
 			return userAgg, nil
 		})

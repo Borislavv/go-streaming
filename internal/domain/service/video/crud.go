@@ -7,7 +7,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
 	"github.com/Borislavv/video-streaming/internal/domain/service/resource"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
 )
@@ -17,7 +16,6 @@ type CRUDService struct {
 	logger          logger.Logger
 	builder         builder.Video
 	validator       validator.Video
-	accessor        accessor.Accessor
 	repository      repository.Video
 	resourceService resource.CRUD
 }
@@ -27,7 +25,6 @@ func NewCRUDService(
 	logger logger.Logger,
 	builder builder.Video,
 	validator validator.Video,
-	accessor accessor.Accessor,
 	repository repository.Video,
 	resourceService resource.CRUD,
 ) *CRUDService {
@@ -36,7 +33,6 @@ func NewCRUDService(
 		logger:          logger,
 		builder:         builder,
 		validator:       validator,
-		accessor:        accessor,
 		repository:      repository,
 		resourceService: resourceService,
 	}
@@ -95,11 +91,6 @@ func (s *CRUDService) Create(req dto.CreateVideoRequest) (*agg.Video, error) {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg.Resource); err != nil {
-		return nil, s.logger.LogPropagate(err)
-	}
-
 	// saving an aggregate into storage
 	videoAgg, err = s.repository.Insert(s.ctx, videoAgg)
 	if err != nil {
@@ -127,11 +118,6 @@ func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
 		return nil, s.logger.LogPropagate(err)
 	}
 
-	// check that all aggregate's entities belong to user
-	if err = s.accessor.IsGranted(req.GetUserID(), videoAgg); err != nil {
-		return nil, s.logger.LogPropagate(err)
-	}
-
 	// saving updated aggregate into storage
 	videoAgg, err = s.repository.Update(s.ctx, videoAgg)
 	if err != nil {
@@ -154,8 +140,9 @@ func (s *CRUDService) Delete(req dto.DeleteVideoRequest) (err error) {
 		return s.logger.LogPropagate(err)
 	}
 
-	// resource removing first
-	if err = s.resourceService.Delete(&dto.ResourceDeleteRequestDTO{ID: videoAgg.Resource.ID}); err != nil {
+	// the resource must be removing first
+	q := dto.NewResourceDeleteRequestDTO(videoAgg.Resource.ID, req.GetUserID())
+	if err = s.resourceService.Delete(q); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 

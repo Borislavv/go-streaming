@@ -7,6 +7,6 @@ import (
 
 type Tokenizer interface {
 	New(user *agg.User) (token string, err error)
-	Validate(token string) (userID vo.ID, err error)
+	Verify(token string) (userID vo.ID, err error)
 	Block(token string, reason string) error
 }

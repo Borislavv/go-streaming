@@ -60,8 +60,8 @@ func (s *JwtService) New(user *agg.User) (token string, err error) {
 	}
 }
 
-// Validate will decode the token and return a user ID or error, if it was occurred.
-func (s *JwtService) Validate(token string) (userID vo.ID, err error) {
+// Verify will decode the token and return a user ID or error, if it was occurred.
+func (s *JwtService) Verify(token string) (userID vo.ID, err error) {
 	// checking that token is not blocked
 	found, err := s.blockedTokenRepository.Has(s.ctx, token)
 	if err != nil {
