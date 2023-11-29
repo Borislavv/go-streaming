@@ -2,6 +2,7 @@ package cacher
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/domain/service/cacher"
 	"sync"
 	"time"
 )
@@ -27,7 +28,7 @@ func NewMapCacheStorage(ctx context.Context) *MapCacheStorage {
 	}
 }
 
-func (c *MapCacheStorage) Get(key string, fn func(CacheItem) (data interface{}, err error)) (data interface{}, err error) {
+func (c *MapCacheStorage) Get(key string, fn func(cacher.CacheItem) (data interface{}, err error)) (data interface{}, err error) {
 	item, found := c.get(key)
 	if found {
 		return item.data, nil
@@ -48,7 +49,7 @@ func (c *MapCacheStorage) get(key string) (item *Item, found bool) {
 	return item, found
 }
 
-func (c *MapCacheStorage) compute(fn func(CacheItem) (data interface{}, err error)) (item *Item, err error) {
+func (c *MapCacheStorage) compute(fn func(cacher.CacheItem) (data interface{}, err error)) (item *Item, err error) {
 	item = NewCacheItem()
 	data, err := fn(item)
 	if err != nil {
