@@ -43,11 +43,11 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoB
 		func(item cacher.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
-			userAgg, err := r.VideoRepository.FindOneByID(ctx, q)
+			videoAgg, err := r.VideoRepository.FindOneByID(ctx, q)
 			if err != nil {
 				return nil, r.logger.LogPropagate(err)
 			}
-			return userAgg, nil
+			return videoAgg, nil
 		})
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
@@ -79,7 +79,7 @@ func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (
 		Total int64
 	}
 
-	listInterface, err := r.cache.Get(
+	responseInterface, err := r.cache.Get(
 		cacheKey,
 		func(item cacher.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
@@ -96,12 +96,44 @@ func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (
 		return nil, 0, r.logger.LogPropagate(err)
 	}
 
-	listResponse, ok := listInterface.(response)
+	listResponse, ok := responseInterface.(response)
 	if !ok {
 		return nil, 0, errors.NewCachedDataTypeWasNotMatchedError(
-			cacheKey, reflect.TypeOf([]*agg.Video{}), reflect.TypeOf(listInterface),
+			cacheKey, reflect.TypeOf(response{}), reflect.TypeOf(responseInterface),
 		)
 	}
 
 	return listResponse.List, listResponse.Total, nil
+}
+
+func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
+	p, err := json.Marshal(q)
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	cacheKey := helper.MD5(p)
+
+	videoInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
+		item.SetTTL(time.Hour)
+
+		videoAgg, err := r.VideoRepository.FindOneByName(ctx, q)
+		if err != nil {
+			return nil, r.logger.LogPropagate(err)
+		}
+
+		return videoAgg, nil
+	})
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	videoAgg, ok := videoInterface.(*agg.Video)
+	if !ok {
+		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+			cacheKey, reflect.TypeOf(&agg.Video{}), reflect.TypeOf(videoInterface),
+		)
+	}
+
+	return videoAgg, nil
 }
