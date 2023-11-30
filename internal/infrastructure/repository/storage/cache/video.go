@@ -137,3 +137,35 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVide
 
 	return videoAgg, nil
 }
+
+func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+	p, err := json.Marshal(q)
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	cacheKey := helper.MD5(p)
+
+	videoInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
+		item.SetTTL(time.Hour)
+
+		videoAgg, err := r.VideoRepository.FindOneByResourceID(ctx, q)
+		if err != nil {
+			return nil, r.logger.LogPropagate(err)
+		}
+
+		return videoAgg, nil
+	})
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+
+	videoAgg, ok := videoInterface.(*agg.Video)
+	if !ok {
+		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+			cacheKey, reflect.TypeOf(&agg.Video{}), reflect.TypeOf(videoInterface),
+		)
+	}
+
+	return videoAgg, nil
+}
