@@ -120,9 +120,9 @@ func (s *Server) addRoutes() *mux.Router {
 		Subrouter()
 	restAuthedRouterV1.
 		Use(
-			s.requestsLoggingMiddleware,
 			s.restApiHeaderMiddleware,
-			s.authorizationMiddleware,
+			s.requestsLoggingMiddleware,
+			s.restAuthorizationMiddleware,
 		)
 
 	for _, c := range s.restAuthedControllers {
@@ -135,8 +135,8 @@ func (s *Server) addRoutes() *mux.Router {
 		Subrouter()
 	restUnauthedRouterV1.
 		Use(
-			s.restApiHeaderMiddleware,
 			s.requestsLoggingMiddleware,
+			s.restApiHeaderMiddleware,
 		)
 
 	for _, c := range s.restUnauthedControllers {
@@ -147,6 +147,11 @@ func (s *Server) addRoutes() *mux.Router {
 	renderRouterV1 := router.
 		PathPrefix(s.renderVersionPrefix).
 		Subrouter()
+	renderRouterV1.
+		Use(
+			s.requestsLoggingMiddleware,
+			s.renderAuthorizationMiddleware,
+		)
 
 	for _, c := range s.renderControllers {
 		c.AddRoute(renderRouterV1)
@@ -164,12 +169,33 @@ func (s *Server) addRoutes() *mux.Router {
 	return router
 }
 
-func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
+// restAuthorizationMiddleware checks whether the access token was passed
+// and user is authed otherwise throws access denied error.
+func (s *Server) restAuthorizationMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			userID, err := s.authService.IsAuthed(r)
 			if err != nil {
 				s.responder.Respond(w, s.logger.LogPropagate(err))
+				return
+			}
+			// create a new context with userID value
+			ctx := context.WithValue(r.Context(), enum.UserIDContextKey, userID)
+			// serve the next layer
+			handler.ServeHTTP(w, r.WithContext(ctx))
+		},
+	)
+}
+
+// renderAuthorizationMiddleware checks whether the access token was passed
+// and user is authed otherwise redirects to login page.
+func (s *Server) renderAuthorizationMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			userID, err := s.authService.IsAuthed(r)
+			if err != nil {
+				s.logger.Log(err)
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
 			// create a new context with userID value
