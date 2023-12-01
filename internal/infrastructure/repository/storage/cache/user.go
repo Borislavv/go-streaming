@@ -6,9 +6,9 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"reflect"
 	"time"
 )
