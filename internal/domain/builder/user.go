@@ -14,6 +14,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/service/security"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"io"
 	"net/http"
 	"time"
 )
@@ -56,6 +57,9 @@ func (b *UserBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.UserG
 func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.UserCreateRequestDTO, error) {
 	userDTO := &dto.UserCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(userDTO); err != nil {
+		if err == io.EOF {
+			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+		}
 		return nil, b.logger.LogPropagate(err)
 	}
 	return userDTO, nil
@@ -95,6 +99,9 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest)
 func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.UserUpdateRequestDTO, error) {
 	userDTO := &dto.UserUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
+		if err == io.EOF {
+			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+		}
 		return nil, b.logger.LogPropagate(err)
 	}
 
