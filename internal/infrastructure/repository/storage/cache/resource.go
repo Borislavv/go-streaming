@@ -33,11 +33,19 @@ func NewResourceRepository(
 }
 
 func (r *ResourceRepository) FindOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error) {
+	// attempt to fetch data from cache
+	if resource, err := r.findOneByID(ctx, q); err == nil {
+		return resource, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.ResourceRepository.FindOneByID(ctx, q)
+}
+
+func (r *ResourceRepository) findOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
 	}
-
 	cacheKey := helper.MD5(p)
 
 	resourceInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
