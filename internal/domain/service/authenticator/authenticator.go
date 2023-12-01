@@ -13,6 +13,10 @@ import (
 	"net/http"
 )
 
+var (
+	tokenVerificationFailed = "token verification failed"
+)
+
 type AuthService struct {
 	logger         logger.Logger
 	userService    user.CRUD
@@ -71,20 +75,34 @@ func (s *AuthService) IsAuthed(r *http.Request) (userID vo.ID, err error) {
 		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 
-	// extract token from request headers
-	token := r.Header.Get(enum.AccessTokenHeaderKey)
-	if token == "" {
-		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsEmptyOrOmittedError())
+	// extract token from request
+	token, err := s.extractToken(r)
+	if err != nil {
+		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 
 	// validate token and extract userID from it
 	userID, err = s.tokenizer.Verify(token)
 	if err != nil {
-		if err = s.tokenizer.Block(token, "token verification failed"); err != nil {
-			return vo.ID{}, s.logger.LogPropagate(err)
+		if berr := s.tokenizer.Block(token, tokenVerificationFailed); berr != nil {
+			return vo.ID{}, s.logger.LogPropagate(berr)
 		}
 		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 
 	return userID, nil
+}
+
+func (s *AuthService) extractToken(r *http.Request) (token string, err error) {
+	token = r.Header.Get(enum.AccessTokenHeaderKey)
+	if token != "" {
+		return token, nil
+	}
+
+	cookie, err := r.Cookie(enum.AccessTokenHeaderKey)
+	if err == nil {
+		return cookie.Value, nil
+	}
+
+	return "", errors.NewAccessTokenIsEmptyOrOmittedError()
 }
