@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	IndexPath    = "/"
-	TemplateName = "index.html"
+	IndexPath         = "/"
+	IndexTemplateName = "index.html"
 )
 
 type IndexController struct {
@@ -30,7 +30,7 @@ func NewIndexController(
 }
 
 func (c *IndexController) Index(w http.ResponseWriter, _ *http.Request) {
-	tplPath, err := helper.TemplatePath(TemplateName)
+	tplPath, err := helper.TemplatePath(IndexTemplateName)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
