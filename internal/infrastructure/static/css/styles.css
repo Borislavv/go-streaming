@@ -171,3 +171,61 @@ video {
     border-radius: 5px;
     cursor: pointer;
 }
+
+.login-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    position: relative;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form h2 {
+    color: #c7c7c7;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #666;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.login-form .button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.login-form button {
+    width: 48%;
+    background-color: #444;
+    color: #c7c7c7;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Добавлен отступ справа для кнопки Registration */
+.login-form button:last-child {
+    margin-left: auto;
+}
+
+.login-form button:hover {
+    background-color: #666;
+}
