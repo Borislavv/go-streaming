@@ -6,13 +6,19 @@ import (
 )
 
 type User struct {
-	ID       vo.ID     `json:"id" bson:",inline"`
-	Username string    `json:"username" bson:"username"`
-	Password string    `json:"password" bson:"password"` // hash
-	Email    string    `json:"email" bson:"email"`       // unique key
-	Birthday time.Time `json:"birthday" bson:"birthday,omitempty"`
+	ID       vo.ID     `bson:",inline"`
+	Username string    `bson:"username"`
+	Password string    `bson:"password"` // hash
+	Email    string    `bson:"email"`    // unique key
+	Birthday time.Time `bson:"birthday,omitempty"`
 }
 
-func (r User) GetID() vo.ID {
+func (r *User) GetID() vo.ID {
 	return r.ID
+}
+func (r *User) GetPassword() string {
+	return r.Password
+}
+func (r *User) SetPassword(password string) {
+	r.Password = password
 }
