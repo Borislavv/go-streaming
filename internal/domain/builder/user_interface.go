@@ -12,5 +12,6 @@ type User interface {
 	BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest) (*agg.User, error)
 	BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.UserUpdateRequestDTO, error)
 	BuildAggFromUpdateRequestDTO(reqDTO dto.UpdateUserRequest) (*agg.User, error)
-	BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDto, error)
+	BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDTO, error)
+	BuildResponseDTO(user *agg.User) (*dto.UserResponseDTO, error)
 }
