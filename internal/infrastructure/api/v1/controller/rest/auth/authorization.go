@@ -34,14 +34,14 @@ func NewAuthorizationController(
 
 func (c *AuthorizationController) GetAccessToken(w http.ResponseWriter, r *http.Request) {
 	// building an auth. request DTO
-	reqDTO, err := c.builder.BuildAuthRequestDTOFromRequest(r)
+	req, err := c.builder.BuildAuthRequestDTOFromRequest(r)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
 	// getting access token
-	token, err := c.authenticator.Auth(reqDTO)
+	token, err := c.authenticator.Auth(req)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
