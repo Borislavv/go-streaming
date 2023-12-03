@@ -33,19 +33,25 @@ func NewUpdateUserController(
 }
 
 func (c *UpdateController) Update(w http.ResponseWriter, r *http.Request) {
-	userDTO, err := c.builder.BuildUpdateRequestDTOFromRequest(r)
+	userReqDTO, err := c.builder.BuildUpdateRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	userAgg, err := c.service.Update(userDTO)
+	userAgg, err := c.service.Update(userReqDTO)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	c.response.Respond(w, userAgg)
+	userRespDTO, err := c.builder.BuildResponseDTO(userAgg)
+	if err != nil {
+		c.response.Respond(w, c.logger.LogPropagate(err))
+		return
+	}
+
+	c.response.Respond(w, userRespDTO)
 }
 
 func (c *UpdateController) AddRoute(router *mux.Router) {
