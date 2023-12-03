@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	"time"
 )
 
 // UserCreateRequestDTO - used when u want to create the user
@@ -64,11 +65,18 @@ func (req *UserGetRequestDTO) GetEmail() string {
 	return req.Email
 }
 
-// UserDeleteRequestDto - used when u want to remove the user
-type UserDeleteRequestDto struct {
+// UserDeleteRequestDTO - used when u want to remove the user
+type UserDeleteRequestDTO struct {
 	ID vo.ID `json:"id"`
 }
 
-func (req *UserDeleteRequestDto) GetID() vo.ID {
+func (req *UserDeleteRequestDTO) GetID() vo.ID {
 	return req.ID
+}
+
+type UserResponseDTO struct {
+	ID       vo.ID     `json:"ID" bson:",inline"`
+	Username string    `json:"username" bson:"username"`
+	Email    string    `json:"email" bson:"email"` // unique key
+	Birthday time.Time `json:"birthday" bson:"birthday,omitempty"`
 }
