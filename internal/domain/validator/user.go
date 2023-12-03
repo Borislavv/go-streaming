@@ -98,7 +98,7 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	}
 
 	// the user password cannot be empty or omitted
-	if agg.Password == "" {
+	if agg.GetPassword() == "" {
 		return errors.NewInternalValidationError("user agg was built with empty password")
 	}
 
