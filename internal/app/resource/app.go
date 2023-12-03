@@ -426,12 +426,6 @@ func (app *ResourcesApp) InitAuthedRestApiControllers(
 		audio.NewListController(),
 		audio.NewUpdateController(),
 		// user
-		user.NewCreateController(
-			loggerService,
-			userBuilder,
-			userService,
-			responseService,
-		),
 		user.NewUpdateUserController(
 			loggerService,
 			userBuilder,
