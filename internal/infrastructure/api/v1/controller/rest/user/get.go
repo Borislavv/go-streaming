@@ -47,19 +47,25 @@ func NewGetController(
 }
 
 func (c *GetUserController) Get(w http.ResponseWriter, r *http.Request) {
-	req, err := c.builder.BuildGetRequestDTOFromRequest(r)
+	userReqDTO, err := c.builder.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	userAgg, err := c.getCached(req)
+	userAgg, err := c.getCached(userReqDTO)
 	if err != nil {
 		c.response.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	c.response.Respond(w, userAgg)
+	userRespDTO, err := c.builder.BuildResponseDTO(userAgg)
+	if err != nil {
+		c.response.Respond(w, c.logger.LogPropagate(err))
+		return
+	}
+
+	c.response.Respond(w, userRespDTO)
 }
 
 func (c *GetUserController) getCached(reqDTO *dto.UserGetRequestDTO) (*agg.User, error) {
