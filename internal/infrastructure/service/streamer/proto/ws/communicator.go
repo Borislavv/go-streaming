@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
@@ -8,13 +9,12 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
 	"github.com/gorilla/websocket"
-	"strconv"
 	"strings"
 )
 
 const (
 	// message parts separator
-	protoSeparator string = ":"
+	protoSeparator string = "::"
 	// message prefixes
 	startMsgPref string = "start"
 	errMsgPref   string = "error"
@@ -62,31 +62,29 @@ func (w *Communicator) Send(chunk dto.Chunk, conn *websocket.Conn) error {
 
 func (w *Communicator) Parse(bytes []byte) (action enum.Actions, data interface{}, err error) {
 	p := strings.Split(string(bytes), protoSeparator)
-	if len(p) == 0 {
-		return "", nil, errors.New("unable to parse message due to empty message was passed")
+	if len(p) < 2 {
+		return "", nil, errors.New("unable to parse message, bad websocket request received")
 	}
 
-	switch enum.Actions(p[0]) {
-	case enum.StreamByID:
-		return enum.Actions(p[0]), model.StreamByIdData{ID: p[1]}, nil
-	case enum.StreamByIDWithOffset:
-		from, ferr := strconv.ParseFloat(p[2], 64)
-		if ferr != nil {
-			return "", nil, ferr
-		}
-		duration, derr := strconv.ParseFloat(p[3], 64)
-		if derr != nil {
-			return "", nil, derr
-		}
+	strategy := p[0]
+	jsonBytes := []byte(p[1])
 
-		return enum.Actions(p[0]), model.StreamByIdWithOffsetData{
-			ID:       p[1],
-			From:     from,
-			Duration: duration,
-		}, nil
+	switch enum.Actions(strategy) {
+	case enum.StreamByID:
+		data = &model.StreamByIdData{}
+		if err = json.Unmarshal(jsonBytes, data); err != nil {
+			return "", nil, w.logger.LogPropagate(err)
+		}
+		return enum.StreamByID, data, nil
+	case enum.StreamByIDWithOffset:
+		data = &model.StreamByIdWithOffsetData{}
+		if err = json.Unmarshal(jsonBytes, data); err != nil {
+			return "", nil, w.logger.LogPropagate(err)
+		}
+		return enum.StreamByIDWithOffset, data, nil
 	default:
 		return "", nil, fmt.Errorf(
-			"unable to parse message because received unknown action '%v'", p[0],
+			"unable to parse message because received unknown strategy '%v'", strategy,
 		)
 	}
 }

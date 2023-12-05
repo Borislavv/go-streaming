@@ -7,12 +7,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
+	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
 	"github.com/Borislavv/video-streaming/internal/domain/repository"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -59,6 +61,9 @@ func NewVideoBuilder(
 func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.VideoCreateRequestDTO, error) {
 	videoDTO := &dto.VideoCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(videoDTO); err != nil {
+		if err == io.EOF {
+			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+		}
 		return nil, b.logger.LogPropagate(err)
 	}
 
@@ -96,6 +101,9 @@ func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dto.CreateVideoRequest) 
 func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.VideoUpdateRequestDTO, error) {
 	videoDTO := &dto.VideoUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&videoDTO); err != nil {
+		if err == io.EOF {
+			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+		}
 		return nil, b.logger.LogPropagate(err)
 	}
 

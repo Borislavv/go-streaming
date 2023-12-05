@@ -2,13 +2,14 @@ package cache
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/service/cacher"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"reflect"
 	"time"
 )
@@ -31,9 +32,22 @@ func NewUserRepository(
 	}
 }
 
-func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByID) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByID) (*agg.User, error) {
+	// attempt to fetch data from cache
+	if user, err := r.findOneByID(ctx, q); err == nil {
+		return user, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.UserRepository.FindOneByID(ctx, q)
+}
+
+func (r *UserRepository) findOneByID(ctx context.Context, q query.FindOneUserByID) (*agg.User, error) {
 	// building a cache key
-	cacheKey := fmt.Sprintf("userID_%v", q.GetID().Value.Hex())
+	p, err := json.Marshal(q)
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+	cacheKey := helper.MD5(p)
 
 	// fetching data from cache/storage
 	userInterface, err := r.cache.Get(
@@ -62,9 +76,22 @@ func (r *UserRepository) FindOneByID(ctx context.Context, q query.FindOneUserByI
 	return userAgg, nil
 }
 
-func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUserByEmail) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByEmail(ctx context.Context, q query.FindOneUserByEmail) (*agg.User, error) {
+	// attempt to fetch data from cache
+	if user, err := r.findOneByEmail(ctx, q); err == nil {
+		return user, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.UserRepository.FindOneByEmail(ctx, q)
+}
+
+func (r *UserRepository) findOneByEmail(ctx context.Context, q query.FindOneUserByEmail) (user *agg.User, err error) {
 	// building a cache key
-	cacheKey := fmt.Sprintf("user_email_%v", q.GetEmail())
+	p, err := json.Marshal(q)
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+	cacheKey := helper.MD5(p)
 
 	// fetching data from cache/storage
 	userInterface, err := r.cache.Get(

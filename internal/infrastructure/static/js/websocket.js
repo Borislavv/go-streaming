@@ -10,10 +10,16 @@ let buffer;
 let mediaSource;
 let chunks;
 let mediaSourceReady;
+let token;
 
 // ws event: open
 websocket.onopen = (event) => {
     console.log('WebSocket connection opened');
+
+    token = getCookie('x-access-token')
+    if (token === "") {
+        throw "token is not provided";
+    }
 };
 // ws event: close
 websocket.onclose = (event) => {
@@ -39,11 +45,11 @@ websocket.onmessage = (event) => {
 
         if (data.startsWith('start')) {
             console.log("Starting new video...")
-            let dataParts = data.split(':')
+            let dataParts = data.split('::')
             console.log(dataParts)
             makeMediaResource(dataParts[1], dataParts[2])
         } else if (data.startsWith('error')) {
-            let dataParts = data.split(':')
+            let dataParts = data.split('::')
             console.log("Server error occurred: " + dataParts[1])
             showAlert(dataParts[1])
         } else if (data === 'stop') {
@@ -106,7 +112,7 @@ waitForVideoListWillBeRendered('.video-list', function () {
                 currentVideoID = li.id;
                 isSettingUp = true;
                 console.log('Requesting the first video ' + "ID:" + currentVideoID)
-                websocket.send("ID:" + currentVideoID) // requesting the first video by ID
+                requestByID('ID', currentVideoID)
             }
         });
     }
@@ -121,7 +127,7 @@ nextBtn.addEventListener('click', function() {
         Array.from(LIs).forEach(function (li) {
             if (found) {
                 console.log('Requesting the next video ' + "ID:" + li.id)
-                websocket.send("ID:" + li.id) // requesting the next video by ID
+                requestByID('ID', li.id)
                 currentVideoID = li.id // updating the current video ID
                 found = false // skipping further iterations
             } else {
@@ -157,7 +163,7 @@ prevBtn.addEventListener('click', function(event) {
                 currentVideoID = previousVideoID // updating the actual video ID
                 console.log('Requesting the previous video ' + "ID:" + currentVideoID)
                 // requesting the prev video/audio from server
-                websocket.send("ID:" + currentVideoID) // requesting the target (previous) video
+                requestByID('ID', currentVideoID)
                 found = true // setting up the var. for skipp unnecessary iterations
             } else {
                 previousVideoID = li.id // updating the previous video ID
@@ -177,12 +183,18 @@ document.addEventListener('click', function (event) {
             }
             if (event.target === li && currentVideoID !== li.id) { // check the target video ID is not equals with the current
                 // requesting the prev video/audio from server
-                websocket.send("ID:" + li.id) // requesting the target video by ID
+                requestByID('ID', li.id)
                 currentVideoID = li.id; // updating the current video ID
             }
         });
     }
 });
+
+function requestByID(strategy, id) {
+    let data = `${strategy}::{ "id": "${id}", "token": "${token}" }`
+    console.log("websocket request: " + data);
+    websocket.send(data)
+}
 
 function addNextChunk() {
     awaiting()

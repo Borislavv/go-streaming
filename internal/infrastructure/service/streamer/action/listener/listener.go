@@ -54,7 +54,7 @@ func (l *WebSocketActionsListener) Listen(wg *sync.WaitGroup, conn *websocket.Co
 			if t == websocket.TextMessage {
 				do, data, perr := l.communicator.Parse(b)
 				if perr != nil {
-					l.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), err.Error()))
+					l.logger.Error(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), perr.Error()))
 					return
 				}
 				if _, isSupported := supportedActionsMap[do]; isSupported {

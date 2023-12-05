@@ -158,7 +158,11 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 			authBuilder,
 			authService,
 		),
-		app.InitNativeRenderingControllers(
+		app.InitAuthedNativeRenderingControllers(
+			loggerService,
+			responseService,
+		),
+		app.InitUnauthedNativeRenderingControllers(
 			loggerService,
 			responseService,
 		),
@@ -422,12 +426,6 @@ func (app *ResourcesApp) InitAuthedRestApiControllers(
 		audio.NewListController(),
 		audio.NewUpdateController(),
 		// user
-		user.NewCreateController(
-			loggerService,
-			userBuilder,
-			userService,
-			responseService,
-		),
 		user.NewUpdateUserController(
 			loggerService,
 			userBuilder,
@@ -477,12 +475,21 @@ func (app *ResourcesApp) InitUnauthedRestApiControllers(
 	}
 }
 
-func (app *ResourcesApp) InitNativeRenderingControllers(
+func (app *ResourcesApp) InitAuthedNativeRenderingControllers(
 	loggerService loggerservice.Logger,
 	responseService response.Responder,
 ) []controller.Controller {
 	return []controller.Controller{
 		render.NewIndexController(loggerService, responseService),
+	}
+}
+
+func (app *ResourcesApp) InitUnauthedNativeRenderingControllers(
+	loggerService loggerservice.Logger,
+	responseService response.Responder,
+) []controller.Controller {
+	return []controller.Controller{
+		render.NewLoginController(loggerService, responseService),
 	}
 }
 

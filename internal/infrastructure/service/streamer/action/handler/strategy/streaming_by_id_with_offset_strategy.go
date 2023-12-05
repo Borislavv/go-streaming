@@ -62,7 +62,7 @@ func (s *StreamByIDWithOffsetActionStrategy) IsAppropriate(action model.Action) 
 // Do - will be streaming a target resource by ID from given offset.
 func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 	// check the data is eligible
-	data, ok := action.Data.(model.StreamByIdWithOffsetData)
+	data, ok := action.Data.(*model.StreamByIdWithOffsetData)
 	if !ok {
 		return s.logger.CriticalPropagate(
 			fmt.Errorf("'by id with offset' strategy cannot handle the given data '%+v'", data),
@@ -102,7 +102,7 @@ func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 
 func (s *StreamByIDWithOffsetActionStrategy) stream(
 	resource entity.Resource,
-	data model.StreamByIdWithOffsetData,
+	data *model.StreamByIdWithOffsetData,
 	conn *websocket.Conn,
 ) {
 	audioCodec, videoCodec, err := s.codecInfo.Detect(resource)

@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger"
@@ -34,8 +33,20 @@ func NewVideoRepository(
 }
 
 func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
-	// building a cache key
-	cacheKey := fmt.Sprintf("videoID_%v_userID_%v ", q.GetID().Value.Hex(), q.GetUserID().Value.Hex())
+	// attempt to fetch data from cache
+	if video, err := r.findOneByID(ctx, q); err == nil {
+		return video, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.VideoRepository.FindOneByID(ctx, q)
+}
+
+func (r *VideoRepository) findOneByID(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
+	p, err := json.Marshal(q)
+	if err != nil {
+		return nil, r.logger.LogPropagate(err)
+	}
+	cacheKey := helper.MD5(p)
 
 	// fetching data from cache/storage
 	videoInterface, err := r.cache.Get(
@@ -65,13 +76,19 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoB
 }
 
 func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (list []*agg.Video, total int64, err error) {
+	// attempt to fetch data from cache
+	if list, total, err = r.findList(ctx, q); err == nil {
+		return list, total, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.VideoRepository.FindList(ctx, q)
+}
+
+func (r *VideoRepository) findList(ctx context.Context, q query.FindVideoList) (list []*agg.Video, total int64, err error) {
 	p, err := json.Marshal(q)
 	if err != nil {
-		r.logger.Log(err)
-		// return a result from mongodb
-		return r.VideoRepository.FindList(ctx, q)
+		return nil, 0, r.logger.LogPropagate(err)
 	}
-
 	cacheKey := helper.MD5(p)
 
 	type response struct {
@@ -107,11 +124,19 @@ func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (
 }
 
 func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
+	// attempt to fetch data from cache
+	if video, err := r.findOneByName(ctx, q); err == nil {
+		return video, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.VideoRepository.FindOneByName(ctx, q)
+}
+
+func (r *VideoRepository) findOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
 	}
-
 	cacheKey := helper.MD5(p)
 
 	videoInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
@@ -139,11 +164,19 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVide
 }
 
 func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+	// attempt to fetch data from cache
+	if video, err := r.findOneByResourceID(ctx, q); err == nil {
+		return video, nil
+	}
+	// fetch data from storage if an error occurred
+	return r.VideoRepository.FindOneByResourceID(ctx, q)
+}
+
+func (r *VideoRepository) findOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
 	}
-
 	cacheKey := helper.MD5(p)
 
 	videoInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {

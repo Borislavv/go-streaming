@@ -10,27 +10,27 @@ import (
 )
 
 const (
-	IndexPath         = "/"
-	IndexTemplateName = "index.html"
+	LoginPath         = "/login"
+	LoginTemplateName = "login.html"
 )
 
-type IndexController struct {
+type LoginController struct {
 	logger    logger.Logger
 	responder response.Responder
 }
 
-func NewIndexController(
+func NewLoginController(
 	logger logger.Logger,
 	responder response.Responder,
-) *IndexController {
-	return &IndexController{
+) *LoginController {
+	return &LoginController{
 		logger:    logger,
 		responder: responder,
 	}
 }
 
-func (c *IndexController) Index(w http.ResponseWriter, _ *http.Request) {
-	tplPath, err := helper.TemplatePath(IndexTemplateName)
+func (c *LoginController) Login(w http.ResponseWriter, _ *http.Request) {
+	tplPath, err := helper.TemplatePath(LoginTemplateName)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
@@ -50,9 +50,9 @@ func (c *IndexController) Index(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (c *IndexController) AddRoute(router *mux.Router) {
+func (c *LoginController) AddRoute(router *mux.Router) {
 	router.
-		Path(IndexPath).
-		HandlerFunc(c.Index).
+		Path(LoginPath).
+		HandlerFunc(c.Login).
 		Methods(http.MethodGet)
 }

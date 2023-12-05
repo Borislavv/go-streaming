@@ -14,6 +14,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/service/security"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"io"
 	"net/http"
 	"time"
 )
@@ -56,45 +57,52 @@ func (b *UserBuilder) BuildGetRequestDTOFromRequest(r *http.Request) (*dto.UserG
 func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.UserCreateRequestDTO, error) {
 	userDTO := &dto.UserCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(userDTO); err != nil {
+		if err == io.EOF {
+			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+		}
 		return nil, b.logger.LogPropagate(err)
 	}
 	return userDTO, nil
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.User from dto.CreateUserRequest
-func (b *UserBuilder) BuildAggFromCreateRequestDTO(reqDTO dto.CreateUserRequest) (*agg.User, error) {
+func (b *UserBuilder) BuildAggFromCreateRequestDTO(req dto.CreateUserRequest) (*agg.User, error) {
 	// this validation checked previously into the DTO validator
-	birthday, err := time.Parse(enum.BirthdayDatePattern, reqDTO.GetBirthday())
+	birthday, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
 	if err != nil {
 		// logging the real parsing error
 		b.logger.Log(err)
 		// logging the error which will be thrown
-		return nil, b.logger.LogPropagate(errors.NewBirthdayIsInvalidError(reqDTO.GetBirthday()))
+		return nil, b.logger.LogPropagate(errors.NewBirthdayIsInvalidError(req.GetBirthday()))
 	}
 
 	// hash user's real password
-	passwordHash, err := b.passwordHasher.Hash(reqDTO.GetPassword())
+	passwordHash, err := b.passwordHasher.Hash(req.GetPassword())
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	return &agg.User{
+	u := &agg.User{
 		User: entity.User{
-			Username: reqDTO.GetUsername(),
-			Email:    reqDTO.GetEmail(),
-			Password: passwordHash,
+			Username: req.GetUsername(),
+			Email:    req.GetEmail(),
 			Birthday: birthday,
 		},
 		Timestamp: vo.Timestamp{
 			CreatedAt: time.Now(),
 		},
-	}, nil
+	}
+	u.SetPassword(passwordHash)
+	return u, nil
 }
 
 // BuildUpdateRequestDTOFromRequest - build a dto.UserUpdateRequestDTO from raw *http.Request.
 func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.UserUpdateRequestDTO, error) {
 	userDTO := &dto.UserUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
+		if err == io.EOF {
+			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+		}
 		return nil, b.logger.LogPropagate(err)
 	}
 
@@ -126,17 +134,23 @@ func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateUserRequest) (*
 
 	if req.GetBirthday() != user.Birthday.String() {
 		// this validation checked previously into the DTO validator
-		birthday, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
-		if err != nil {
+		birthday, perr := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
+		if perr != nil {
 			// here, we must have a valid date or occurred internal error
-			return nil, b.logger.CriticalPropagate(err)
+			return nil, b.logger.CriticalPropagate(perr)
 		}
 		user.Birthday = birthday
 		changes++
 	}
 
-	if req.GetPassword() != user.Password {
-		user.Password = req.GetPassword()
+	// hash user's real password
+	passwordHash, err := b.passwordHasher.Hash(req.GetPassword())
+	if err != nil {
+		return nil, b.logger.LogPropagate(err)
+	}
+
+	if req.GetPassword() != passwordHash {
+		user.SetPassword(passwordHash)
 		changes++
 	}
 
@@ -148,11 +162,20 @@ func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateUserRequest) (*
 }
 
 // BuildDeleteRequestDTOFromRequest - build a dto.DeleteVideoRequest from raw *http.Request.
-func (b *UserBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDto, error) {
+func (b *UserBuilder) BuildDeleteRequestDTOFromRequest(r *http.Request) (*dto.UserDeleteRequestDTO, error) {
 	getReqDTO, err := b.BuildGetRequestDTOFromRequest(r)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
 	}
 
-	return &dto.UserDeleteRequestDto{ID: getReqDTO.ID}, nil
+	return &dto.UserDeleteRequestDTO{ID: getReqDTO.ID}, nil
+}
+
+func (b *UserBuilder) BuildResponseDTO(user *agg.User) (*dto.UserResponseDTO, error) {
+	return &dto.UserResponseDTO{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Birthday: user.Birthday,
+	}, nil
 }

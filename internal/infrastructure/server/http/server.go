@@ -7,6 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
 	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
@@ -28,10 +29,11 @@ type Server struct {
 	renderVersionPrefix string // example: ""
 	staticVersionPrefix string // example: ""
 
-	restAuthedControllers   []controller.Controller
-	restUnauthedControllers []controller.Controller
-	renderControllers       []controller.Controller
-	staticControllers       []controller.Controller
+	restAuthedControllers     []controller.Controller
+	restUnauthedControllers   []controller.Controller
+	renderAuthedControllers   []controller.Controller
+	renderUnauthedControllers []controller.Controller
+	staticControllers         []controller.Controller
 
 	logger             logger.Logger
 	authService        authenticator.Authenticator
@@ -49,7 +51,8 @@ func NewHttpServer(
 	staticVersionPrefix string,
 	restAuthedControllers []controller.Controller,
 	restUnauthedControllers []controller.Controller,
-	renderControllers []controller.Controller,
+	renderAuthedControllers []controller.Controller,
+	renderUnauthedControllers []controller.Controller,
 	staticControllers []controller.Controller,
 	logger logger.Logger,
 	authService authenticator.Authenticator,
@@ -57,21 +60,22 @@ func NewHttpServer(
 	responder response.Responder,
 ) *Server {
 	return &Server{
-		ctx:                     ctx,
-		host:                    host,
-		port:                    port,
-		transportProto:          transportProto,
-		apiVersionPrefix:        apiVersionPrefix,
-		renderVersionPrefix:     renderVersionPrefix,
-		staticVersionPrefix:     staticVersionPrefix,
-		restAuthedControllers:   restAuthedControllers,
-		restUnauthedControllers: restUnauthedControllers,
-		renderControllers:       renderControllers,
-		staticControllers:       staticControllers,
-		logger:                  logger,
-		authService:             authService,
-		reqParamsExtractor:      reqParamsExtractor,
-		responder:               responder,
+		ctx:                       ctx,
+		host:                      host,
+		port:                      port,
+		transportProto:            transportProto,
+		apiVersionPrefix:          apiVersionPrefix,
+		renderVersionPrefix:       renderVersionPrefix,
+		staticVersionPrefix:       staticVersionPrefix,
+		restAuthedControllers:     restAuthedControllers,
+		restUnauthedControllers:   restUnauthedControllers,
+		renderAuthedControllers:   renderAuthedControllers,
+		renderUnauthedControllers: renderUnauthedControllers,
+		staticControllers:         staticControllers,
+		logger:                    logger,
+		authService:               authService,
+		reqParamsExtractor:        reqParamsExtractor,
+		responder:                 responder,
 	}
 }
 
@@ -114,42 +118,60 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 func (s *Server) addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
-	// rest api controllers which requires authorization token
+	// [AUTHED] rest api controllers which requires authorization token
 	restAuthedRouterV1 := router.
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
 	restAuthedRouterV1.
 		Use(
-			s.requestsLoggingMiddleware,
 			s.restApiHeaderMiddleware,
-			s.authorizationMiddleware,
+			s.requestsLoggingMiddleware,
+			s.restAuthorizationMiddleware,
 		)
 
 	for _, c := range s.restAuthedControllers {
 		c.AddRoute(restAuthedRouterV1)
 	}
 
-	// rest api controllers which is not requires authorization token
+	// [UNAUTHED] rest api controllers which is not requires authorization token
 	restUnauthedRouterV1 := router.
 		PathPrefix(s.apiVersionPrefix).
 		Subrouter()
 	restUnauthedRouterV1.
 		Use(
-			s.restApiHeaderMiddleware,
 			s.requestsLoggingMiddleware,
+			s.restApiHeaderMiddleware,
 		)
 
 	for _, c := range s.restUnauthedControllers {
 		c.AddRoute(restUnauthedRouterV1)
 	}
 
-	// native templates rendering controllers
-	renderRouterV1 := router.
+	// [AUTHED] native templates rendering controllers
+	renderAuthedRouterV1 := router.
 		PathPrefix(s.renderVersionPrefix).
 		Subrouter()
+	renderAuthedRouterV1.
+		Use(
+			s.requestsLoggingMiddleware,
+			s.renderAuthorizationMiddleware,
+		)
 
-	for _, c := range s.renderControllers {
-		c.AddRoute(renderRouterV1)
+	for _, c := range s.renderAuthedControllers {
+		c.AddRoute(renderAuthedRouterV1)
+	}
+
+	// [UNAUTHED] native templates rendering controllers
+	renderUnauthedRouterV1 := router.
+		PathPrefix(s.renderVersionPrefix).
+		Subrouter()
+	renderUnauthedRouterV1.
+		Use(
+			s.requestsLoggingMiddleware,
+		)
+
+	for _, c := range s.renderUnauthedControllers {
+		c.AddRoute(renderUnauthedRouterV1)
 	}
 
 	// static files serving controllers
@@ -164,12 +186,37 @@ func (s *Server) addRoutes() *mux.Router {
 	return router
 }
 
-func (s *Server) authorizationMiddleware(handler http.Handler) http.Handler {
+// restAuthorizationMiddleware checks whether the access token was passed
+// and user is authed otherwise throws access denied error.
+func (s *Server) restAuthorizationMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			userID, err := s.authService.IsAuthed(r)
 			if err != nil {
 				s.responder.Respond(w, s.logger.LogPropagate(err))
+				return
+			}
+			// create a new context with userID value
+			ctx := context.WithValue(r.Context(), enum.UserIDContextKey, userID)
+			// serve the next layer
+			handler.ServeHTTP(w, r.WithContext(ctx))
+		},
+	)
+}
+
+// renderAuthorizationMiddleware checks whether the access token was passed
+// and user is authed otherwise redirects to login page.
+func (s *Server) renderAuthorizationMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			userID, err := s.authService.IsAuthed(r)
+			if err != nil {
+				// error logging
+				s.logger.Log(err)
+				// info action logging
+				s.logger.Info("redirect to login page")
+				// redirecting a client to the login page
+				http.Redirect(w, r, render.LoginPath, http.StatusSeeOther)
 				return
 			}
 			// create a new context with userID value
@@ -194,9 +241,10 @@ func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
+			uniqueReqID := ruid.RequestUniqueID(r)
 			requestData := &request.LoggableData{
 				Date:       time.Now(),
-				ReqID:      ruid.RequestUniqueID(r),
+				ReqID:      uniqueReqID,
 				Type:       request.LogType,
 				Method:     r.Method,
 				URL:        r.URL.String(),
@@ -207,7 +255,7 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 			// request logging
 			s.logger.LogData(requestData)
 			// pass a requestID through entire app.
-			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIDKey, requestData.ReqID))
+			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIDKey, uniqueReqID))
 			// serve the next layer
 			handler.ServeHTTP(w, r)
 		},

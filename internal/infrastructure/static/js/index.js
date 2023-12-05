@@ -46,7 +46,13 @@ function loadVideoList() {
     const ul = document.querySelector('.dropdown-content ul');
     ul.innerHTML = '';
 
-    fetch(`http://0.0.0.0:8000/api/v1/video?limit=${limit}&page=${page}`)
+    let token = getCookie('x-access-token')
+
+    fetch(`http://0.0.0.0:8000/api/v1/video?limit=${limit}&page=${page}`, {
+        headers: {
+            'x-access-token': token,
+        }
+    })
         .then(response => response.json())
         .then(data => {
             // render list of videos
@@ -136,6 +142,17 @@ reqBtn.addEventListener('click', function () {
         showAlert('There are no changes in page or limit');
     }
 });
+
+function getCookie(cookieName) {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(cookieName + '=')) {
+            return cookie.substring(cookieName.length + 1);
+        }
+    }
+    return null;
+}
 
 // init. default data
 let currentLimit    = parseInt(limitSelect.value, 10);

@@ -8,5 +8,5 @@ import (
 type User struct {
 	entity.User `bson:",inline"`
 
-	Timestamp vo.Timestamp `json:"timestamp" bson:",inline"`
+	Timestamp vo.Timestamp `bson:",inline"`
 }

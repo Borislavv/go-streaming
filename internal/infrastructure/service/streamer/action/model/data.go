@@ -1,13 +1,13 @@
 package model
 
 type StreamByIdData struct {
-	ID    string
-	Token string
+	ID    string `json:"id"`
+	Token string `json:"token"`
 }
 
 type StreamByIdWithOffsetData struct {
-	ID       string
-	Token    string
-	From     float64
-	Duration float64
+	ID       string  `json:"id"`
+	Token    string  `json:"token"`
+	From     float64 `json:"from"`
+	Duration float64 `json:"duration"`
 }
