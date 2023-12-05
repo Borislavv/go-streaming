@@ -60,7 +60,7 @@ func (s *StreamByIDActionStrategy) IsAppropriate(action model.Action) bool {
 // Do - will be streaming a target resource by ID.
 func (s *StreamByIDActionStrategy) Do(action model.Action) error {
 	// check the data is eligible
-	data, ok := action.Data.(model.StreamByIdData)
+	data, ok := action.Data.(*model.StreamByIdData)
 	if !ok {
 		return s.logger.CriticalPropagate(
 			fmt.Errorf("'by id' strategy cannot handle the given data '%+v'", data),
