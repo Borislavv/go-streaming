@@ -241,9 +241,10 @@ func (s *Server) restApiHeaderMiddleware(handler http.Handler) http.Handler {
 func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
+			uniqueReqID := ruid.RequestUniqueID(r)
 			requestData := &request.LoggableData{
 				Date:       time.Now(),
-				ReqID:      ruid.RequestUniqueID(r),
+				ReqID:      uniqueReqID,
 				Type:       request.LogType,
 				Method:     r.Method,
 				URL:        r.URL.String(),
@@ -254,7 +255,7 @@ func (s *Server) requestsLoggingMiddleware(handler http.Handler) http.Handler {
 			// request logging
 			s.logger.LogData(requestData)
 			// pass a requestID through entire app.
-			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIDKey, requestData.ReqID))
+			s.logger.SetContext(context.WithValue(s.ctx, enum.UniqueRequestIDKey, uniqueReqID))
 			// serve the next layer
 			handler.ServeHTTP(w, r)
 		},
