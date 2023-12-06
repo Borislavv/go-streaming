@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 )
 
-type NameService struct {
+type NameComputerService struct {
 }
 
-func NewNameService() *NameService {
-	return &NameService{}
+func NewNameComputerService() *NameComputerService {
+	return &NameComputerService{}
 }
 
 // Get - will return computed filename with extension.
-func (s *NameService) Get(
+func (s *NameComputerService) Get(
 	remoteFilename string,
 	contentType string,
 	contentDisposition string,
