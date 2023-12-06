@@ -1,40 +1,52 @@
 package uploader
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	storager_interface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
+	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 	"io"
 	"mime/multipart"
 )
 
 const MultipartPartUploadingType = "multipart_part"
 
-// MultipartPartUploader - is a file UploadingStrategy which use multipart.Part.
+// MultipartPartUploader - is a file ResourceUploadingStrategy which use multipart.Part.
 // In such case it takes more time but takes much less memory.
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
 type MultipartPartUploader struct {
-	logger      logger.Logger
-	storage     storager.Storage
-	filename    file.NameComputer
+	logger      logger_interface.Logger
+	storage     storager_interface.Storage
+	filename    file_interface.NameComputer
 	maxFilesize int64
 }
 
-func NewPartsUploader(
-	logger logger.Logger,
-	storage storager.Storage,
-	filename file.NameComputer,
-) *MultipartPartUploader {
-	return &MultipartPartUploader{
-		logger:   logger,
-		filename: filename,
-		storage:  storage,
+func NewPartsUploader(serviceContainer di_interface.ContainerManager) (*MultipartPartUploader, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	storageService, err := serviceContainer.GetFileStorageService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	filenameService, err := serviceContainer.GetFileNameComputerService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &MultipartPartUploader{
+		logger:   loggerService,
+		storage:  storageService,
+		filename: filenameService,
+	}, nil
 }
 
-func (u *MultipartPartUploader) Upload(reqDTO dto.UploadResourceRequest) (err error) {
+func (u *MultipartPartUploader) Upload(reqDTO dto_interface.UploadResourceRequest) (err error) {
 	part, err := u.getFilePart(reqDTO)
 	if err != nil {
 		return u.logger.LogPropagate(err)
@@ -72,7 +84,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dto.UploadResourceRequest) (err er
 	return nil
 }
 
-func (u *MultipartPartUploader) getFilePart(reqDTO dto.UploadResourceRequest) (part *multipart.Part, err error) {
+func (u *MultipartPartUploader) getFilePart(reqDTO dto_interface.UploadResourceRequest) (part *multipart.Part, err error) {
 	// extract the multipart form reader (handling the form as a stream)
 	reader, err := reqDTO.GetRequest().MultipartReader()
 	if err != nil {
