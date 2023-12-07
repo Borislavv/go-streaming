@@ -4,18 +4,20 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"strings"
 	"time"
 )
 
 type JwtService struct {
 	ctx                     context.Context
-	logger                  logger.Logger
-	blockedTokenRepository  repository.BlockedToken
+	logger                  logger_interface.Logger
+	blockedTokenRepository  repository_interface.BlockedToken
 	jwtTokenAcceptedIssuers []string
 	jwtSecretSalt           []byte
 	jwtTokenIssuer          string
@@ -23,26 +25,37 @@ type JwtService struct {
 	jwtTokenExpiresAfter    int64
 }
 
-func NewJwtService(
-	ctx context.Context,
-	logger logger.Logger,
-	blockedTokenRepository repository.BlockedToken,
-	jwtTokenAcceptedIssuers []string,
-	jwtSecretSalt string,
-	jwtTokenIssuer string,
-	jwtTokenEncryptAlgo string,
-	jwtTokenExpiresAfter int64,
-) *JwtService {
+func NewJwtService(serviceContainer di_interface.ContainerManager) (*JwtService, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	blockedTokenRepository, err := serviceContainer.GetBlockedTokenRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &JwtService{
 		ctx:                     ctx,
-		logger:                  logger,
+		logger:                  loggerService,
 		blockedTokenRepository:  blockedTokenRepository,
-		jwtTokenAcceptedIssuers: jwtTokenAcceptedIssuers,
-		jwtSecretSalt:           []byte(jwtSecretSalt),
-		jwtTokenIssuer:          jwtTokenIssuer,
-		jwtTokenEncryptAlgo:     jwtTokenEncryptAlgo,
-		jwtTokenExpiresAfter:    jwtTokenExpiresAfter,
-	}
+		jwtTokenAcceptedIssuers: strings.Split(cfg.JwtTokenAcceptedIssuers, ","),
+		jwtSecretSalt:           []byte(cfg.JwtSecretSalt),
+		jwtTokenIssuer:          cfg.JwtTokenIssuer,
+		jwtTokenEncryptAlgo:     cfg.JwtTokenEncryptAlgo,
+		jwtTokenExpiresAfter:    cfg.JwtTokenExpiresAfter,
+	}, nil
 }
 
 // New will generate a new JWT.
