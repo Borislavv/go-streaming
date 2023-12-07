@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
 	"github.com/gorilla/websocket"
@@ -22,13 +23,18 @@ const (
 )
 
 type Communicator struct {
-	logger logger.Logger
+	logger logger_interface.Logger
 }
 
-func NewWebSocketCommunicator(logger logger.Logger) *Communicator {
-	return &Communicator{
-		logger: logger,
+func NewWebSocketCommunicator(serviceContainer di_interface.ContainerManager) (*Communicator, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	return &Communicator{
+		logger: loggerService,
+	}, nil
 }
 
 func (w *Communicator) Start(audioCodec string, videoCodec string, conn *websocket.Conn) error {
@@ -48,7 +54,7 @@ func (w *Communicator) Start(audioCodec string, videoCodec string, conn *websock
 	return nil
 }
 
-func (w *Communicator) Send(chunk dto.Chunk, conn *websocket.Conn) error {
+func (w *Communicator) Send(chunk dto_interface.Chunk, conn *websocket.Conn) error {
 	if chunk.GetError() != nil {
 		return w.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.GetError().Error()))
 	}
