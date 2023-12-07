@@ -1,6 +1,7 @@
-package proto
+package proto_interface
 
 import (
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/gorilla/websocket"
 )
