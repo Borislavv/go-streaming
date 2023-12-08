@@ -1,13 +1,16 @@
 package cacher
 
-import "github.com/Borislavv/video-streaming/internal/domain/service/cacher"
+import (
+	domain_cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	cacher_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher/interface"
+)
 
 type Cache struct {
-	storage   Storage
-	displacer Displacer
+	storage   cacher_interface.Storage
+	displacer cacher_interface.Displacer
 }
 
-func NewCache(storage Storage, displacer Displacer) *Cache {
+func NewCache(storage cacher_interface.Storage, displacer cacher_interface.Displacer) *Cache {
 	c := &Cache{
 		storage:   storage,
 		displacer: displacer,
@@ -16,7 +19,7 @@ func NewCache(storage Storage, displacer Displacer) *Cache {
 	return c
 }
 
-func (c *Cache) Get(key string, fn func(cacher.CacheItem) (data interface{}, err error)) (data interface{}, err error) {
+func (c *Cache) Get(key string, fn func(item domain_cacher_interface.CacheItem) (data interface{}, err error)) (data interface{}, err error) {
 	return c.storage.Get(key, fn)
 }
 
