@@ -6,15 +6,16 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
+	detector_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
+	reader_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto"
+	proto_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"os"
@@ -24,32 +25,59 @@ const zeroOffset = 0
 
 type StreamByIDActionStrategy struct {
 	ctx             context.Context
-	logger          logger.Logger
-	videoRepository repository.Video
-	reader          reader.FileReader
-	codecInfo       detector.Detector
-	communicator    proto.Communicator
-	tokenizer       tokenizer.Tokenizer
+	logger          logger_interface.Logger
+	videoRepository repository_interface.Video
+	reader          reader_interface.FileReader
+	codecInfo       detector_interface.Codecs
+	communicator    proto_interface.Communicator
+	tokenizer       tokenizer_interface.Tokenizer
 }
 
-func NewStreamByIDActionStrategy(
-	ctx context.Context,
-	logger logger.Logger,
-	videoRepository repository.Video,
-	reader reader.FileReader,
-	codecInfo detector.Detector,
-	communicator proto.Communicator,
-	tokenizer tokenizer.Tokenizer,
-) *StreamByIDActionStrategy {
+func NewStreamByIDActionStrategy(serviceContainer di_interface.ContainerManager) (*StreamByIDActionStrategy, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoRepository, err := serviceContainer.GetVideoRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	fileReader, err := serviceContainer.GetFileReaderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	codecsDetector, err := serviceContainer.GetCodecsDetectorService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	webSocketCommunicator, err := serviceContainer.GetWebSocketCommunicatorService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	tokenizerService, err := serviceContainer.GetTokenizerService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &StreamByIDActionStrategy{
 		ctx:             ctx,
-		logger:          logger,
+		logger:          loggerService,
 		videoRepository: videoRepository,
-		reader:          reader,
-		codecInfo:       codecInfo,
-		communicator:    communicator,
-		tokenizer:       tokenizer,
-	}
+		reader:          fileReader,
+		codecInfo:       codecsDetector,
+		communicator:    webSocketCommunicator,
+		tokenizer:       tokenizerService,
+	}, nil
 }
 
 // IsAppropriate - method will tell the service architect that the strategy is acceptable.
