@@ -3,7 +3,8 @@ package reader
 import (
 	"context"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/model"
 	"math"
 	"os"
@@ -17,12 +18,31 @@ const (
 
 type FileReaderService struct {
 	ctx       context.Context
-	logger    logger.Logger
+	logger    logger_interface.Logger
 	chunkSize int
 }
 
-func NewFileReaderService(ctx context.Context, logger logger.Logger, chunkSize int) *FileReaderService {
-	return &FileReaderService{ctx: ctx, logger: logger, chunkSize: chunkSize}
+func NewFileReaderService(serviceContainer di_interface.ContainerManager) (*FileReaderService, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &FileReaderService{
+		ctx:       ctx,
+		logger:    loggerService,
+		chunkSize: cfg.StreamingChunkSize,
+	}, nil
 }
 
 // ReadAll - reads a whole file in a single chunk.
