@@ -1,4 +1,4 @@
-package cacher
+package cacher_interface
 
 import "time"
 
