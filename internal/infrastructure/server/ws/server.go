@@ -3,8 +3,9 @@ package ws
 import (
 	"context"
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	streamer_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -17,24 +18,33 @@ type Server struct {
 	port           string // example: "9988"
 	transportProto string // example: "tcp"
 
-	streamer streamer.Streamer
-	logger   logger.Logger
+	streamer streamer_interface.Streamer
+	logger   logger_interface.Logger
 }
 
-func NewWebSocketServer(
-	host string,
-	port string,
-	transportProto string,
-	streamer streamer.Streamer,
-	logger logger.Logger,
-) *Server {
-	return &Server{
-		host:           host,
-		port:           port,
-		transportProto: transportProto,
-		streamer:       streamer,
-		logger:         logger,
+func NewWebSocketServer(serviceContainer di_interface.ContainerManager) (*Server, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	streamingService, err := serviceContainer.GetStreamingService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &Server{
+		host:           cfg.StreamingHost,
+		port:           cfg.StreamingPort,
+		transportProto: cfg.StreamingTransport,
+		streamer:       streamingService,
+		logger:         loggerService,
+	}, nil
 }
 
 // Listen is method which running a websocket server
