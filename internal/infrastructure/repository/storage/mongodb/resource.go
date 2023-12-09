@@ -5,9 +5,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,20 +27,40 @@ var (
 type ResourceRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
-	logger  logger.Logger
+	logger  logger_interface.Logger
 	timeout time.Duration
 }
 
-func NewResourceRepository(db *mongo.Database, logger logger.Logger, timeout time.Duration) *ResourceRepository {
+func NewResourceRepository(serviceContainer di_interface.ContainerManager) (*ResourceRepository, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	database, err := serviceContainer.GetMongoDatabase()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	config, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	timeout, err := time.ParseDuration(config.MongoTimeout)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &ResourceRepository{
-		db:      db.Collection(ResourcesCollection),
-		logger:  logger,
+		db:      database.Collection(ResourcesCollection),
+		logger:  loggerService,
 		mu:      &sync.Mutex{},
 		timeout: timeout,
-	}
+	}, nil
 }
 
-func (r *ResourceRepository) FindOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error) {
+func (r *ResourceRepository) FindOneByID(ctx context.Context, q query_interface.FindOneResourceByID) (*agg.Resource, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
