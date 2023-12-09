@@ -1,4 +1,4 @@
-package cache_interface
+package mongodb_interface
 
 import (
 	"context"
