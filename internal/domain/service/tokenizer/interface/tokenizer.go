@@ -1,4 +1,4 @@
-package tokenizer
+package tokenizer_interface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
