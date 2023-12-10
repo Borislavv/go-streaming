@@ -1,4 +1,4 @@
-package _interface
+package query_interface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
