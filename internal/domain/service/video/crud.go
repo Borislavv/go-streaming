@@ -3,44 +3,69 @@ package video
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/builder"
+	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service/resource"
-	"github.com/Borislavv/video-streaming/internal/domain/validator"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	resource_interface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
+	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 )
 
 type CRUDService struct {
 	ctx             context.Context
-	logger          logger.Logger
-	builder         builder.Video
-	validator       validator.Video
-	repository      repository.Video
-	resourceService resource.CRUD
+	logger          logger_interface.Logger
+	builder         builder_interface.Video
+	validator       validator_interface.Video
+	repository      repository_interface.Video
+	resourceService resource_interface.CRUD
 }
 
-func NewCRUDService(
-	ctx context.Context,
-	logger logger.Logger,
-	builder builder.Video,
-	validator validator.Video,
-	repository repository.Video,
-	resourceService resource.CRUD,
-) *CRUDService {
+func NewCRUDService(serviceContainer di_interface.ContainerManager) (*CRUDService, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoBuilder, err := serviceContainer.GetVideoBuilder()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoValidator, err := serviceContainer.GetVideoValidator()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoRepository, err := serviceContainer.GetVideoRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	resourceCRUDService, err := serviceContainer.GetResourceCRUDService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &CRUDService{
 		ctx:             ctx,
-		logger:          logger,
-		builder:         builder,
-		validator:       validator,
-		repository:      repository,
-		resourceService: resourceService,
-	}
+		logger:          loggerService,
+		builder:         videoBuilder,
+		validator:       videoValidator,
+		repository:      videoRepository,
+		resourceService: resourceCRUDService,
+	}, nil
 }
 
 // Get - will fetch a single video aggregate by ID and specified user.
 // Access check to video is unnecessary because the query will fetch video only for specified user.
-func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Get(req dto_interface.GetVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -57,7 +82,7 @@ func (s *CRUDService) Get(req dto.GetVideoRequest) (*agg.Video, error) {
 
 // List - will fetch a video list of aggregates by given request and specified user.
 // Access check to video is unnecessary because the query will fetch a video list only for specified user.
-func (s *CRUDService) List(req dto.ListVideoRequest) (list []*agg.Video, total int64, err error) {
+func (s *CRUDService) List(req dto_interface.ListVideoRequest) (list []*agg.Video, total int64, err error) {
 	// validation of input request
 	if err = s.validator.ValidateListRequestDTO(req); err != nil {
 		return nil, 0, s.logger.LogPropagate(err)
@@ -74,7 +99,7 @@ func (s *CRUDService) List(req dto.ListVideoRequest) (list []*agg.Video, total i
 
 // Create - will make a new video by given request for specified user. Have an access check for resource
 // which exists into the request.
-func (s *CRUDService) Create(req dto.CreateVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Create(req dto_interface.CreateVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateCreateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -101,7 +126,7 @@ func (s *CRUDService) Create(req dto.CreateVideoRequest) (*agg.Video, error) {
 }
 
 // Update - will change the video by given request. Have an access check for video.resource.
-func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
+func (s *CRUDService) Update(req dto_interface.UpdateVideoRequest) (*agg.Video, error) {
 	// validation of input request
 	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -128,7 +153,7 @@ func (s *CRUDService) Update(req dto.UpdateVideoRequest) (*agg.Video, error) {
 }
 
 // Delete - will remove the video from the storage.
-func (s *CRUDService) Delete(req dto.DeleteVideoRequest) (err error) {
+func (s *CRUDService) Delete(req dto_interface.DeleteVideoRequest) (err error) {
 	// validation of input request
 	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return s.logger.LogPropagate(err)
