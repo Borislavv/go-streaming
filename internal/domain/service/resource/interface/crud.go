@@ -1,11 +1,11 @@
-package resource
+package resource_interface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 )
 
 type CRUD interface {
-	Upload(reqDTO dto.UploadResourceRequest) (*agg.Resource, error)
-	Delete(reqDTO dto.DeleteResourceRequest) (err error)
+	Upload(reqDTO dto_interface.UploadResourceRequest) (*agg.Resource, error)
+	Delete(reqDTO dto_interface.DeleteResourceRequest) (err error)
 }
