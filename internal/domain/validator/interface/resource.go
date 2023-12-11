@@ -1,14 +1,14 @@
-package _interface
+package validator_interface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 )
 
 type Resource interface {
-	ValidateUploadRequestDTO(req dto.UploadResourceRequest) error
+	ValidateUploadRequestDTO(req dto_interface.UploadResourceRequest) error
 	ValidateEntity(entity entity.Resource) error
 	ValidateAggregate(agg *agg.Resource) error
-	ValidateDeleteRequestDTO(req dto.DeleteResourceRequest) error
+	ValidateDeleteRequestDTO(req dto_interface.DeleteResourceRequest) error
 }
