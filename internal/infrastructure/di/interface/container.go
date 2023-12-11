@@ -1,4 +1,4 @@
-package di
+package di_interface
 
 import "reflect"
 
