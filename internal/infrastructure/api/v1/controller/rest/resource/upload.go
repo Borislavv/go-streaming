@@ -1,10 +1,11 @@
 package resource
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/resource"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	resource_interface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -12,24 +13,39 @@ import (
 const UploadPath = "/resource"
 
 type UploadResourceController struct {
-	logger    logger.Logger
-	builder   builder.Resource
-	service   resource.CRUD
-	responder response.Responder
+	logger    logger_interface.Logger
+	builder   builder_interface.Resource
+	service   resource_interface.CRUD
+	responder response_interface.Responder
 }
 
-func NewUploadController(
-	logger logger.Logger,
-	builder builder.Resource,
-	service resource.CRUD,
-	responer response.Responder,
-) *UploadResourceController {
-	return &UploadResourceController{
-		logger:    logger,
-		builder:   builder,
-		service:   service,
-		responder: responer,
+func NewUploadController(serviceContainer di_interface.ContainerManager) (*UploadResourceController, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	resourceBuilder, err := serviceContainer.GetResourceBuilder()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	resourceCRUDService, err := serviceContainer.GetResourceCRUDService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	responseService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &UploadResourceController{
+		logger:    loggerService,
+		builder:   resourceBuilder,
+		service:   resourceCRUDService,
+		responder: responseService,
+	}, nil
 }
 
 func (c *UploadResourceController) Upload(w http.ResponseWriter, r *http.Request) {
