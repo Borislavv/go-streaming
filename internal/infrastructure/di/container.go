@@ -2,6 +2,7 @@ package di
 
 import (
 	"fmt"
+	di_interface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
 	"reflect"
 )
 
@@ -16,33 +17,30 @@ func NewServiceContainer(services ...any) *ServiceContainer {
 
 	if len(services) > 0 {
 		for service := range services {
-			s.Set(service, "")
+			s.Set(service, nil)
 		}
 	}
 
 	return s
 }
 
-func (s *ServiceContainer) Set(service any, alias reflect.Type) (self Container) {
-	key := ""
-	if alias != "" {
-		key = alias
-	} else {
-		key = reflect.TypeOf(service).String()
+func (s *ServiceContainer) Set(service any, alias reflect.Type) (self di_interface.Container) {
+	if alias == nil || alias == reflect.TypeOf(nil) {
+		alias = reflect.TypeOf(service)
 	}
-	s.container[key] = service
+	s.container[alias] = reflect.ValueOf(service)
 	return s
 }
 
-func (s *ServiceContainer) Has(key string) (has bool) {
+func (s *ServiceContainer) Has(key reflect.Type) (has bool) {
 	_, has = s.container[key]
 	return has
 }
 
-func (s *ServiceContainer) Get(key string) (service any, notFoundErr error) {
+func (s *ServiceContainer) Get(key reflect.Type) (service reflect.Value, notFoundErr error) {
 	service, found := s.container[key]
 	if !found {
-		return nil, fmt.Errorf("service not found by key '%s'", key)
+		return reflect.Value{}, fmt.Errorf("service not found by key '%s'", key)
 	}
 	return service, nil
 }
