@@ -1,8 +1,9 @@
 package static
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -12,18 +13,25 @@ import (
 const ResourcesPrefix = "/static/"
 
 type FilesController struct {
-	logger    logger.Logger
-	responder response.Responder
+	logger    logger_interface.Logger
+	responder response_interface.Responder
 }
 
-func NewFilesController(
-	logger logger.Logger,
-	responder response.Responder,
-) *FilesController {
-	return &FilesController{
-		logger:    logger,
-		responder: responder,
+func NewFilesController(serviceContainer di_interface.ContainerManager) (*FilesController, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	responseService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &FilesController{
+		logger:    loggerService,
+		responder: responseService,
+	}, nil
 }
 
 func (c *FilesController) Serve(w http.ResponseWriter, r *http.Request) {
