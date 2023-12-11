@@ -1,14 +1,14 @@
-package _interface
+package validator_interface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 )
 
 type User interface {
-	ValidateGetRequestDTO(reqDTO dto.GetUserRequest) error
-	ValidateCreateRequestDTO(reqDTO dto.CreateUserRequest) error
-	ValidateUpdateRequestDTO(reqDTO dto.UpdateUserRequest) error
-	ValidateDeleteRequestDTO(reqDTO dto.DeleteUserRequest) error
+	ValidateGetRequestDTO(reqDTO dto_interface.GetUserRequest) error
+	ValidateCreateRequestDTO(reqDTO dto_interface.CreateUserRequest) error
+	ValidateUpdateRequestDTO(reqDTO dto_interface.UpdateUserRequest) error
+	ValidateDeleteRequestDTO(reqDTO dto_interface.DeleteUserRequest) error
 	ValidateAggregate(agg *agg.User) error
 }
