@@ -1,15 +1,15 @@
-package _interface
+package validator_interface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 )
 
 type Video interface {
-	ValidateGetRequestDTO(req dto.GetVideoRequest) error
-	ValidateListRequestDTO(req dto.ListVideoRequest) error
-	ValidateCreateRequestDTO(req dto.CreateVideoRequest) error
-	ValidateUpdateRequestDTO(req dto.UpdateVideoRequest) error
-	ValidateDeleteRequestDTO(req dto.DeleteVideoRequest) error
+	ValidateGetRequestDTO(req dto_interface.GetVideoRequest) error
+	ValidateListRequestDTO(req dto_interface.ListVideoRequest) error
+	ValidateCreateRequestDTO(req dto_interface.CreateVideoRequest) error
+	ValidateUpdateRequestDTO(req dto_interface.UpdateVideoRequest) error
+	ValidateDeleteRequestDTO(req dto_interface.DeleteVideoRequest) error
 	ValidateAggregate(agg *agg.Video) error
 }
