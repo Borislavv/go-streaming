@@ -1,11 +1,11 @@
-package validator
+package validator_interface
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"net/http"
 )
 
 type Auth interface {
-	ValidateAuthRequest(reqDTO dto.AuthRequest) error
+	ValidateAuthRequest(reqDTO dto_interface.AuthRequest) error
 	ValidateTokennessRequest(r *http.Request) error
 }
