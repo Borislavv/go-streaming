@@ -1,8 +1,9 @@
 package render
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -15,18 +16,25 @@ const (
 )
 
 type IndexController struct {
-	logger    logger.Logger
-	responder response.Responder
+	logger    logger_interface.Logger
+	responder response_interface.Responder
 }
 
-func NewIndexController(
-	logger logger.Logger,
-	responder response.Responder,
-) *IndexController {
-	return &IndexController{
-		logger:    logger,
-		responder: responder,
+func NewIndexController(serviceContainer di_interface.ContainerManager) (*IndexController, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	responseService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &IndexController{
+		logger:    loggerService,
+		responder: responseService,
+	}, nil
 }
 
 func (c *IndexController) Index(w http.ResponseWriter, _ *http.Request) {
