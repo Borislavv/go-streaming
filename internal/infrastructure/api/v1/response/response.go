@@ -3,7 +3,9 @@ package response
 import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	error_interface "github.com/Borislavv/video-streaming/internal/domain/errors/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"io"
 	"net/http"
 	"time"
@@ -25,25 +27,27 @@ func NewErrorResponse(err error) ErrorResponse {
 	return ErrorResponse{Error: err}
 }
 
-// Responder - response service interface
-type Responder interface {
-	Respond(w io.Writer, dataOrErr any)
-}
-
 // Response - response service
 type Response struct {
-	logger logger.Logger
+	logger logger_interface.Logger
 }
 
-func NewResponseService(logger logger.Logger) *Response {
-	return &Response{logger: logger}
+func NewResponseService(serviceContainer di_interface.ContainerManager) (*Response, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Response{
+		logger: loggerService,
+	}, nil
 }
 
 func (r *Response) Respond(w io.Writer, dataOrErr any) {
 	err, isErr := dataOrErr.(error)
 	if isErr {
 		r.logger.Log(err)
-		publicErr, isPublicErr := err.(errors.PublicError)
+		publicErr, isPublicErr := err.(error_interface.PublicError)
 		if isPublicErr {
 			// handle the case when write is http.ResponseWriter
 			if httpWriter, ok := w.(http.ResponseWriter); ok {
