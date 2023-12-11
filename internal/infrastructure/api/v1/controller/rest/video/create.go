@@ -1,59 +1,79 @@
 package video
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
-	"github.com/Borislavv/video-streaming/internal/domain/service/video"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 const CreatePath = "/video"
 
-type CreateVideoController struct {
-	logger      logger.Logger
-	builder     builder.Video
-	crudService video.CRUD
-	authService authenticator.Authenticator
-	response    response.Responder
+type CreateController struct {
+	logger      logger_interface.Logger
+	builder     builder_interface.Video
+	service     video_interface.CRUD
+	authService authenticator_interface.Authenticator
+	responder   response_interface.Responder
 }
 
-func NewCreateController(
-	logger logger.Logger,
-	builder builder.Video,
-	crudService video.CRUD,
-	authService authenticator.Authenticator,
-	response response.Responder,
-) *CreateVideoController {
-	return &CreateVideoController{
-		logger:      logger,
-		builder:     builder,
-		crudService: crudService,
-		authService: authService,
-		response:    response,
+func NewCreateController(serviceContainer di_interface.ContainerManager) (*CreateController, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	videoBuilder, err := serviceContainer.GetVideoBuilder()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoCRUDService, err := serviceContainer.GetVideoCRUDService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	authService, err := serviceContainer.GetAuthService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	responseService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &CreateController{
+		logger:      loggerService,
+		builder:     videoBuilder,
+		service:     videoCRUDService,
+		authService: authService,
+		responder:   responseService,
+	}, nil
 }
 
-func (c *CreateVideoController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *CreateController) Create(w http.ResponseWriter, r *http.Request) {
 	videoDTO, err := c.builder.BuildCreateRequestDTOFromRequest(r)
 	if err != nil {
-		c.response.Respond(w, c.logger.LogPropagate(err))
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	videoAgg, err := c.crudService.Create(videoDTO)
+	videoAgg, err := c.service.Create(videoDTO)
 	if err != nil {
-		c.response.Respond(w, c.logger.LogPropagate(err))
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	c.response.Respond(w, videoAgg)
+	c.responder.Respond(w, videoAgg)
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (c *CreateVideoController) AddRoute(router *mux.Router) {
+func (c *CreateController) AddRoute(router *mux.Router) {
 	router.
 		Path(CreatePath).
 		HandlerFunc(c.Create).
