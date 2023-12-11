@@ -4,27 +4,48 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 )
 
 type ResourceValidator struct {
 	ctx         context.Context
-	repository  repository.Resource
+	repository  repository_interface.Resource
 	maxFilesize int64
 }
 
-func NewResourceValidator(ctx context.Context, repository repository.Resource, maxFilesize int64) *ResourceValidator {
+func NewResourceValidator(serviceContainer di_interface.ContainerManager) (*ResourceValidator, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	repo, err := serviceContainer.GetResourceRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &ResourceValidator{
 		ctx:         ctx,
-		repository:  repository,
-		maxFilesize: maxFilesize,
-	}
+		repository:  repo,
+		maxFilesize: cfg.ResourceMaxFilesizeThreshold,
+	}, nil
 }
 
-func (v *ResourceValidator) ValidateUploadRequestDTO(req dto.UploadResourceRequest) error {
+func (v *ResourceValidator) ValidateUploadRequestDTO(req dto_interface.UploadResourceRequest) error {
 	if req.GetUserID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(userIDField)
 	}
@@ -65,7 +86,7 @@ func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
 	return v.ValidateEntity(agg.Resource)
 }
 
-func (v *ResourceValidator) ValidateGetRequestDTO(req dto.GetResourceRequest) error {
+func (v *ResourceValidator) ValidateGetRequestDTO(req dto_interface.GetResourceRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
@@ -75,6 +96,6 @@ func (v *ResourceValidator) ValidateGetRequestDTO(req dto.GetResourceRequest) er
 	return nil
 }
 
-func (v *ResourceValidator) ValidateDeleteRequestDTO(req dto.DeleteResourceRequest) error {
+func (v *ResourceValidator) ValidateDeleteRequestDTO(req dto_interface.DeleteResourceRequest) error {
 	return v.ValidateGetRequestDTO(req)
 }
