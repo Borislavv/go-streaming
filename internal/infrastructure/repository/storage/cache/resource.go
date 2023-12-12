@@ -5,53 +5,65 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/cacher"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
+	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
 )
 
 type ResourceRepository struct {
-	*mongodb.ResourceRepository
-	logger logger.Logger
-	cache  cacher.Cacher
+	mongodb_interface.Resource
+	logger logger_interface.Logger
+	cache  cacher_interface.Cacher
 }
 
-func NewResourceRepository(
-	logger logger.Logger,
-	cache cacher.Cacher,
-	resourceMongoDbRepository *mongodb.ResourceRepository,
-) *ResourceRepository {
-	return &ResourceRepository{
-		ResourceRepository: resourceMongoDbRepository,
-		logger:             logger,
-		cache:              cache,
+func NewResourceRepository(serviceContainer di_interface.ContainerManager) (*ResourceRepository, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	mongoRepository, err := serviceContainer.GetResourceMongoRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cacheService, err := serviceContainer.GetCacheService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &ResourceRepository{
+		Resource: mongoRepository,
+		logger:   loggerService,
+		cache:    cacheService,
+	}, nil
 }
 
-func (r *ResourceRepository) FindOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error) {
+func (r *ResourceRepository) FindOneByID(ctx context.Context, q query_interface.FindOneResourceByID) (*agg.Resource, error) {
 	// attempt to fetch data from cache
 	if resource, err := r.findOneByID(ctx, q); err == nil {
 		return resource, nil
 	}
 	// fetch data from storage if an error occurred
-	return r.ResourceRepository.FindOneByID(ctx, q)
+	return r.Resource.FindOneByID(ctx, q)
 }
 
-func (r *ResourceRepository) findOneByID(ctx context.Context, q query.FindOneResourceByID) (*agg.Resource, error) {
+func (r *ResourceRepository) findOneByID(ctx context.Context, q query_interface.FindOneResourceByID) (*agg.Resource, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
 	}
 	cacheKey := helper.MD5(p)
 
-	resourceInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
+	resourceInterface, err := r.cache.Get(cacheKey, func(item cacher_interface.CacheItem) (data interface{}, err error) {
 		item.SetTTL(time.Hour)
 
-		resourceAgg, err := r.ResourceRepository.FindOneByID(ctx, q)
+		resourceAgg, err := r.Resource.FindOneByID(ctx, q)
 		if err != nil {
 			return nil, r.logger.LogPropagate(err)
 		}

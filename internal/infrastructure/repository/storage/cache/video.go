@@ -5,43 +5,55 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/cacher"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
+	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
 )
 
 type VideoRepository struct {
-	*mongodb.VideoRepository
-	logger logger.Logger
-	cache  cacher.Cacher
+	mongodb_interface.Video
+	logger logger_interface.Logger
+	cache  cacher_interface.Cacher
 }
 
-func NewVideoRepository(
-	logger logger.Logger,
-	cache cacher.Cacher,
-	videoMongoDbRepository *mongodb.VideoRepository,
-) *VideoRepository {
-	return &VideoRepository{
-		VideoRepository: videoMongoDbRepository,
-		logger:          logger,
-		cache:           cache,
+func NewVideoRepository(serviceContainer di_interface.ContainerManager) (*VideoRepository, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	videoMongoDbRepository, err := serviceContainer.GetVideoMongoRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cacheService, err := serviceContainer.GetCacheService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &VideoRepository{
+		cache:  cacheService,
+		logger: loggerService,
+		Video:  videoMongoDbRepository,
+	}, nil
 }
 
-func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByID(ctx context.Context, q query_interface.FindOneVideoByID) (*agg.Video, error) {
 	// attempt to fetch data from cache
 	if video, err := r.findOneByID(ctx, q); err == nil {
 		return video, nil
 	}
 	// fetch data from storage if an error occurred
-	return r.VideoRepository.FindOneByID(ctx, q)
+	return r.Video.FindOneByID(ctx, q)
 }
 
-func (r *VideoRepository) findOneByID(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) findOneByID(ctx context.Context, q query_interface.FindOneVideoByID) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
@@ -51,10 +63,10 @@ func (r *VideoRepository) findOneByID(ctx context.Context, q query.FindOneVideoB
 	// fetching data from cache/storage
 	videoInterface, err := r.cache.Get(
 		cacheKey,
-		func(item cacher.CacheItem) (data interface{}, err error) {
+		func(item cacher_interface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
-			videoAgg, err := r.VideoRepository.FindOneByID(ctx, q)
+			videoAgg, err := r.Video.FindOneByID(ctx, q)
 			if err != nil {
 				return nil, r.logger.LogPropagate(err)
 			}
@@ -75,16 +87,16 @@ func (r *VideoRepository) findOneByID(ctx context.Context, q query.FindOneVideoB
 	return videoAgg, nil
 }
 
-func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (list []*agg.Video, total int64, err error) {
+func (r *VideoRepository) FindList(ctx context.Context, q query_interface.FindVideoList) (list []*agg.Video, total int64, err error) {
 	// attempt to fetch data from cache
 	if list, total, err = r.findList(ctx, q); err == nil {
 		return list, total, nil
 	}
 	// fetch data from storage if an error occurred
-	return r.VideoRepository.FindList(ctx, q)
+	return r.Video.FindList(ctx, q)
 }
 
-func (r *VideoRepository) findList(ctx context.Context, q query.FindVideoList) (list []*agg.Video, total int64, err error) {
+func (r *VideoRepository) findList(ctx context.Context, q query_interface.FindVideoList) (list []*agg.Video, total int64, err error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, 0, r.logger.LogPropagate(err)
@@ -98,10 +110,10 @@ func (r *VideoRepository) findList(ctx context.Context, q query.FindVideoList) (
 
 	responseInterface, err := r.cache.Get(
 		cacheKey,
-		func(item cacher.CacheItem) (data interface{}, err error) {
+		func(item cacher_interface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
-			l, t, e := r.VideoRepository.FindList(ctx, q)
+			l, t, e := r.Video.FindList(ctx, q)
 			if err != nil {
 				return nil, r.logger.LogPropagate(e)
 			}
@@ -123,26 +135,26 @@ func (r *VideoRepository) findList(ctx context.Context, q query.FindVideoList) (
 	return listResponse.List, listResponse.Total, nil
 }
 
-func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByName(ctx context.Context, q query_interface.FindOneVideoByName) (*agg.Video, error) {
 	// attempt to fetch data from cache
 	if video, err := r.findOneByName(ctx, q); err == nil {
 		return video, nil
 	}
 	// fetch data from storage if an error occurred
-	return r.VideoRepository.FindOneByName(ctx, q)
+	return r.Video.FindOneByName(ctx, q)
 }
 
-func (r *VideoRepository) findOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
+func (r *VideoRepository) findOneByName(ctx context.Context, q query_interface.FindOneVideoByName) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
 	}
 	cacheKey := helper.MD5(p)
 
-	videoInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
+	videoInterface, err := r.cache.Get(cacheKey, func(item cacher_interface.CacheItem) (data interface{}, err error) {
 		item.SetTTL(time.Hour)
 
-		videoAgg, err := r.VideoRepository.FindOneByName(ctx, q)
+		videoAgg, err := r.Video.FindOneByName(ctx, q)
 		if err != nil {
 			return nil, r.logger.LogPropagate(err)
 		}
@@ -163,26 +175,26 @@ func (r *VideoRepository) findOneByName(ctx context.Context, q query.FindOneVide
 	return videoAgg, nil
 }
 
-func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query_interface.FindOneVideoByResourceID) (*agg.Video, error) {
 	// attempt to fetch data from cache
 	if video, err := r.findOneByResourceID(ctx, q); err == nil {
 		return video, nil
 	}
 	// fetch data from storage if an error occurred
-	return r.VideoRepository.FindOneByResourceID(ctx, q)
+	return r.Video.FindOneByResourceID(ctx, q)
 }
 
-func (r *VideoRepository) findOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) findOneByResourceID(ctx context.Context, q query_interface.FindOneVideoByResourceID) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
 	}
 	cacheKey := helper.MD5(p)
 
-	videoInterface, err := r.cache.Get(cacheKey, func(item cacher.CacheItem) (data interface{}, err error) {
+	videoInterface, err := r.cache.Get(cacheKey, func(item cacher_interface.CacheItem) (data interface{}, err error) {
 		item.SetTTL(time.Hour)
 
-		videoAgg, err := r.VideoRepository.FindOneByResourceID(ctx, q)
+		videoAgg, err := r.Video.FindOneByResourceID(ctx, q)
 		if err != nil {
 			return nil, r.logger.LogPropagate(err)
 		}

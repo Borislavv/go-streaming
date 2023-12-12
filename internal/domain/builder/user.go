@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
-	"github.com/Borislavv/video-streaming/internal/domain/service/security"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
+	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
@@ -20,28 +22,47 @@ import (
 )
 
 type UserBuilder struct {
-	logger         logger.Logger
+	logger         logger_interface.Logger
 	ctx            context.Context
-	extractor      extractor.RequestParams
-	userRepository repository.User
-	passwordHasher security.PasswordHasher
+	extractor      extractor_interface.RequestParams
+	userRepository repository_interface.User
+	passwordHasher security_interface.PasswordHasher
 }
 
 // NewUserBuilder is a constructor of UserBuilder.
-func NewUserBuilder(
-	ctx context.Context,
-	logger logger.Logger,
-	extractor extractor.RequestParams,
-	userRepository repository.User,
-	passwordHasher security.PasswordHasher,
-) *UserBuilder {
+func NewUserBuilder(serviceContainer di_interface.ContainerManager) (*UserBuilder, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	requestParametersExtractorService, err := serviceContainer.GetRequestParametersExtractorService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	userRepository, err := serviceContainer.GetUserRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	passwordHasherService, err := serviceContainer.GetPasswordHasherService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &UserBuilder{
 		ctx:            ctx,
-		logger:         logger,
-		extractor:      extractor,
+		logger:         loggerService,
+		extractor:      requestParametersExtractorService,
 		userRepository: userRepository,
-		passwordHasher: passwordHasher,
-	}
+		passwordHasher: passwordHasherService,
+	}, nil
 }
 
 // BuildGetRequestDTOFromRequest - build a dto.GetUserRequest from raw *http.Request.
@@ -66,7 +87,7 @@ func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.Us
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.User from dto.CreateUserRequest
-func (b *UserBuilder) BuildAggFromCreateRequestDTO(req dto.CreateUserRequest) (*agg.User, error) {
+func (b *UserBuilder) BuildAggFromCreateRequestDTO(req dto_interface.CreateUserRequest) (*agg.User, error) {
 	// this validation checked previously into the DTO validator
 	birthday, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
 	if err != nil {
@@ -120,7 +141,7 @@ func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.Us
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.User from dto.UpdateUserRequest.
-func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateUserRequest) (*agg.User, error) {
+func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dto_interface.UpdateUserRequest) (*agg.User, error) {
 	user, err := b.userRepository.FindOneByID(b.ctx, req)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)

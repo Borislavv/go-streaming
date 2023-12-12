@@ -2,28 +2,40 @@ package handler
 
 import (
 	"context"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	strategy_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
 	"sync"
 )
 
 type WebSocketActionsHandler struct {
 	ctx              context.Context
-	logger           logger.Logger
-	actionStrategies []strategy.ActionStrategy
+	logger           logger_interface.Logger
+	actionStrategies []strategy_interface.ActionStrategy
 }
 
-func NewWebSocketActionsHandler(
-	ctx context.Context,
-	logger logger.Logger,
-	actionStrategies []strategy.ActionStrategy,
-) *WebSocketActionsHandler {
+func NewWebSocketActionsHandler(serviceContainer di_interface.ContainerManager) (*WebSocketActionsHandler, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	strategies, err := serviceContainer.GetWebSocketHandlerStrategies()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &WebSocketActionsHandler{
 		ctx:              ctx,
-		logger:           logger,
-		actionStrategies: actionStrategies,
-	}
+		logger:           loggerService,
+		actionStrategies: strategies,
+	}, nil
 }
 
 func (h *WebSocketActionsHandler) Handle(wg *sync.WaitGroup, actionsCh <-chan model.Action) {

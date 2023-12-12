@@ -1,10 +1,11 @@
 package auth
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -12,24 +13,39 @@ import (
 const AuthorizationPath = "/authorization"
 
 type AuthorizationController struct {
-	logger        logger.Logger
-	builder       builder.Auth
-	authenticator authenticator.Authenticator
-	responder     response.Responder
+	logger        logger_interface.Logger
+	builder       builder_interface.Auth
+	authenticator authenticator_interface.Authenticator
+	responder     response_interface.Responder
 }
 
-func NewAuthorizationController(
-	logger logger.Logger,
-	builder builder.Auth,
-	authenticator authenticator.Authenticator,
-	responder response.Responder,
-) *AuthorizationController {
-	return &AuthorizationController{
-		logger:        logger,
-		builder:       builder,
-		authenticator: authenticator,
-		responder:     responder,
+func NewAuthorizationController(serviceContainer di_interface.ContainerManager) (*AuthorizationController, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	authBuilder, err := serviceContainer.GetAuthBuilder()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	authService, err := serviceContainer.GetAuthService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	responseService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &AuthorizationController{
+		logger:        loggerService,
+		builder:       authBuilder,
+		authenticator: authService,
+		responder:     responseService,
+	}, nil
 }
 
 func (c *AuthorizationController) GetAccessToken(w http.ResponseWriter, r *http.Request) {

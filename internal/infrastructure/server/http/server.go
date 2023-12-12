@@ -3,13 +3,14 @@ package http
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
-	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
 	"github.com/gorilla/mux"
 	"net"
@@ -35,48 +36,68 @@ type Server struct {
 	renderUnauthedControllers []controller.Controller
 	staticControllers         []controller.Controller
 
-	logger             logger.Logger
-	authService        authenticator.Authenticator
-	reqParamsExtractor extractor.RequestParams
-	responder          response.Responder
+	logger             logger_interface.Logger
+	authService        authenticator_interface.Authenticator
+	reqParamsExtractor extractor_interface.RequestParams
+	responder          response_interface.Responder
 }
 
 func NewHttpServer(
-	ctx context.Context,
-	host string,
-	port string,
-	transportProto string,
-	apiVersionPrefix string,
-	renderVersionPrefix string,
-	staticVersionPrefix string,
+	serviceContainer di_interface.ContainerManager,
 	restAuthedControllers []controller.Controller,
 	restUnauthedControllers []controller.Controller,
 	renderAuthedControllers []controller.Controller,
 	renderUnauthedControllers []controller.Controller,
 	staticControllers []controller.Controller,
-	logger logger.Logger,
-	authService authenticator.Authenticator,
-	reqParamsExtractor extractor.RequestParams,
-	responder response.Responder,
-) *Server {
+) (*Server, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	authService, err := serviceContainer.GetAuthService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	requestParametersExtractorService, err := serviceContainer.GetRequestParametersExtractorService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	responderService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &Server{
 		ctx:                       ctx,
-		host:                      host,
-		port:                      port,
-		transportProto:            transportProto,
-		apiVersionPrefix:          apiVersionPrefix,
-		renderVersionPrefix:       renderVersionPrefix,
-		staticVersionPrefix:       staticVersionPrefix,
+		host:                      cfg.ResourcesHost,
+		port:                      cfg.ResourcesPort,
+		transportProto:            cfg.ResourcesTransport,
+		apiVersionPrefix:          cfg.ResourcesApiVersionPrefix,
+		renderVersionPrefix:       cfg.ResourcesRenderVersionPrefix,
+		staticVersionPrefix:       cfg.ResourcesStaticVersionPrefix,
 		restAuthedControllers:     restAuthedControllers,
 		restUnauthedControllers:   restUnauthedControllers,
 		renderAuthedControllers:   renderAuthedControllers,
 		renderUnauthedControllers: renderUnauthedControllers,
 		staticControllers:         staticControllers,
-		logger:                    logger,
+		logger:                    loggerService,
 		authService:               authService,
-		reqParamsExtractor:        reqParamsExtractor,
-		responder:                 responder,
-	}
+		reqParamsExtractor:        requestParametersExtractorService,
+		responder:                 responderService,
+	}, nil
 }
 
 func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {

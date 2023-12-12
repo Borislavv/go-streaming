@@ -2,21 +2,27 @@ package security
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/security"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type PasswordHasher struct {
-	logger logger.Logger
+	logger logger_interface.Logger
 	cost   int
 }
 
-func NewPasswordHasher(logger logger.Logger, cost int) *PasswordHasher {
-	return &PasswordHasher{
-		logger: logger,
-		cost:   cost,
+func NewPasswordHasher(serviceContainer di_interface.ContainerManager, cost int) (*PasswordHasher, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	return &PasswordHasher{
+		logger: loggerService,
+		cost:   cost,
+	}, nil
 }
 
 func (s *PasswordHasher) Hash(password string) (hash string, err error) {
@@ -27,7 +33,7 @@ func (s *PasswordHasher) Hash(password string) (hash string, err error) {
 	return string(hashBytes), nil
 }
 
-func (s *PasswordHasher) Verify(user security.Passwordness, password string) (err error) {
+func (s *PasswordHasher) Verify(user security_interface.Passwordness, password string) (err error) {
 	if err = bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(password)); err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return errors.NewAuthFailedError("passwords did not match")

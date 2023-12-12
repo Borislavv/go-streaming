@@ -2,10 +2,11 @@ package listener
 
 import (
 	"fmt"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto"
+	proto_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
 	"github.com/gorilla/websocket"
 	"sync"
 )
@@ -17,18 +18,25 @@ var (
 )
 
 type WebSocketActionsListener struct {
-	logger       logger.Logger
-	communicator proto.Communicator
+	logger       logger_interface.Logger
+	communicator proto_interface.Communicator
 }
 
-func NewWebSocketActionsListener(
-	logger logger.Logger,
-	proto proto.Communicator,
-) *WebSocketActionsListener {
-	return &WebSocketActionsListener{
-		logger:       logger,
-		communicator: proto,
+func NewWebSocketActionsListener(serviceContainer di_interface.ContainerManager) (*WebSocketActionsListener, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	webSocketCommunicatorService, err := serviceContainer.GetWebSocketCommunicatorService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &WebSocketActionsListener{
+		logger:       loggerService,
+		communicator: webSocketCommunicatorService,
+	}, nil
 }
 
 func (l *WebSocketActionsListener) Listen(wg *sync.WaitGroup, conn *websocket.Conn) <-chan model.Action {

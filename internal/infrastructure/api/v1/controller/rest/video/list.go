@@ -1,52 +1,68 @@
 package video
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/video"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 const ListPath = "/video"
 
-type ListVideoController struct {
-	logger   logger.Logger
-	builder  builder.Video
-	service  video.CRUD
-	response response.Responder
+type ListController struct {
+	logger    logger_interface.Logger
+	builder   builder_interface.Video
+	service   video_interface.CRUD
+	responder response_interface.Responder
 }
 
-func NewListController(
-	logger logger.Logger,
-	builder builder.Video,
-	service video.CRUD,
-	response response.Responder,
-) *ListVideoController {
-	return &ListVideoController{
-		logger:   logger,
-		builder:  builder,
-		service:  service,
-		response: response,
+func NewListController(serviceContainer di_interface.ContainerManager) (*ListController, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	videoBuilder, err := serviceContainer.GetVideoBuilder()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoCRUDService, err := serviceContainer.GetVideoCRUDService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	responseService, err := serviceContainer.GetResponderService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &ListController{
+		logger:    loggerService,
+		builder:   videoBuilder,
+		service:   videoCRUDService,
+		responder: responseService,
+	}, nil
 }
 
-func (c *ListVideoController) List(w http.ResponseWriter, r *http.Request) {
+func (c *ListController) List(w http.ResponseWriter, r *http.Request) {
 	reqDTO, e := c.builder.BuildListRequestDTOFromRequest(r)
 	if e != nil {
-		c.response.Respond(w, c.logger.LogPropagate(e))
+		c.responder.Respond(w, c.logger.LogPropagate(e))
 		return
 	}
 
 	aggList, total, err := c.service.List(reqDTO)
 	if err != nil {
-		c.response.Respond(w, c.logger.LogPropagate(err))
+		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
 	// TODO must be refactored to paginated list DTO.
-	c.response.Respond(w,
+	c.responder.Respond(w,
 		map[string]interface{}{
 			"list": aggList,
 			"pagination": map[string]interface{}{
@@ -58,7 +74,7 @@ func (c *ListVideoController) List(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (c *ListVideoController) AddRoute(router *mux.Router) {
+func (c *ListController) AddRoute(router *mux.Router) {
 	router.
 		Path(ListPath).
 		HandlerFunc(c.List).

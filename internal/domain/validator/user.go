@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"time"
@@ -21,33 +23,48 @@ const (
 
 type UserValidator struct {
 	ctx               context.Context
-	logger            logger.Logger
-	userRepository    repository.User
+	logger            logger_interface.Logger
+	userRepository    repository_interface.User
 	adminContactEmail string
 }
 
-func NewUserValidator(
-	ctx context.Context,
-	logger logger.Logger,
-	userRepository repository.User,
-	adminContactEmail string,
-) *UserValidator {
+func NewUserValidator(serviceContainer di_interface.ContainerManager) (*UserValidator, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	userRepository, err := serviceContainer.GetUserRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &UserValidator{
 		ctx:               ctx,
-		logger:            logger,
+		logger:            loggerService,
 		userRepository:    userRepository,
-		adminContactEmail: adminContactEmail,
-	}
+		adminContactEmail: cfg.AdminContactEmail,
+	}, nil
 }
 
-func (v *UserValidator) ValidateGetRequestDTO(req dto.GetUserRequest) error {
+func (v *UserValidator) ValidateGetRequestDTO(req dto_interface.GetUserRequest) error {
 	if req.GetID().Value.IsZero() && req.GetEmail() == "" {
 		return errors.NewAtLeastOneFieldMustBeDefinedError(idField, emailField)
 	}
 	return nil
 }
 
-func (v *UserValidator) ValidateCreateRequestDTO(req dto.CreateUserRequest) (err error) {
+func (v *UserValidator) ValidateCreateRequestDTO(req dto_interface.CreateUserRequest) (err error) {
 	if err = v.isValidUsername(req.GetUsername()); err != nil {
 		return v.logger.LogPropagate(err)
 	}
@@ -71,7 +88,7 @@ func (v *UserValidator) ValidateCreateRequestDTO(req dto.CreateUserRequest) (err
 	return nil
 }
 
-func (v *UserValidator) ValidateUpdateRequestDTO(req dto.UpdateUserRequest) (err error) {
+func (v *UserValidator) ValidateUpdateRequestDTO(req dto_interface.UpdateUserRequest) (err error) {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
@@ -115,7 +132,7 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	return nil
 }
 
-func (v *UserValidator) ValidateDeleteRequestDTO(req dto.DeleteUserRequest) error {
+func (v *UserValidator) ValidateDeleteRequestDTO(req dto_interface.DeleteUserRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,17 +20,37 @@ const BlockedTokensCollection = "blockedTokens"
 type BlockedTokenRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
-	logger  logger.Logger
+	logger  logger_interface.Logger
 	timeout time.Duration
 }
 
-func NewBlockedTokenRepository(db *mongo.Database, logger logger.Logger, timeout time.Duration) *BlockedTokenRepository {
+func NewBlockedTokenRepository(serviceContainer di_interface.ContainerManager) (*BlockedTokenRepository, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	mongodb, err := serviceContainer.GetMongoDatabase()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	timeout, err := time.ParseDuration(cfg.MongoTimeout)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &BlockedTokenRepository{
-		db:      db.Collection(BlockedTokensCollection),
-		logger:  logger,
+		db:      mongodb.Collection(BlockedTokensCollection),
+		logger:  loggerService,
 		mu:      &sync.Mutex{},
 		timeout: timeout,
-	}
+	}, nil
 }
 
 func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedToken) error {

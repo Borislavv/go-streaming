@@ -5,9 +5,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,20 +30,40 @@ var (
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
-	logger  logger.Logger
+	logger  logger_interface.Logger
 	timeout time.Duration
 }
 
-func NewVideoRepository(db *mongo.Database, logger logger.Logger, timeout time.Duration) *VideoRepository {
+func NewVideoRepository(serviceContainer di_interface.ContainerManager) (*VideoRepository, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	mongodb, err := serviceContainer.GetMongoDatabase()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	cfg, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	timeout, err := time.ParseDuration(cfg.MongoTimeout)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &VideoRepository{
-		db:      db.Collection(VideosCollection),
-		logger:  logger,
+		db:      mongodb.Collection(VideosCollection),
+		logger:  loggerService,
 		mu:      &sync.Mutex{},
 		timeout: timeout,
-	}
+	}, nil
 }
 
-func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByID(ctx context.Context, q query_interface.FindOneVideoByID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -62,7 +83,7 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query.FindOneVideoB
 	return video, nil
 }
 
-func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (list []*agg.Video, total int64, err error) {
+func (r *VideoRepository) FindList(ctx context.Context, q query_interface.FindVideoList) (list []*agg.Video, total int64, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -132,7 +153,7 @@ func (r *VideoRepository) FindList(ctx context.Context, q query.FindVideoList) (
 	return list, total, nil
 }
 
-func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVideoByName) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByName(ctx context.Context, q query_interface.FindOneVideoByName) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -152,7 +173,7 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query.FindOneVide
 	return video, nil
 }
 
-func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query_interface.FindOneVideoByResourceID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 

@@ -2,6 +2,7 @@ package cacher
 
 import (
 	"context"
+	cacher_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher/interface"
 	"sync"
 	"time"
 )
@@ -24,12 +25,12 @@ func NewCacheDisplacer(ctx context.Context, interval time.Duration) *CacheDispla
 	}
 }
 
-func (d *CacheDisplacer) Run(storage Storage) {
+func (d *CacheDisplacer) Run(storage cacher_interface.Storage) {
 	d.wg.Add(1)
 	go d.run(storage)
 }
 
-func (d *CacheDisplacer) run(storage Storage) {
+func (d *CacheDisplacer) run(storage cacher_interface.Storage) {
 	ticker := time.NewTicker(d.interval)
 
 	defer func() {

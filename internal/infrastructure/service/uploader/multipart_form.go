@@ -1,47 +1,61 @@
 package uploader
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/storager"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 )
 
 const MultipartFormUploadingType = "multipart_form"
 
 // MultipartFormUploader is a service which represents functionality
-// for uploader a full file from *http.Request into storage.
+// for uploader a full file from *http.Request into fileStorage.
 // This approach of uploading takes a much more RAM but works more fast than MultipartPartUploader.
 // If you care of performance, you need use this approach, but take care of using RAM and set up
 // the appropriate value of 'inMemoryFileSizeThreshold' through env. configuration.
 type MultipartFormUploader struct {
-	logger                    logger.Logger
-	storage                   storager.Storage
-	filename                  file.NameComputer
+	logger                    logger_interface.Logger
+	fileStorage               file_interface.Storage
+	fileNameComputer          file_interface.NameComputer
 	formFilename              string
 	maxFilesize               int64
 	inMemoryFileSizeThreshold int64
 }
 
-func NewNativeUploader(
-	logger logger.Logger,
-	storage storager.Storage,
-	filename file.NameComputer,
-	formFilename string,
-	inMemoryFileSizeThreshold int64,
-) *MultipartFormUploader {
-	return &MultipartFormUploader{
-		logger:                    logger,
-		storage:                   storage,
-		filename:                  filename,
-		formFilename:              formFilename,
-		inMemoryFileSizeThreshold: inMemoryFileSizeThreshold,
+func NewNativeUploader(serviceContainer di_interface.ContainerManager) (*MultipartFormUploader, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	storageService, err := serviceContainer.GetFileStorageService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	filenameService, err := serviceContainer.GetFileNameComputerService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	config, err := serviceContainer.GetConfig()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &MultipartFormUploader{
+		logger:                    loggerService,
+		fileStorage:               storageService,
+		fileNameComputer:          filenameService,
+		formFilename:              config.ResourceFormFilename,
+		inMemoryFileSizeThreshold: config.ResourceInMemoryFileSizeThreshold,
+	}, nil
 }
 
 // Upload method will be store a file on a disk and calculate a new hashed name. Request DTO mutation!
-func (u *MultipartFormUploader) Upload(reqDTO dto.UploadResourceRequest) (err error) {
+func (u *MultipartFormUploader) Upload(reqDTO dto_interface.UploadResourceRequest) (err error) {
 	// request will be parsed and stored in the memory if it is under the RAM threshold,
 	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
 	if err = reqDTO.GetRequest().ParseMultipartForm(u.inMemoryFileSizeThreshold); err != nil {
@@ -49,7 +63,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dto.UploadResourceRequest) (err er
 	}
 
 	// receiving a file and header from multipart/form-data
-	// by requested filename which is stored in the `formFilename` const.
+	// by requested fileNameComputer which is stored in the `formFilename` const.
 	formFile, header, err := reqDTO.GetRequest().FormFile(u.formFilename)
 	if err != nil {
 		return u.logger.LogPropagate(err)
@@ -57,14 +71,14 @@ func (u *MultipartFormUploader) Upload(reqDTO dto.UploadResourceRequest) (err er
 	defer func() { _ = formFile.Close() }()
 
 	// TODO must be added filesize for check uniqueness
-	computedFilename, err := u.filename.Get(
+	computedFilename, err := u.fileNameComputer.Get(
 		header.Filename,
 		header.Header.Get("Content-Type"),
 		header.Header.Get("Content-Disposition"),
 	)
 
 	// checking whether the being uploaded resource already exists
-	has, err := u.storage.Has(computedFilename)
+	has, err := u.fileStorage.Has(computedFilename)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -73,7 +87,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dto.UploadResourceRequest) (err er
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(computedFilename, formFile)
+	length, filename, filepath, err := u.fileStorage.Store(computedFilename, formFile)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}

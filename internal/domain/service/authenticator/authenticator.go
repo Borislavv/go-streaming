@@ -2,13 +2,15 @@ package authenticator
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/service/security"
-	"github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
-	"github.com/Borislavv/video-streaming/internal/domain/service/user"
-	"github.com/Borislavv/video-streaming/internal/domain/validator"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
+	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
+	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"net/http"
 )
@@ -18,31 +20,50 @@ var (
 )
 
 type AuthService struct {
-	logger         logger.Logger
-	userService    user.CRUD
-	validator      validator.Auth
-	tokenizer      tokenizer.Tokenizer
-	passwordHasher security.PasswordHasher
+	logger         logger_interface.Logger
+	userService    user_interface.CRUD
+	validator      validator_interface.Auth
+	tokenizer      tokenizer_interface.Tokenizer
+	passwordHasher security_interface.PasswordHasher
 }
 
-func NewAuthService(
-	logger logger.Logger,
-	userService user.CRUD,
-	validator validator.Auth,
-	tokenizer tokenizer.Tokenizer,
-	passwordHasher security.PasswordHasher,
-) *AuthService {
-	return &AuthService{
-		logger:         logger,
-		userService:    userService,
-		validator:      validator,
-		tokenizer:      tokenizer,
-		passwordHasher: passwordHasher,
+func NewAuthService(serviceContainer di_interface.ContainerManager) (*AuthService, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	userCRUDService, err := serviceContainer.GetUserCRUDService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	authValidator, err := serviceContainer.GetAuthValidator()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	tokenizerService, err := serviceContainer.GetTokenizerService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	passwordHasherService, err := serviceContainer.GetPasswordHasherService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return &AuthService{
+		logger:         loggerService,
+		userService:    userCRUDService,
+		validator:      authValidator,
+		tokenizer:      tokenizerService,
+		passwordHasher: passwordHasherService,
+	}, nil
 }
 
 // Auth will check raw credentials and generate a new access token for given user.
-func (s *AuthService) Auth(req dto.AuthRequest) (token string, err error) {
+func (s *AuthService) Auth(req dto_interface.AuthRequest) (token string, err error) {
 	// raw request validation (checking that email and pass is not empty)
 	if err = s.validator.ValidateAuthRequest(req); err != nil {
 		return "", s.logger.LogPropagate(err)

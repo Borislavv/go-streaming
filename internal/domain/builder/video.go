@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
+	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	"github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
-	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,28 +35,47 @@ const (
 )
 
 type VideoBuilder struct {
-	logger             logger.Logger
+	logger             logger_interface.Logger
 	ctx                context.Context
-	extractor          extractor.RequestParams
-	videoRepository    repository.Video
-	resourceRepository repository.Resource
+	extractor          extractor_interface.RequestParams
+	videoRepository    repository_interface.Video
+	resourceRepository repository_interface.Resource
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
-func NewVideoBuilder(
-	ctx context.Context,
-	logger logger.Logger,
-	extractor extractor.RequestParams,
-	videoRepository repository.Video,
-	resourceRepository repository.Resource,
-) *VideoBuilder {
+func NewVideoBuilder(serviceContainer di_interface.ContainerManager) (*VideoBuilder, error) {
+	loggerService, err := serviceContainer.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := serviceContainer.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	requestParametersExtractor, err := serviceContainer.GetRequestParametersExtractorService()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	videoRepository, err := serviceContainer.GetVideoRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	resourceRepository, err := serviceContainer.GetResourceRepository()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return &VideoBuilder{
 		ctx:                ctx,
-		logger:             logger,
-		extractor:          extractor,
+		logger:             loggerService,
+		extractor:          requestParametersExtractor,
 		videoRepository:    videoRepository,
 		resourceRepository: resourceRepository,
-	}
+	}, nil
 }
 
 // BuildCreateRequestDTOFromRequest - build a dto.CreateVideoRequest from raw *http.Request
@@ -76,7 +97,7 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.Video from dto.CreateVideoRequest
-func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dto.CreateVideoRequest) (*agg.Video, error) {
+func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dto_interface.CreateVideoRequest) (*agg.Video, error) {
 	resource, err := b.resourceRepository.FindOneByID(
 		b.ctx, dto.NewResourceGetRequestDTO(req.GetResourceID(), req.GetUserID()),
 	)
@@ -127,7 +148,7 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
-func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(req dto.UpdateVideoRequest) (*agg.Video, error) {
+func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(req dto_interface.UpdateVideoRequest) (*agg.Video, error) {
 	video, err := b.videoRepository.FindOneByID(b.ctx, req)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
