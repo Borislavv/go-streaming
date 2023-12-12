@@ -1,4 +1,4 @@
-package resource
+package app
 
 type Config struct {
 	// >>> RESOURCES HTTP SERVER <<<
