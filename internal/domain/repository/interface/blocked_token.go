@@ -1,4 +1,4 @@
-package _interface
+package repository_interface
 
 import (
 	"context"
