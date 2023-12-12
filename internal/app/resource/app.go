@@ -2,21 +2,30 @@ package resource
 
 import (
 	"context"
+	"github.com/Borislavv/video-streaming/internal/app"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger"
-	"github.com/Borislavv/video-streaming/internal/domain/repository"
+	builder_interface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
+	accessor_interface "github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
 	authservice "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
-	cacheservice "github.com/Borislavv/video-streaming/internal/domain/service/cacher"
-	"github.com/Borislavv/video-streaming/internal/domain/service/extractor"
+	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	cacheservice "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	resourceservice "github.com/Borislavv/video-streaming/internal/domain/service/resource"
-	securityservice "github.com/Borislavv/video-streaming/internal/domain/service/security"
-	storagerservice "github.com/Borislavv/video-streaming/internal/domain/service/storager"
-	tokenizerservice "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer"
-	uploaderservice "github.com/Borislavv/video-streaming/internal/domain/service/uploader"
+	resource_interface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
+	securityservice "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
+	storager_interface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
+	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	uploaderservice "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
 	userservice "github.com/Borislavv/video-streaming/internal/domain/service/user"
+	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
 	videoservice "github.com/Borislavv/video-streaming/internal/domain/service/video"
+	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
+	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
@@ -27,154 +36,134 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
+	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
+	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/security"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/service/storager"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
+	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"log"
 	"os"
 	"os/signal"
-	"strings"
+	"reflect"
 	"sync"
 	"syscall"
 	"time"
 )
 
-const DefaultDatabaseTimeout = time.Second * 10
-
 type ResourcesApp struct {
-	cfg config
+	cfg *app.Config
+	di  di_interface.ContainerManager
 }
 
-func NewResourcesApp() *ResourcesApp {
-	return &ResourcesApp{cfg: config{}}
+func NewResourcesApp(di di_interface.ContainerManager) *ResourcesApp {
+	return &ResourcesApp{cfg: &app.Config{}, di: di}
 }
 
 // Run is method which running the REST API part of app
 func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	defer mWg.Done()
 	wg := &sync.WaitGroup{}
-	ctx, cancel := context.WithCancel(context.Background())
 
-	// init. logger and close func.
-	loggerService, cls := logger.NewStdOut(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
-	defer func() {
-		cancel()
-		wg.Wait()
-		cls()
-	}()
+	// ctx, cancelFunc
+	app.InitAppCtx()
 
-	// parse env. config
-	if err := env.Parse(&app.cfg); err != nil {
+	// logger
+	loggerService, loggerCancelFunc, err := app.InitLoggerService(wg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer loggerCancelFunc()
+
+	// config
+	if err = app.InitConfig(); err != nil {
 		loggerService.Critical(err)
 		return
 	}
 
-	// connect to mongo database
-	client, db, err := app.InitMongoDatabase(ctx, loggerService)
+	// mongo database
+	databaseCancelFunc, err := app.InitMongoDatabase()
 	if err != nil {
 		loggerService.Critical(err)
 		return
 	}
-	defer func() { _ = client.Disconnect(ctx) }()
+	defer databaseCancelFunc()
 
-	// Cache dependencies initialization
-	cacheService := app.InitCacheService(ctx)
+	// cache dependencies initialization
+	if err = app.InitCacheService(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Request-Response dependencies initialization
-	requestService, responseService := app.InitRequestResponseServices(loggerService)
+	// request-response dependencies initialization
+	if err = app.InitRequestResponseServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Access service
-	accessService := accessor.NewAccessService(loggerService)
+	// access service
+	if err = app.InitAccessService(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Files uploader dependencies initialization
-	uploadingStorage, _, uploadingStrategy := app.InitUploaderServices(
-		ctx, loggerService,
-	)
+	// file uploader dependencies initialization
+	if err = app.InitUploaderServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Resource dependencies initialization
-	resourceBuilder, resourceValidator, resourceService, resourceRepository := app.InitResourceServices(
-		ctx, loggerService, db, uploadingStrategy, uploadingStorage, cacheService,
-	)
+	// resource dependencies initialization
+	if err = app.InitResourceServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Video dependencies initialization
-	videoBuilder, _, videoService, _ := app.InitVideoServices(
-		ctx, loggerService, db, resourceValidator, resourceRepository,
-		resourceService, requestService, accessService, cacheService,
-	)
+	// video dependencies initialization
+	if err = app.InitVideoServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	passwordService := app.InitPasswordService(loggerService)
+	// password services
+	if err = app.InitPasswordService(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// User dependencies initialization
-	userBuilder, _, userService, _ := app.InitUserServices(
-		ctx, loggerService, db, videoService, requestService, passwordService, cacheService,
-	)
+	// user dependencies initialization
+	if err = app.InitUserServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Token dependencies initialization
-	_, tokenService := app.InitTokenServices(
-		ctx, loggerService, db,
-	)
+	// token dependencies initialization
+	if err = app.InitTokenServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	// Auth dependencies initialization
-	authBuilder, _, authService := app.InitAuthServices(
-		loggerService, tokenService, userService, passwordService,
-	)
+	// auth services
+	if err = app.InitAuthServices(); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
-	wg.Add(1)
-	go http.NewHttpServer(
-		ctx,
-		app.cfg.Host,
-		app.cfg.Port,
-		app.cfg.Transport,
-		app.cfg.ApiVersionPrefix,
-		app.cfg.RenderVersionPrefix,
-		app.cfg.StaticVersionPrefix,
-		app.InitAuthedRestApiControllers(
-			cacheService,
-			loggerService,
-			responseService,
-			resourceBuilder,
-			resourceService,
-			videoBuilder,
-			videoService,
-			userBuilder,
-			userService,
-			authService,
-		),
-		app.InitUnauthedRestApiControllers(
-			loggerService,
-			responseService,
-			userBuilder,
-			userService,
-			authBuilder,
-			authService,
-		),
-		app.InitAuthedNativeRenderingControllers(
-			loggerService,
-			responseService,
-		),
-		app.InitUnauthedNativeRenderingControllers(
-			loggerService,
-			responseService,
-		),
-		app.InitStaticServingControllers(
-			loggerService,
-			responseService,
-		),
-		loggerService,
-		authService,
-		requestService,
-		responseService,
-	).Listen(ctx, wg)
+	// HTTP server
+	if err = app.InitHttpServer(wg); err != nil {
+		loggerService.Critical(err)
+		return
+	}
 
 	<-app.shutdown()
 }
@@ -185,240 +174,457 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 	return stopCh
 }
 
-func (app *ResourcesApp) InitPasswordService(logger loggerservice.Logger) securityservice.PasswordHasher {
-	return security.NewPasswordHasher(logger, 14)
+func (app *ResourcesApp) InitAppCtx() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	app.di.
+		Set(ctx, reflect.TypeOf((*context.Context)(nil))).
+		Set(cancel, reflect.TypeOf((*context.CancelFunc)(nil)))
 }
 
-func (app *ResourcesApp) InitCacheService(ctx context.Context) cacheservice.Cacher {
-	s := cacher.NewMapCacheStorage(ctx)
-	d := cacher.NewCacheDisplacer(ctx, time.Second*1)
-	c := cacher.NewCache(s, d)
-	return c
-}
-
-func (app *ResourcesApp) InitMongoDatabase(
-	ctx context.Context,
-	logger loggerservice.Logger,
-) (
-	*mongo.Client,
-	*mongo.Database,
-	error,
+func (app *ResourcesApp) InitLoggerService(wg *sync.WaitGroup) (
+	loggerService loggerservice.Logger,
+	deferFunc func(),
+	err error,
 ) {
+	ctx, err := app.di.GetCtx()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cancel, err := app.di.GetCancelFunc()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	loggerService, cls := logger.NewStdOut(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
+
+	app.di.
+		Set(loggerService, reflect.TypeOf((*loggerservice.Logger)(nil))).
+		Set(loggerService, nil)
+
+	return loggerService,
+		func() {
+			cancel()
+			wg.Wait()
+			cls()
+		}, nil
+}
+
+func (app *ResourcesApp) InitConfig() error {
+	if err := env.Parse(app.cfg); err != nil {
+		return err
+	}
+
+	app.di.
+		Set(app.cfg, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitMongoDatabase() (deferFunc func(), err error) {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err := app.di.GetCtx()
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	c, err := mongo.Connect(ctx, options.Client().ApplyURI(app.cfg.MongoUri))
 	if err != nil {
-		return nil, nil, logger.CriticalPropagate(err)
+		return nil, loggerService.CriticalPropagate(err)
+	}
+
+	deferFunc = func() {
+		_ = c.Disconnect(ctx)
 	}
 
 	if err = c.Ping(ctx, readpref.Primary()); err != nil {
-		return nil, nil, logger.CriticalPropagate(err)
+		return deferFunc, loggerService.CriticalPropagate(err)
 	}
 
-	return c, c.Database(app.cfg.MongoDb), nil
+	d := c.Database(app.cfg.MongoDb)
+
+	app.di.
+		Set(c, nil).
+		Set(d, nil)
+
+	return deferFunc, nil
 }
 
-func (app *ResourcesApp) InitVideoServices(
-	ctx context.Context,
-	logger loggerservice.Logger,
-	database *mongo.Database,
-	resourceValidator validator.Resource,
-	resourceRepository repository.Resource,
-	resourceService resourceservice.CRUD,
-	reqParamsExtractor extractor.RequestParams,
-	accessService accessor.Accessor,
-	cacher cacheservice.Cacher,
-) (
-	builder.Video,
-	validator.Video,
-	videoservice.CRUD,
-	repository.Video,
-) {
-	r := mongodb.NewVideoRepository(database, logger, time.Minute)
-	c := cache.NewVideoRepository(logger, cacher, r)
-	v := validator.NewVideoValidator(ctx, logger, resourceValidator, accessService, r, resourceRepository)
-	b := builder.NewVideoBuilder(ctx, logger, reqParamsExtractor, r, resourceRepository)
-	s := videoservice.NewCRUDService(ctx, logger, b, v, r, resourceService)
-	return b, v, s, c
+func (app *ResourcesApp) InitPasswordService() error {
+	p, err := security.NewPasswordHasher(app.di, 10)
+	if err != nil {
+		return err
+	}
+
+	app.di.
+		Set(p, reflect.TypeOf((*securityservice.PasswordHasher)(nil))).
+		Set(p, nil)
+
+	return nil
 }
 
-func (app *ResourcesApp) InitResourceServices(
-	ctx context.Context,
-	logger loggerservice.Logger,
-	database *mongo.Database,
-	uploader uploaderservice.Uploader,
-	storage storagerservice.Storage,
-	cacher cacheservice.Cacher,
-) (
-	builder.Resource,
-	validator.Resource,
-	resourceservice.CRUD,
-	repository.Resource,
-) {
-	r := mongodb.NewResourceRepository(database, logger, time.Minute)
-	c := cache.NewResourceRepository(logger, cacher, r)
-	v := validator.NewResourceValidator(ctx, r, app.cfg.MaxFilesizeThreshold)
-	b := builder.NewResourceBuilder(logger, app.cfg.ResourceFormFilename, app.cfg.InMemoryFileSizeThreshold)
-	s := resourceservice.NewResourceService(ctx, logger, uploader, v, b, r, storage)
-	return b, v, s, c
-}
+func (app *ResourcesApp) InitCacheService() error {
+	ctx, err := app.di.GetCtx()
+	if err != nil {
+		return err
+	}
 
-func (app *ResourcesApp) InitUserServices(
-	ctx context.Context,
-	logger loggerservice.Logger,
-	database *mongo.Database,
-	videoService videoservice.CRUD,
-	reqParamsExtractor extractor.RequestParams,
-	passwordHasher securityservice.PasswordHasher,
-	cacher cacheservice.Cacher,
-) (
-	builder.User,
-	validator.User,
-	userservice.CRUD,
-	repository.User,
-) {
-	r := mongodb.NewUserRepository(database, logger, DefaultDatabaseTimeout)
-	c := cache.NewUserRepository(logger, cacher, r)
-	b := builder.NewUserBuilder(ctx, logger, reqParamsExtractor, r, passwordHasher)
-	v := validator.NewUserValidator(ctx, logger, r, app.cfg.AdminContactEmail)
-	s := userservice.NewCRUDService(ctx, logger, b, v, r, videoService)
-	return b, v, s, c
-}
-
-func (app *ResourcesApp) InitAuthServices(
-	logger loggerservice.Logger,
-	tokenService tokenizerservice.Tokenizer,
-	userService userservice.CRUD,
-	passwordHasher securityservice.PasswordHasher,
-) (
-	builder.Auth,
-	validator.Auth,
-	authservice.Authenticator,
-) {
-	v := validator.NewAuthValidator(logger, app.cfg.AdminContactEmail)
-	b := builder.NewAuthBuilder(logger)
-	s := authservice.NewAuthService(logger, userService, v, tokenService, passwordHasher)
-	return b, v, s
-}
-
-func (app *ResourcesApp) InitTokenServices(
-	ctx context.Context,
-	logger loggerservice.Logger,
-	database *mongo.Database,
-) (
-	repository.BlockedToken,
-	tokenizerservice.Tokenizer,
-) {
-	r := mongodb.NewBlockedTokenRepository(database, logger, DefaultDatabaseTimeout)
-	s := tokenizer.NewJwtService(
-		ctx, logger, r, strings.Split(app.cfg.JwtTokenAcceptedIssuers, ","),
-		app.cfg.JwtSecretSalt, app.cfg.JwtTokenIssuer, app.cfg.JwtTokenEncryptAlgo, app.cfg.JwtTokenExpiresAfter,
+	c := cacher.NewCache(
+		cacher.NewMapCacheStorage(ctx),
+		cacher.NewCacheDisplacer(ctx, time.Second*1),
 	)
-	return r, s
+
+	app.di.
+		Set(c, reflect.TypeOf((*cacheservice.Cacher)(nil))).
+		Set(c, nil)
+
+	return nil
 }
 
-func (app *ResourcesApp) InitUploaderServices(
-	ctx context.Context,
-	logger loggerservice.Logger,
-) (
-	storagerservice.Storage,
-	file.NameComputer,
-	uploaderservice.Uploader,
-) {
+func (app *ResourcesApp) InitVideoServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
+	r, err := mongodb.NewVideoRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(r, reflect.TypeOf((*mongodb_interface.Video)(nil))).
+		Set(r, nil)
+
+	c, err := cache.NewVideoRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(c, reflect.TypeOf((*repository_interface.Video)(nil))).
+		Set(c, nil)
+
+	v, err := validator.NewVideoValidator(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(v, reflect.TypeOf((*validator_interface.Video)(nil))).
+		Set(v, nil)
+
+	b, err := builder.NewVideoBuilder(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(b, reflect.TypeOf((*builder_interface.Video)(nil))).
+		Set(b, nil)
+
+	s, err := videoservice.NewCRUDService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(s, reflect.TypeOf((*video_interface.CRUD)(nil))).
+		Set(s, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitResourceServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
+	r, err := mongodb.NewResourceRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(r, reflect.TypeOf((*mongodb_interface.Resource)(nil))).
+		Set(r, nil)
+
+	c, err := cache.NewResourceRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(c, reflect.TypeOf((*repository_interface.Resource)(nil))).
+		Set(c, nil)
+
+	v, err := validator.NewResourceValidator(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(v, reflect.TypeOf((*validator_interface.Resource)(nil))).
+		Set(v, nil)
+
+	b, err := builder.NewResourceBuilder(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(b, reflect.TypeOf((*builder_interface.Resource)(nil))).
+		Set(b, nil)
+
+	s, err := resourceservice.NewResourceService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(s, reflect.TypeOf((*resource_interface.CRUD)(nil))).
+		Set(s, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitUserServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
+	r, err := mongodb.NewUserRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(r, reflect.TypeOf((*mongodb_interface.User)(nil))).
+		Set(r, nil)
+
+	c, err := cache.NewUserRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(c, reflect.TypeOf((*repository_interface.User)(nil))).
+		Set(c, nil)
+
+	b, err := builder.NewUserBuilder(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(b, reflect.TypeOf((*builder_interface.User)(nil))).
+		Set(b, nil)
+
+	v, err := validator.NewUserValidator(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(v, reflect.TypeOf((*validator_interface.User)(nil))).
+		Set(v, nil)
+
+	s, err := userservice.NewCRUDService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(s, reflect.TypeOf((*user_interface.CRUD)(nil))).
+		Set(s, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitAuthServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
+	b, err := builder.NewAuthBuilder(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(b, reflect.TypeOf((*builder_interface.Auth)(nil))).
+		Set(b, nil)
+
+	v, err := validator.NewAuthValidator(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(v, reflect.TypeOf((*validator_interface.Auth)(nil))).
+		Set(v, nil)
+
+	s, err := authservice.NewAuthService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(s, reflect.TypeOf((*authenticator_interface.Authenticator)(nil))).
+		Set(s, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitTokenServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
+	r, err := mongodb.NewBlockedTokenRepository(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(r, reflect.TypeOf((*repository_interface.BlockedToken)(nil))).
+		Set(r, reflect.TypeOf((*mongodb_interface.BlockedToken)(nil))).
+		Set(r, nil)
+
+	s, err := tokenizer.NewJwtService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	app.di.
+		Set(s, reflect.TypeOf((*tokenizer_interface.Tokenizer)(nil))).
+		Set(s, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitUploaderServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
 	// filesystem storage
-	filesystemStorage := storager.NewFilesystemStorage(ctx, logger)
+	filesystemStorage, err := file.NewFilesystemStorageService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
 
 	// filename computer
-	filenameComputer := file.NewNameService()
+	filenameComputer := file.NewNameComputerService()
 
-	var uploaderService uploaderservice.Uploader
-	if app.cfg.UploadingStrategy == uploader.MultipartFormUploadingType {
+	app.di.
+		Set(filesystemStorage, reflect.TypeOf((*file_interface.Storage)(nil))).
+		Set(filesystemStorage, reflect.TypeOf((*storager_interface.Storage)(nil))).
+		Set(filenameComputer, reflect.TypeOf((*file_interface.NameComputer)(nil))).
+		Set(filesystemStorage, nil).
+		Set(filenameComputer, nil)
+
+	if app.cfg.ResourceUploadingStrategy == uploader.MultipartFormUploadingType {
 		// used parsing of full form into RAM
-		uploaderService =
-			uploader.NewNativeUploader(
-				logger,
-				filesystemStorage,
-				filenameComputer,
-				app.cfg.ResourceFormFilename,
-				app.cfg.InMemoryFileSizeThreshold,
-			)
-	} else if app.cfg.UploadingStrategy == uploader.MultipartPartUploadingType {
+		service, uerr := uploader.NewNativeUploader(app.di)
+		if uerr != nil {
+			return loggerService.LogPropagate(uerr)
+		}
+
+		app.di.
+			Set(service, reflect.TypeOf((*uploaderservice.Uploader)(nil))).
+			Set(service, nil)
+	} else if app.cfg.ResourceUploadingStrategy == uploader.MultipartPartUploadingType {
 		// used partial reading from multipart.Part
-		uploaderService =
-			uploader.NewPartsUploader(
-				logger,
-				filesystemStorage,
-				filenameComputer,
-			)
+		service, uerr := uploader.NewPartsUploader(app.di)
+		if uerr != nil {
+			return loggerService.LogPropagate(uerr)
+		}
+
+		app.di.
+			Set(service, reflect.TypeOf((*uploaderservice.Uploader)(nil))).
+			Set(service, nil)
 	}
-	return filesystemStorage, filenameComputer, uploaderService
+
+	return nil
 }
 
-func (app *ResourcesApp) InitRequestResponseServices(
-	logger loggerservice.Logger,
-) (
-	extractor.RequestParams,
-	response.Responder,
-) {
+func (app *ResourcesApp) InitAccessService() error {
+	a, err := accessor.NewAccessService(app.di)
+	if err != nil {
+		return err
+	}
+
+	app.di.
+		Set(a, reflect.TypeOf((*accessor_interface.Accessor)(nil))).
+		Set(a, nil)
+
+	return nil
+}
+
+func (app *ResourcesApp) InitRequestResponseServices() error {
 	req := request.NewParametersExtractor()
-	resp := response.NewResponseService(logger)
-	return req, resp
+	resp, err := response.NewResponseService(app.di)
+	if err != nil {
+		return err
+	}
+
+	app.di.
+		Set(req, reflect.TypeOf((*extractor_interface.RequestParams)(nil))).
+		Set(resp, reflect.TypeOf((*response_interface.Responder)(nil))).
+		Set(req, nil).
+		Set(resp, nil)
+
+	return nil
 }
 
-func (app *ResourcesApp) InitAuthedRestApiControllers(
-	cacheService cacheservice.Cacher,
-	loggerService loggerservice.Logger,
-	responseService response.Responder,
-	// resource deps.
-	resourceBuilder builder.Resource,
-	resourceService resourceservice.CRUD,
-	// video deps.
-	videoBuilder builder.Video,
-	videoService videoservice.CRUD,
-	// user. deps.
-	userBuilder builder.User,
-	userService userservice.CRUD,
-	// auth. deps.
-	authService authservice.Authenticator,
-) []controller.Controller {
+func (app *ResourcesApp) InitAuthedRestApiControllers() ([]controller.Controller, error) {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return nil, err
+	}
+
+	// resource
+	resourceUploadController, err := resource.NewUploadController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	// user
+	userGetController, err := user.NewGetController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+	userUpdateController, err := user.NewUpdateUserController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+	userDeleteController, err := user.NewDeleteController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	// video
+	videoCreateController, err := video.NewCreateController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+	videoUpdatedController, err := video.NewUpdateController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+	videoGetController, err := video.NewGetController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+	videoListController, err := video.NewListController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+	videoDeleteController, err := video.NewDeleteController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
 	return []controller.Controller{
 		// resource
-		resource.NewUploadController(
-			loggerService,
-			resourceBuilder,
-			resourceService,
-			responseService,
-		),
+		resourceUploadController,
 		// video
-		video.NewCreateController(
-			loggerService,
-			videoBuilder,
-			videoService,
-			authService,
-			responseService,
-		),
-		video.NewDeleteController(
-			loggerService,
-			videoBuilder,
-			videoService,
-			responseService,
-		),
-		video.NewGetController(
-			loggerService,
-			videoBuilder,
-			videoService,
-			responseService,
-		),
-		video.NewListController(
-			loggerService,
-			videoBuilder,
-			videoService,
-			responseService,
-		),
-		video.NewUpdateController(
-			loggerService,
-			videoBuilder,
-			videoService,
-			responseService,
-		),
+		videoCreateController,
+		videoUpdatedController,
+		videoGetController,
+		videoListController,
+		videoDeleteController,
 		// audio
 		audio.NewCreateController(),
 		audio.NewDeleteController(),
@@ -426,78 +632,133 @@ func (app *ResourcesApp) InitAuthedRestApiControllers(
 		audio.NewListController(),
 		audio.NewUpdateController(),
 		// user
-		user.NewUpdateUserController(
-			loggerService,
-			userBuilder,
-			userService,
-			responseService,
-		),
-		user.NewGetController(
-			loggerService,
-			userBuilder,
-			userService,
-			cacheService,
-			responseService,
-		),
-		user.NewDeleteController(
-			loggerService,
-			userBuilder,
-			userService,
-			responseService,
-		),
-	}
+		userUpdateController,
+		userGetController,
+		userDeleteController,
+	}, nil
 }
 
-func (app *ResourcesApp) InitUnauthedRestApiControllers(
-	loggerService loggerservice.Logger,
-	responseService response.Responder,
-	// user. deps.
-	userBuilder builder.User,
-	userService userservice.CRUD,
-	// auth. deps.
-	authBuilder builder.Auth,
-	authService authservice.Authenticator,
-) []controller.Controller {
-	return []controller.Controller{
-		// auth
-		auth.NewAuthorizationController(
-			loggerService,
-			authBuilder,
-			authService,
-			responseService,
-		),
-		auth.NewRegistrationController(
-			loggerService,
-			userBuilder,
-			userService,
-			responseService,
-		),
+func (app *ResourcesApp) InitUnauthedRestApiControllers() ([]controller.Controller, error) {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	authorizationController, err := auth.NewAuthorizationController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	registrationController, err := auth.NewRegistrationController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return []controller.Controller{
+		authorizationController,
+		registrationController,
+	}, nil
 }
 
-func (app *ResourcesApp) InitAuthedNativeRenderingControllers(
-	loggerService loggerservice.Logger,
-	responseService response.Responder,
-) []controller.Controller {
-	return []controller.Controller{
-		render.NewIndexController(loggerService, responseService),
+func (app *ResourcesApp) InitAuthedNativeRenderingControllers() ([]controller.Controller, error) {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	indexController, err := render.NewIndexController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return []controller.Controller{
+		indexController,
+	}, nil
 }
 
-func (app *ResourcesApp) InitUnauthedNativeRenderingControllers(
-	loggerService loggerservice.Logger,
-	responseService response.Responder,
-) []controller.Controller {
-	return []controller.Controller{
-		render.NewLoginController(loggerService, responseService),
+func (app *ResourcesApp) InitUnauthedNativeRenderingControllers() ([]controller.Controller, error) {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	loginController, err := render.NewLoginController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return []controller.Controller{
+		loginController,
+	}, nil
 }
 
-func (app *ResourcesApp) InitStaticServingControllers(
-	loggerService loggerservice.Logger,
-	responseService response.Responder,
-) []controller.Controller {
-	return []controller.Controller{
-		static.NewFilesController(loggerService, responseService),
+func (app *ResourcesApp) InitStaticServingControllers() ([]controller.Controller, error) {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return nil, err
 	}
+
+	staticFilesController, err := static.NewFilesController(app.di)
+	if err != nil {
+		return nil, loggerService.LogPropagate(err)
+	}
+
+	return []controller.Controller{
+		staticFilesController,
+	}, nil
+}
+
+func (app *ResourcesApp) InitHttpServer(wg *sync.WaitGroup) error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
+	ctx, err := app.di.GetCtx()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+
+	// RestAPI
+	authedRestAPIControllers, err := app.InitAuthedRestApiControllers()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	unauthedRestAPIController, err := app.InitUnauthedRestApiControllers()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+
+	// HTML rendering
+	authedNativeControllers, err := app.InitAuthedNativeRenderingControllers()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+	unauthedNativeControllers, err := app.InitUnauthedNativeRenderingControllers()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+
+	// Static files
+	staticFilesControllers, err := app.InitStaticServingControllers()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+
+	server, err := http.NewHttpServer(
+		app.di,
+		authedRestAPIControllers,
+		unauthedRestAPIController,
+		authedNativeControllers,
+		unauthedNativeControllers,
+		staticFilesControllers,
+	)
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+
+	wg.Add(1)
+	go server.Listen(ctx, wg)
+
+	return nil
 }
