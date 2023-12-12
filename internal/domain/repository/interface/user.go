@@ -1,14 +1,14 @@
-package _interface
+package repository_interface
 
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 )
 
 type User interface {
-	FindOneByID(context.Context, query.FindOneUserByID) (*agg.User, error)
-	FindOneByEmail(context.Context, query.FindOneUserByEmail) (*agg.User, error)
+	FindOneByID(context.Context, query_interface.FindOneUserByID) (*agg.User, error)
+	FindOneByEmail(context.Context, query_interface.FindOneUserByEmail) (*agg.User, error)
 	Insert(context.Context, *agg.User) (*agg.User, error)
 	Update(context.Context, *agg.User) (*agg.User, error)
 	Remove(context.Context, *agg.User) error
