@@ -29,6 +29,7 @@ type Config struct {
 	// MongoTimeout is a mongo database requests timeout.
 	MongoTimeout string `env:"MONGO_TIMEOUT" envDefault:"10s"`
 	// >>> APPLICATION <<<
+	PasswordHashCost int `env:"PASSWORD_HASH_COST" envDefault:"10"`
 	// JwtSecretSalt is a secret string which further will convert to slice of bytes and will be provided
 	// as a salt for signature the jwt tokens.
 	// If this variable an empty or omitted then will be generated random salt which is alive while application instance
