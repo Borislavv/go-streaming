@@ -212,8 +212,13 @@ func (app *ResourcesApp) InitLoggerService(wg *sync.WaitGroup) (
 }
 
 func (app *ResourcesApp) InitConfig() error {
-	if err := env.Parse(app.cfg); err != nil {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
 		return err
+	}
+
+	if err = env.Parse(app.cfg); err != nil {
+		return loggerService.LogPropagate(err)
 	}
 
 	app.di.
@@ -256,9 +261,19 @@ func (app *ResourcesApp) InitMongoDatabase() (deferFunc func(), err error) {
 }
 
 func (app *ResourcesApp) InitPasswordService() error {
-	p, err := security.NewPasswordHasher(app.di, 10)
+	loggerService, err := app.di.GetLoggerService()
 	if err != nil {
 		return err
+	}
+
+	cfg, err := app.di.GetConfig()
+	if err != nil {
+		return loggerService.LogPropagate(err)
+	}
+
+	p, err := security.NewPasswordHasher(app.di, cfg.PasswordHashCost)
+	if err != nil {
+		return loggerService.LogPropagate(err)
 	}
 
 	app.di.
@@ -269,9 +284,14 @@ func (app *ResourcesApp) InitPasswordService() error {
 }
 
 func (app *ResourcesApp) InitCacheService() error {
-	ctx, err := app.di.GetCtx()
+	loggerService, err := app.di.GetLoggerService()
 	if err != nil {
 		return err
+	}
+
+	ctx, err := app.di.GetCtx()
+	if err != nil {
+		return loggerService.LogPropagate(err)
 	}
 
 	c := cacher.NewCache(
@@ -540,9 +560,14 @@ func (app *ResourcesApp) InitUploaderServices() error {
 }
 
 func (app *ResourcesApp) InitAccessService() error {
-	a, err := accessor.NewAccessService(app.di)
+	loggerService, err := app.di.GetLoggerService()
 	if err != nil {
 		return err
+	}
+
+	a, err := accessor.NewAccessService(app.di)
+	if err != nil {
+		return loggerService.LogPropagate(err)
 	}
 
 	app.di.
@@ -553,10 +578,15 @@ func (app *ResourcesApp) InitAccessService() error {
 }
 
 func (app *ResourcesApp) InitRequestResponseServices() error {
+	loggerService, err := app.di.GetLoggerService()
+	if err != nil {
+		return err
+	}
+
 	req := request.NewParametersExtractor()
 	resp, err := response.NewResponseService(app.di)
 	if err != nil {
-		return err
+		return loggerService.LogPropagate(err)
 	}
 
 	app.di.
