@@ -71,7 +71,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 		wg.Wait()
 	}()
 
-	// Config
+	// config
 	if err = app.InitConfig(); err != nil {
 		loggerService.Critical(err)
 		return
