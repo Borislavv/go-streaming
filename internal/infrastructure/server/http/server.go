@@ -2,15 +2,10 @@ package http
 
 import (
 	"context"
-	"net"
-	"net/http"
-	"sync"
-	"time"
-
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	logger_interface "github.com/Borislavv/video-streaming/internal/domain/logger/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
@@ -18,6 +13,10 @@ import (
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
 	"github.com/gorilla/mux"
+	"net"
+	"net/http"
+	"sync"
+	"time"
 )
 
 type Server struct {
