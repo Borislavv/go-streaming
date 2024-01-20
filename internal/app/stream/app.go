@@ -54,22 +54,17 @@ func NewStreamingApp(di di_interface.ContainerManager) *StreamingApp {
 // Run is method which running the streaming part of app
 func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	defer mWg.Done()
+	wg := &sync.WaitGroup{}
 
 	// ctx, cancelFunc
-	cancel := app.InitAppCtx()
+	app.InitAppCtx()
 
 	// logger
-	loggerService, loggerCancelFunc, err := app.InitLoggerService()
+	loggerService, loggerCancelFunc, err := app.InitLoggerService(wg)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer loggerCancelFunc()
-
-	wg := &sync.WaitGroup{}
-	defer func() {
-		cancel()
-		wg.Wait()
-	}()
 
 	// Config
 	if err = app.InitConfig(); err != nil {
@@ -154,22 +149,25 @@ func (app *StreamingApp) shutdown() chan os.Signal {
 	return stopCh
 }
 
-func (app *StreamingApp) InitAppCtx() context.CancelFunc {
+func (app *StreamingApp) InitAppCtx() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	app.di.
 		Set(ctx, reflect.TypeOf((*context.Context)(nil))).
 		Set(cancel, reflect.TypeOf((*context.CancelFunc)(nil)))
-
-	return cancel
 }
 
-func (app *StreamingApp) InitLoggerService() (
+func (app *StreamingApp) InitLoggerService(wg *sync.WaitGroup) (
 	loggerService loggerservice.Logger,
 	deferFunc func(),
 	err error,
 ) {
 	ctx, err := app.di.GetCtx()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cancel, err := app.di.GetCancelFunc()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -180,7 +178,12 @@ func (app *StreamingApp) InitLoggerService() (
 		Set(loggerService, reflect.TypeOf((*loggerservice.Logger)(nil))).
 		Set(loggerService, nil)
 
-	return loggerService, cls, nil
+	return loggerService,
+		func() {
+			cancel()
+			wg.Wait()
+			cls()
+		}, nil
 }
 
 func (app *StreamingApp) InitConfig() error {
