@@ -73,17 +73,21 @@ func NewResourcesApp(di di_interface.ContainerManager) *ResourcesApp {
 // Run is method which running the REST API part of app
 func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	defer mWg.Done()
-	wg := &sync.WaitGroup{}
-
 	// ctx, cancelFunc
-	app.InitAppCtx()
+	cancel := app.InitAppCtx()
 
 	// logger
-	loggerService, loggerCancelFunc, err := app.InitLoggerService(wg)
+	loggerService, loggerCancelFunc, err := app.InitLoggerService()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer loggerCancelFunc()
+
+	wg := &sync.WaitGroup{}
+	defer func() {
+		cancel()
+		wg.Wait()
+	}()
 
 	// config
 	if err = app.InitConfig(); err != nil {
@@ -174,25 +178,22 @@ func (app *ResourcesApp) shutdown() chan os.Signal {
 	return stopCh
 }
 
-func (app *ResourcesApp) InitAppCtx() {
+func (app *ResourcesApp) InitAppCtx() context.CancelFunc {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	app.di.
 		Set(ctx, reflect.TypeOf((*context.Context)(nil))).
 		Set(cancel, reflect.TypeOf((*context.CancelFunc)(nil)))
+
+	return cancel
 }
 
-func (app *ResourcesApp) InitLoggerService(wg *sync.WaitGroup) (
+func (app *ResourcesApp) InitLoggerService() (
 	loggerService loggerservice.Logger,
 	deferFunc func(),
 	err error,
 ) {
 	ctx, err := app.di.GetCtx()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	cancel, err := app.di.GetCancelFunc()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -203,12 +204,7 @@ func (app *ResourcesApp) InitLoggerService(wg *sync.WaitGroup) (
 		Set(loggerService, reflect.TypeOf((*loggerservice.Logger)(nil))).
 		Set(loggerService, nil)
 
-	return loggerService,
-		func() {
-			cancel()
-			wg.Wait()
-			cls()
-		}, nil
+	return loggerService, cls, nil
 }
 
 func (app *ResourcesApp) InitConfig() error {
