@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
-	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
 	go.mongodb.org/mongo-driver v1.13.1
 	golang.org/x/crypto v0.18.0
