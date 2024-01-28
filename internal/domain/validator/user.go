@@ -4,11 +4,11 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
@@ -24,7 +24,7 @@ const (
 type UserValidator struct {
 	ctx               context.Context
 	logger            loggerinterface.Logger
-	userRepository    repository_interface.User
+	userRepository    repositoryinterface.User
 	adminContactEmail string
 }
 
@@ -57,14 +57,14 @@ func NewUserValidator(serviceContainer diinterface.ContainerManager) (*UserValid
 	}, nil
 }
 
-func (v *UserValidator) ValidateGetRequestDTO(req dto_interface.GetUserRequest) error {
+func (v *UserValidator) ValidateGetRequestDTO(req dtointerface.GetUserRequest) error {
 	if req.GetID().Value.IsZero() && req.GetEmail() == "" {
 		return errors.NewAtLeastOneFieldMustBeDefinedError(idField, emailField)
 	}
 	return nil
 }
 
-func (v *UserValidator) ValidateCreateRequestDTO(req dto_interface.CreateUserRequest) (err error) {
+func (v *UserValidator) ValidateCreateRequestDTO(req dtointerface.CreateUserRequest) (err error) {
 	if err = v.isValidUsername(req.GetUsername()); err != nil {
 		return v.logger.LogPropagate(err)
 	}
@@ -88,7 +88,7 @@ func (v *UserValidator) ValidateCreateRequestDTO(req dto_interface.CreateUserReq
 	return nil
 }
 
-func (v *UserValidator) ValidateUpdateRequestDTO(req dto_interface.UpdateUserRequest) (err error) {
+func (v *UserValidator) ValidateUpdateRequestDTO(req dtointerface.UpdateUserRequest) (err error) {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
@@ -132,7 +132,7 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	return nil
 }
 
-func (v *UserValidator) ValidateDeleteRequestDTO(req dto_interface.DeleteUserRequest) error {
+func (v *UserValidator) ValidateDeleteRequestDTO(req dtointerface.DeleteUserRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
