@@ -1,4 +1,4 @@
-package user_interface
+package userinterface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
@@ -6,8 +6,8 @@ import (
 )
 
 type CRUD interface {
-	Get(reqDTO dto_interface.GetUserRequest) (*agg.User, error)
-	Create(reqDTO dto_interface.CreateUserRequest) (*agg.User, error)
-	Update(reqDTO dto_interface.UpdateUserRequest) (*agg.User, error)
-	Delete(reqDTO dto_interface.DeleteUserRequest) error
+	Get(reqDTO dtointerface.GetUserRequest) (*agg.User, error)
+	Create(reqDTO dtointerface.CreateUserRequest) (*agg.User, error)
+	Update(reqDTO dtointerface.UpdateUserRequest) (*agg.User, error)
+	Delete(reqDTO dtointerface.DeleteUserRequest) error
 }
