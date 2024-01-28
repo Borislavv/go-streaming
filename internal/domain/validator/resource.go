@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 )
 
 type ResourceValidator struct {
 	ctx         context.Context
-	repository  repository_interface.Resource
+	repository  repositoryinterface.Resource
 	maxFilesize int64
 }
 
@@ -45,7 +45,7 @@ func NewResourceValidator(serviceContainer diinterface.ContainerManager) (*Resou
 	}, nil
 }
 
-func (v *ResourceValidator) ValidateUploadRequestDTO(req dto_interface.UploadResourceRequest) error {
+func (v *ResourceValidator) ValidateUploadRequestDTO(req dtointerface.UploadResourceRequest) error {
 	if req.GetUserID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(userIDField)
 	}
@@ -86,7 +86,7 @@ func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
 	return v.ValidateEntity(agg.Resource)
 }
 
-func (v *ResourceValidator) ValidateGetRequestDTO(req dto_interface.GetResourceRequest) error {
+func (v *ResourceValidator) ValidateGetRequestDTO(req dtointerface.GetResourceRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
@@ -96,6 +96,6 @@ func (v *ResourceValidator) ValidateGetRequestDTO(req dto_interface.GetResourceR
 	return nil
 }
 
-func (v *ResourceValidator) ValidateDeleteRequestDTO(req dto_interface.DeleteResourceRequest) error {
+func (v *ResourceValidator) ValidateDeleteRequestDTO(req dtointerface.DeleteResourceRequest) error {
 	return v.ValidateGetRequestDTO(req)
 }
