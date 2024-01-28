@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
+	validatorinterface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 )
 
@@ -24,10 +24,10 @@ const (
 type VideoValidator struct {
 	ctx                context.Context
 	logger             loggerinterface.Logger
-	resourceValidator  validator_interface.Resource
-	accessService      accessor_interface.Accessor
-	videoRepository    repository_interface.Video
-	resourceRepository repository_interface.Resource
+	resourceValidator  validatorinterface.Resource
+	accessService      accessorinterface.Accessor
+	videoRepository    repositoryinterface.Video
+	resourceRepository repositoryinterface.Resource
 }
 
 func NewVideoValidator(serviceContainer diinterface.ContainerManager) (*VideoValidator, error) {
@@ -71,7 +71,7 @@ func NewVideoValidator(serviceContainer diinterface.ContainerManager) (*VideoVal
 	}, nil
 }
 
-func (v *VideoValidator) ValidateGetRequestDTO(req dto_interface.GetVideoRequest) error {
+func (v *VideoValidator) ValidateGetRequestDTO(req dtointerface.GetVideoRequest) error {
 	if req.GetID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(idField)
 	}
@@ -81,7 +81,7 @@ func (v *VideoValidator) ValidateGetRequestDTO(req dto_interface.GetVideoRequest
 	return nil
 }
 
-func (v *VideoValidator) ValidateListRequestDTO(req dto_interface.ListVideoRequest) error {
+func (v *VideoValidator) ValidateListRequestDTO(req dtointerface.ListVideoRequest) error {
 	if req.GetName() != "" && len(req.GetName()) <= 3 {
 		return errors.NewFieldLengthMustBeMoreOrLessError(nameField, true, 3)
 	}
@@ -91,7 +91,7 @@ func (v *VideoValidator) ValidateListRequestDTO(req dto_interface.ListVideoReque
 	return nil
 }
 
-func (v *VideoValidator) ValidateCreateRequestDTO(req dto_interface.CreateVideoRequest) error {
+func (v *VideoValidator) ValidateCreateRequestDTO(req dtointerface.CreateVideoRequest) error {
 	if req.GetUserID().Value.IsZero() {
 		return errors.NewFieldCannotBeEmptyError(userIDField)
 	}
@@ -104,14 +104,14 @@ func (v *VideoValidator) ValidateCreateRequestDTO(req dto_interface.CreateVideoR
 	return nil
 }
 
-func (v *VideoValidator) ValidateUpdateRequestDTO(req dto_interface.UpdateVideoRequest) error {
+func (v *VideoValidator) ValidateUpdateRequestDTO(req dtointerface.UpdateVideoRequest) error {
 	if err := v.ValidateGetRequestDTO(req); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (v *VideoValidator) ValidateDeleteRequestDTO(req dto_interface.DeleteVideoRequest) error {
+func (v *VideoValidator) ValidateDeleteRequestDTO(req dtointerface.DeleteVideoRequest) error {
 	return v.ValidateGetRequestDTO(req)
 }
 
