@@ -4,24 +4,24 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
-	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
+	videointerface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
+	validatorinterface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 )
 
 type CRUDService struct {
 	ctx          context.Context
 	logger       loggerinterface.Logger
-	builder      builder_interface.User
-	validator    validator_interface.User
-	repository   repository_interface.User
-	videoService video_interface.CRUD
+	builder      builderinterface.User
+	validator    validatorinterface.User
+	repository   repositoryinterface.User
+	videoService videointerface.CRUD
 }
 
 func NewCRUDService(serviceContainer diinterface.ContainerManager) (*CRUDService, error) {
@@ -65,7 +65,7 @@ func NewCRUDService(serviceContainer diinterface.ContainerManager) (*CRUDService
 	}, nil
 }
 
-func (s *CRUDService) Get(req dto_interface.GetUserRequest) (user *agg.User, err error) {
+func (s *CRUDService) Get(req dtointerface.GetUserRequest) (user *agg.User, err error) {
 	if err = s.validator.ValidateGetRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
 	}
@@ -85,7 +85,7 @@ func (s *CRUDService) Get(req dto_interface.GetUserRequest) (user *agg.User, err
 	return user, nil
 }
 
-func (s *CRUDService) Create(req dto_interface.CreateUserRequest) (*agg.User, error) {
+func (s *CRUDService) Create(req dtointerface.CreateUserRequest) (*agg.User, error) {
 	// validation of input request
 	if err := s.validator.ValidateCreateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -111,7 +111,7 @@ func (s *CRUDService) Create(req dto_interface.CreateUserRequest) (*agg.User, er
 	return userAgg, nil
 }
 
-func (s *CRUDService) Update(req dto_interface.UpdateUserRequest) (*agg.User, error) {
+func (s *CRUDService) Update(req dtointerface.UpdateUserRequest) (*agg.User, error) {
 	// validation of input request
 	if err := s.validator.ValidateUpdateRequestDTO(req); err != nil {
 		return nil, s.logger.LogPropagate(err)
@@ -137,7 +137,7 @@ func (s *CRUDService) Update(req dto_interface.UpdateUserRequest) (*agg.User, er
 	return userAgg, nil
 }
 
-func (s *CRUDService) Delete(req dto_interface.DeleteUserRequest) (err error) {
+func (s *CRUDService) Delete(req dtointerface.DeleteUserRequest) (err error) {
 	// validation of input request
 	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return s.logger.LogPropagate(err)
