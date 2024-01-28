@@ -32,7 +32,7 @@ func NewAuthValidator(serviceContainer diinterface.ContainerManager) (*AuthValid
 }
 
 // ValidateAuthRequest is method which will check the auth request DTO on valid.
-func (v *AuthValidator) ValidateAuthRequest(req dto_interface.AuthRequest) error {
+func (v *AuthValidator) ValidateAuthRequest(req dtointerface.AuthRequest) error {
 	if req.GetEmail() == "" {
 		return errors.NewFieldCannotBeEmptyError(emailField)
 	}
