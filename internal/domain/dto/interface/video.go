@@ -1,4 +1,4 @@
-package dto_interface
+package dtointerface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
