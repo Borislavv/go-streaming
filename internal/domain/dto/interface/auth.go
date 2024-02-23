@@ -1,4 +1,4 @@
-package dto_interface
+package dtointerface
 
 type AuthRequest interface {
 	GetEmail() string
