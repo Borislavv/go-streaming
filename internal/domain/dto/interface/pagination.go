@@ -1,4 +1,4 @@
-package dto_interface
+package dtointerface
 
 type PaginatedRequest interface {
 	GetPage() int
