@@ -3,6 +3,7 @@ package repositoryinterface
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
+	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 )
 
 type User interface {
