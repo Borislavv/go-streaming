@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
+	extractorinterface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -37,9 +37,9 @@ const (
 type VideoBuilder struct {
 	logger             loggerinterface.Logger
 	ctx                context.Context
-	extractor          extractor_interface.RequestParams
-	videoRepository    repository_interface.Video
-	resourceRepository repository_interface.Resource
+	extractor          extractorinterface.RequestParams
+	videoRepository    repositoryinterface.Video
+	resourceRepository repositoryinterface.Resource
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
@@ -97,7 +97,7 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.Video from dto.CreateVideoRequest
-func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dto_interface.CreateVideoRequest) (*agg.Video, error) {
+func (b *VideoBuilder) BuildAggFromCreateRequestDTO(req dtointerface.CreateVideoRequest) (*agg.Video, error) {
 	resource, err := b.resourceRepository.FindOneByID(
 		b.ctx, dto.NewResourceGetRequestDTO(req.GetResourceID(), req.GetUserID()),
 	)
@@ -148,7 +148,7 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.Video from dto.UpdateVideoRequest
-func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(req dto_interface.UpdateVideoRequest) (*agg.Video, error) {
+func (b *VideoBuilder) BuildAggFromUpdateRequestDTO(req dtointerface.UpdateVideoRequest) (*agg.Video, error) {
 	video, err := b.videoRepository.FindOneByID(b.ctx, req)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
