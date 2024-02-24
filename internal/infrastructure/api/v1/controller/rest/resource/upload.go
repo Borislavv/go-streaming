@@ -1,11 +1,11 @@
 package resource
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	resource_interface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	resourceinterface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -14,9 +14,9 @@ const UploadPath = "/resource"
 
 type UploadResourceController struct {
 	logger    loggerinterface.Logger
-	builder   builder_interface.Resource
-	service   resource_interface.CRUD
-	responder response_interface.Responder
+	builder   builderinterface.Resource
+	service   resourceinterface.CRUD
+	responder responseinterface.Responder
 }
 
 func NewUploadController(serviceContainer diinterface.ContainerManager) (*UploadResourceController, error) {
