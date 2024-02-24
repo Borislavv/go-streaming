@@ -4,8 +4,8 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	userinterface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -14,9 +14,9 @@ const RegistrationPath = "/registration"
 
 type RegistrationController struct {
 	logger    loggerinterface.Logger
-	builder   builder_interface.User
-	service   user_interface.CRUD
-	responder response_interface.Responder
+	builder   builderinterface.User
+	service   userinterface.CRUD
+	responder responseinterface.Responder
 }
 
 func NewRegistrationController(serviceContainer diinterface.ContainerManager) (*RegistrationController, error) {
