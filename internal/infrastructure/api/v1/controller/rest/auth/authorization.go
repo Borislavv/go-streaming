@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	authenticatorinterface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -14,9 +14,9 @@ const AuthorizationPath = "/authorization"
 
 type AuthorizationController struct {
 	logger        loggerinterface.Logger
-	builder       builder_interface.Auth
-	authenticator authenticator_interface.Authenticator
-	responder     response_interface.Responder
+	builder       builderinterface.Auth
+	authenticator authenticatorinterface.Authenticator
+	responder     responseinterface.Responder
 }
 
 func NewAuthorizationController(serviceContainer diinterface.ContainerManager) (*AuthorizationController, error) {
