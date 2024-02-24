@@ -1,12 +1,12 @@
 package video
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	authenticatorinterface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	videointerface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -15,10 +15,10 @@ const CreatePath = "/video"
 
 type CreateController struct {
 	logger      loggerinterface.Logger
-	builder     builder_interface.Video
-	service     video_interface.CRUD
-	authService authenticator_interface.Authenticator
-	responder   response_interface.Responder
+	builder     builderinterface.Video
+	service     videointerface.CRUD
+	authService authenticatorinterface.Authenticator
+	responder   responseinterface.Responder
 }
 
 func NewCreateController(serviceContainer diinterface.ContainerManager) (*CreateController, error) {
