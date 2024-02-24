@@ -3,7 +3,7 @@ package render
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -17,7 +17,7 @@ const (
 
 type LoginController struct {
 	logger    loggerinterface.Logger
-	responder response_interface.Responder
+	responder responseinterface.Responder
 }
 
 func NewLoginController(serviceContainer diinterface.ContainerManager) (*LoginController, error) {
