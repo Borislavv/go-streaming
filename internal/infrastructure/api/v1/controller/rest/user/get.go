@@ -7,10 +7,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	userinterface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -25,10 +25,10 @@ const (
 
 type GetController struct {
 	logger    loggerinterface.Logger
-	builder   builder_interface.User
-	service   user_interface.CRUD
-	cacher    cacher_interface.Cacher
-	responder response_interface.Responder
+	builder   builderinterface.User
+	service   userinterface.CRUD
+	cacher    cacherinterface.Cacher
+	responder responseinterface.Responder
 }
 
 func NewGetController(serviceContainer diinterface.ContainerManager) (*GetController, error) {
@@ -98,7 +98,7 @@ func (c *GetController) getCached(reqDTO *dto.UserGetRequestDTO) (*agg.User, err
 
 	data, err := c.cacher.Get(
 		cacheKey,
-		func(item cacher_interface.CacheItem) (data interface{}, err error) {
+		func(item cacherinterface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(cacheTTL)
 			return c.service.Get(reqDTO)
 		},
