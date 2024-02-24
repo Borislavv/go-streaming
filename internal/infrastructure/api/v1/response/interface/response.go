@@ -1,4 +1,4 @@
-package response_interface
+package responseinterface
 
 import "io"
 
