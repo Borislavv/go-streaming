@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// @TODO Must be moved from api package.
 type ParametersExtractor struct {
 }
 
