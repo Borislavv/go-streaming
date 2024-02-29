@@ -4,28 +4,28 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/app"
 	"github.com/Borislavv/video-streaming/internal/domain/builder"
-	builder_interface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/accessor"
-	accessor_interface "github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
+	accessorinterface "github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
 	authservice "github.com/Borislavv/video-streaming/internal/domain/service/authenticator"
-	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	authenticatorinterface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
 	cacheservice "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
+	extractorinterface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	resourceservice "github.com/Borislavv/video-streaming/internal/domain/service/resource"
-	resource_interface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
+	resourceinterface "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
 	securityservice "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
-	storager_interface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
-	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	storagerinterface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
+	tokenizerinterface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
 	uploaderservice "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
 	userservice "github.com/Borislavv/video-streaming/internal/domain/service/user"
-	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
+	userinterface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
 	videoservice "github.com/Borislavv/video-streaming/internal/domain/service/video"
-	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
+	videointerface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/validator"
-	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
+	validatorinterface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/rest/audio"
@@ -36,7 +36,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/static"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
@@ -47,7 +47,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file"
-	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
+	fileinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 	"github.com/caarlos0/env/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -320,7 +320,7 @@ func (app *ResourcesApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(c, reflect.TypeOf((*repository_interface.Video)(nil))).
+		Set(c, reflect.TypeOf((*repositoryinterface.Video)(nil))).
 		Set(c, nil)
 
 	v, err := validator.NewVideoValidator(app.di)
@@ -328,7 +328,7 @@ func (app *ResourcesApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(v, reflect.TypeOf((*validator_interface.Video)(nil))).
+		Set(v, reflect.TypeOf((*validatorinterface.Video)(nil))).
 		Set(v, nil)
 
 	b, err := builder.NewVideoBuilder(app.di)
@@ -336,7 +336,7 @@ func (app *ResourcesApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(b, reflect.TypeOf((*builder_interface.Video)(nil))).
+		Set(b, reflect.TypeOf((*builderinterface.Video)(nil))).
 		Set(b, nil)
 
 	s, err := videoservice.NewCRUDService(app.di)
@@ -344,7 +344,7 @@ func (app *ResourcesApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*video_interface.CRUD)(nil))).
+		Set(s, reflect.TypeOf((*videointerface.CRUD)(nil))).
 		Set(s, nil)
 
 	return nil
@@ -369,7 +369,7 @@ func (app *ResourcesApp) InitResourceServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(c, reflect.TypeOf((*repository_interface.Resource)(nil))).
+		Set(c, reflect.TypeOf((*repositoryinterface.Resource)(nil))).
 		Set(c, nil)
 
 	v, err := validator.NewResourceValidator(app.di)
@@ -377,7 +377,7 @@ func (app *ResourcesApp) InitResourceServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(v, reflect.TypeOf((*validator_interface.Resource)(nil))).
+		Set(v, reflect.TypeOf((*validatorinterface.Resource)(nil))).
 		Set(v, nil)
 
 	b, err := builder.NewResourceBuilder(app.di)
@@ -385,7 +385,7 @@ func (app *ResourcesApp) InitResourceServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(b, reflect.TypeOf((*builder_interface.Resource)(nil))).
+		Set(b, reflect.TypeOf((*builderinterface.Resource)(nil))).
 		Set(b, nil)
 
 	s, err := resourceservice.NewResourceService(app.di)
@@ -393,7 +393,7 @@ func (app *ResourcesApp) InitResourceServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*resource_interface.CRUD)(nil))).
+		Set(s, reflect.TypeOf((*resourceinterface.CRUD)(nil))).
 		Set(s, nil)
 
 	return nil
@@ -418,7 +418,7 @@ func (app *ResourcesApp) InitUserServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(c, reflect.TypeOf((*repository_interface.User)(nil))).
+		Set(c, reflect.TypeOf((*repositoryinterface.User)(nil))).
 		Set(c, nil)
 
 	b, err := builder.NewUserBuilder(app.di)
@@ -426,7 +426,7 @@ func (app *ResourcesApp) InitUserServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(b, reflect.TypeOf((*builder_interface.User)(nil))).
+		Set(b, reflect.TypeOf((*builderinterface.User)(nil))).
 		Set(b, nil)
 
 	v, err := validator.NewUserValidator(app.di)
@@ -434,7 +434,7 @@ func (app *ResourcesApp) InitUserServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(v, reflect.TypeOf((*validator_interface.User)(nil))).
+		Set(v, reflect.TypeOf((*validatorinterface.User)(nil))).
 		Set(v, nil)
 
 	s, err := userservice.NewCRUDService(app.di)
@@ -442,7 +442,7 @@ func (app *ResourcesApp) InitUserServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*user_interface.CRUD)(nil))).
+		Set(s, reflect.TypeOf((*userinterface.CRUD)(nil))).
 		Set(s, nil)
 
 	return nil
@@ -459,7 +459,7 @@ func (app *ResourcesApp) InitAuthServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(b, reflect.TypeOf((*builder_interface.Auth)(nil))).
+		Set(b, reflect.TypeOf((*builderinterface.Auth)(nil))).
 		Set(b, nil)
 
 	v, err := validator.NewAuthValidator(app.di)
@@ -467,7 +467,7 @@ func (app *ResourcesApp) InitAuthServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(v, reflect.TypeOf((*validator_interface.Auth)(nil))).
+		Set(v, reflect.TypeOf((*validatorinterface.Auth)(nil))).
 		Set(v, nil)
 
 	s, err := authservice.NewAuthService(app.di)
@@ -475,7 +475,7 @@ func (app *ResourcesApp) InitAuthServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*authenticator_interface.Authenticator)(nil))).
+		Set(s, reflect.TypeOf((*authenticatorinterface.Authenticator)(nil))).
 		Set(s, nil)
 
 	return nil
@@ -492,7 +492,7 @@ func (app *ResourcesApp) InitTokenServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*repository_interface.BlockedToken)(nil))).
+		Set(r, reflect.TypeOf((*repositoryinterface.BlockedToken)(nil))).
 		Set(r, reflect.TypeOf((*mongodbinterface.BlockedToken)(nil))).
 		Set(r, nil)
 
@@ -501,7 +501,7 @@ func (app *ResourcesApp) InitTokenServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*tokenizer_interface.Tokenizer)(nil))).
+		Set(s, reflect.TypeOf((*tokenizerinterface.Tokenizer)(nil))).
 		Set(s, nil)
 
 	return nil
@@ -523,9 +523,9 @@ func (app *ResourcesApp) InitUploaderServices() error {
 	filenameComputer := file.NewNameComputerService()
 
 	app.di.
-		Set(filesystemStorage, reflect.TypeOf((*file_interface.Storage)(nil))).
-		Set(filesystemStorage, reflect.TypeOf((*storager_interface.Storage)(nil))).
-		Set(filenameComputer, reflect.TypeOf((*file_interface.NameComputer)(nil))).
+		Set(filesystemStorage, reflect.TypeOf((*fileinterface.Storage)(nil))).
+		Set(filesystemStorage, reflect.TypeOf((*storagerinterface.Storage)(nil))).
+		Set(filenameComputer, reflect.TypeOf((*fileinterface.NameComputer)(nil))).
 		Set(filesystemStorage, nil).
 		Set(filenameComputer, nil)
 
@@ -566,7 +566,7 @@ func (app *ResourcesApp) InitAccessService() error {
 	}
 
 	app.di.
-		Set(a, reflect.TypeOf((*accessor_interface.Accessor)(nil))).
+		Set(a, reflect.TypeOf((*accessorinterface.Accessor)(nil))).
 		Set(a, nil)
 
 	return nil
@@ -585,8 +585,8 @@ func (app *ResourcesApp) InitRequestResponseServices() error {
 	}
 
 	app.di.
-		Set(req, reflect.TypeOf((*extractor_interface.RequestParams)(nil))).
-		Set(resp, reflect.TypeOf((*response_interface.Responder)(nil))).
+		Set(req, reflect.TypeOf((*extractorinterface.RequestParams)(nil))).
+		Set(resp, reflect.TypeOf((*responseinterface.Responder)(nil))).
 		Set(req, nil).
 		Set(resp, nil)
 
