@@ -3,7 +3,7 @@ package builder
 import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -24,7 +24,7 @@ func NewAuthBuilder(serviceContainer diinterface.ContainerManager) (*AuthBuilder
 	return &AuthBuilder{logger: loggerService}, nil
 }
 
-func (b *AuthBuilder) BuildAuthRequestDTOFromRequest(r *http.Request) (dto_interface.AuthRequest, error) {
+func (b *AuthBuilder) BuildAuthRequestDTOFromRequest(r *http.Request) (dtointerface.AuthRequest, error) {
 	authDTO := &dto.AuthRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(authDTO); err != nil {
 		if err == io.EOF {
