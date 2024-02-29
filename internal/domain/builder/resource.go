@@ -3,7 +3,7 @@ package builder
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
@@ -47,7 +47,7 @@ func (b *ResourceBuilder) BuildUploadRequestDTOFromRequest(r *http.Request) (*dt
 }
 
 // BuildAggFromUploadRequestDTO will be make an agg.Resource from dto.UploadResourceRequest
-func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dto_interface.UploadResourceRequest) *agg.Resource {
+func (b *ResourceBuilder) BuildAggFromUploadRequestDTO(req dtointerface.UploadResourceRequest) *agg.Resource {
 	return &agg.Resource{
 		Resource: entity.Resource{
 			UserID:   req.GetUserID(),
