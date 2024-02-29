@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
-	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
+	extractorinterface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
+	securityinterface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
@@ -24,9 +24,9 @@ import (
 type UserBuilder struct {
 	logger         loggerinterface.Logger
 	ctx            context.Context
-	extractor      extractor_interface.RequestParams
-	userRepository repository_interface.User
-	passwordHasher security_interface.PasswordHasher
+	extractor      extractorinterface.RequestParams
+	userRepository repositoryinterface.User
+	passwordHasher securityinterface.PasswordHasher
 }
 
 // NewUserBuilder is a constructor of UserBuilder.
@@ -87,7 +87,7 @@ func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.Us
 }
 
 // BuildAggFromCreateRequestDTO - build an agg.User from dto.CreateUserRequest
-func (b *UserBuilder) BuildAggFromCreateRequestDTO(req dto_interface.CreateUserRequest) (*agg.User, error) {
+func (b *UserBuilder) BuildAggFromCreateRequestDTO(req dtointerface.CreateUserRequest) (*agg.User, error) {
 	// this validation checked previously into the DTO validator
 	birthday, err := time.Parse(enum.BirthdayDatePattern, req.GetBirthday())
 	if err != nil {
@@ -141,7 +141,7 @@ func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.Us
 }
 
 // BuildAggFromUpdateRequestDTO - build an agg.User from dto.UpdateUserRequest.
-func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dto_interface.UpdateUserRequest) (*agg.User, error) {
+func (b *UserBuilder) BuildAggFromUpdateRequestDTO(req dtointerface.UpdateUserRequest) (*agg.User, error) {
 	user, err := b.userRepository.FindOneByID(b.ctx, req)
 	if err != nil {
 		return nil, b.logger.LogPropagate(err)
