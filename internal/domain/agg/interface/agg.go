@@ -1,4 +1,4 @@
-package agg_interface
+package agginterface
 
 import "github.com/Borislavv/video-streaming/internal/domain/vo"
 
