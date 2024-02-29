@@ -4,29 +4,29 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/app"
 	loggerservice "github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	cacheservice "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	tokenizerinterface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
 	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	server "github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
-	detector_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
+	detectorinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader"
-	reader_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
+	readerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler"
-	handler_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
+	handlerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy"
-	strategy_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
+	strategyinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener"
-	listener_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener/interface"
-	streamer_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
-	proto_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
+	listenerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener/interface"
+	streamerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
+	protointerface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/tokenizer"
 	"github.com/caarlos0/env/v9"
@@ -263,7 +263,7 @@ func (app *StreamingApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(c, reflect.TypeOf((*repository_interface.Video)(nil))).
+		Set(c, reflect.TypeOf((*repositoryinterface.Video)(nil))).
 		Set(c, nil)
 
 	return nil
@@ -280,7 +280,7 @@ func (app *StreamingApp) InitFileReaderService() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*reader_interface.FileReader)(nil))).
+		Set(r, reflect.TypeOf((*readerinterface.FileReader)(nil))).
 		Set(r, nil)
 
 	return nil
@@ -297,7 +297,7 @@ func (app *StreamingApp) InitWebSocketCommunicator() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(c, reflect.TypeOf((*proto_interface.Communicator)(nil))).
+		Set(c, reflect.TypeOf((*protointerface.Communicator)(nil))).
 		Set(c, nil)
 
 	return nil
@@ -314,7 +314,7 @@ func (app *StreamingApp) InitCodecsInfoService() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(c, reflect.TypeOf((*detector_interface.Codecs)(nil))).
+		Set(c, reflect.TypeOf((*detectorinterface.Codecs)(nil))).
 		Set(c, nil)
 
 	return nil
@@ -331,7 +331,7 @@ func (app *StreamingApp) InitWebSocketListener() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(l, reflect.TypeOf((*listener_interface.ActionsListener)(nil))).
+		Set(l, reflect.TypeOf((*listenerinterface.ActionsListener)(nil))).
 		Set(l, nil)
 
 	return nil
@@ -350,9 +350,9 @@ func (app *StreamingApp) InitWebSocketHandler() error {
 	}
 	app.di.
 		Set(streamByIDStrategy, nil).
-		Set([]strategy_interface.ActionStrategy{
+		Set([]strategyinterface.ActionStrategy{
 			streamByIDStrategy,
-		}, reflect.TypeOf((*[]strategy_interface.ActionStrategy)(nil)))
+		}, reflect.TypeOf((*[]strategyinterface.ActionStrategy)(nil)))
 
 	// handler which use strategies
 	h, err := handler.NewWebSocketActionsHandler(app.di)
@@ -360,7 +360,7 @@ func (app *StreamingApp) InitWebSocketHandler() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(h, reflect.TypeOf((*handler_interface.ActionsHandler)(nil))).
+		Set(h, reflect.TypeOf((*handlerinterface.ActionsHandler)(nil))).
 		Set(h, nil)
 
 	return nil
@@ -377,7 +377,7 @@ func (app *StreamingApp) InitStreamingService() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*streamer_interface.Streamer)(nil))).
+		Set(s, reflect.TypeOf((*streamerinterface.Streamer)(nil))).
 		Set(s, nil)
 
 	return nil
@@ -394,7 +394,7 @@ func (app *StreamingApp) InitTokenServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*repository_interface.BlockedToken)(nil))).
+		Set(r, reflect.TypeOf((*repositoryinterface.BlockedToken)(nil))).
 		Set(r, nil)
 
 	s, err := tokenizer.NewJwtService(app.di)
@@ -402,7 +402,7 @@ func (app *StreamingApp) InitTokenServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(s, reflect.TypeOf((*tokenizer_interface.Tokenizer)(nil))).
+		Set(s, reflect.TypeOf((*tokenizerinterface.Tokenizer)(nil))).
 		Set(s, nil)
 
 	return nil
