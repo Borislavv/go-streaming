@@ -1,10 +1,10 @@
-package builder_interface
+package builderinterface
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"net/http"
 )
 
 type Auth interface {
-	BuildAuthRequestDTOFromRequest(r *http.Request) (dto_interface.AuthRequest, error)
+	BuildAuthRequestDTOFromRequest(r *http.Request) (dtointerface.AuthRequest, error)
 }
