@@ -23,7 +23,7 @@ const (
 
 type VideoValidator struct {
 	ctx                context.Context
-	logger             logger_interface.Logger
+	logger             loggerinterface.Logger
 	resourceValidator  validator_interface.Resource
 	accessService      accessor_interface.Accessor
 	videoRepository    repository_interface.Video
