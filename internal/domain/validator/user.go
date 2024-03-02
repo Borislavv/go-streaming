@@ -23,7 +23,7 @@ const (
 
 type UserValidator struct {
 	ctx               context.Context
-	logger            logger_interface.Logger
+	logger            loggerinterface.Logger
 	userRepository    repository_interface.User
 	adminContactEmail string
 }
