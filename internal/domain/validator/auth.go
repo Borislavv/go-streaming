@@ -10,7 +10,7 @@ import (
 )
 
 type AuthValidator struct {
-	logger                   logger_interface.Logger
+	logger                   loggerinterface.Logger
 	adminContactEmailAddress string
 }
 
