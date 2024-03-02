@@ -13,7 +13,7 @@ import (
 const AuthorizationPath = "/authorization"
 
 type AuthorizationController struct {
-	logger        logger_interface.Logger
+	logger        loggerinterface.Logger
 	builder       builder_interface.Auth
 	authenticator authenticator_interface.Authenticator
 	responder     response_interface.Responder
