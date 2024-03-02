@@ -16,7 +16,7 @@ const (
 )
 
 type LoginController struct {
-	logger    logger_interface.Logger
+	logger    loggerinterface.Logger
 	responder response_interface.Responder
 }
 
