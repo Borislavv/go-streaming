@@ -13,7 +13,7 @@ import (
 const UploadPath = "/resource"
 
 type UploadResourceController struct {
-	logger    logger_interface.Logger
+	logger    loggerinterface.Logger
 	builder   builder_interface.Resource
 	service   resource_interface.CRUD
 	responder response_interface.Responder
