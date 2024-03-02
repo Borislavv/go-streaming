@@ -13,7 +13,7 @@ import (
 const RegistrationPath = "/registration"
 
 type RegistrationController struct {
-	logger    logger_interface.Logger
+	logger    loggerinterface.Logger
 	builder   builder_interface.User
 	service   user_interface.CRUD
 	responder response_interface.Responder
