@@ -24,7 +24,7 @@ const (
 )
 
 type GetController struct {
-	logger    logger_interface.Logger
+	logger    loggerinterface.Logger
 	builder   builder_interface.User
 	service   user_interface.CRUD
 	cacher    cacher_interface.Cacher
