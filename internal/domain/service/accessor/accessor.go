@@ -3,7 +3,7 @@ package accessor
 import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	agg_interface "github.com/Borislavv/video-streaming/internal/domain/agg/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/agg/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -12,8 +12,8 @@ import (
 )
 
 type AggregateAccessType int
-type AggregateAccessHandler func(userID vo.ID, agg agg_interface.Aggregate) (err error)
-type AggregateAccessIsAppropriateHandler func(agg agg_interface.Aggregate) (isSupported bool)
+type AggregateAccessHandler func(userID vo.ID, agg dtointerface.Aggregate) (err error)
+type AggregateAccessIsAppropriateHandler func(agg dtointerface.Aggregate) (isSupported bool)
 
 const (
 	VideoType AggregateAccessType = iota
@@ -42,7 +42,7 @@ func NewAccessService(serviceContainer diinterface.ContainerManager) (*AccessSer
 }
 
 // IsGranted is a method which will check the access to target scope of aggregates.
-func (s *AccessService) IsGranted(userID vo.ID, aggregates ...agg_interface.Aggregate) error {
+func (s *AccessService) IsGranted(userID vo.ID, aggregates ...dtointerface.Aggregate) error {
 	for _, aggregate := range aggregates {
 		for aggregateAccessType, isAppropriateHandler := range s.isAppropriateHandlerFuncs {
 			if isAppropriateHandler(aggregate) {
@@ -68,7 +68,7 @@ func (s *AccessService) IsGranted(userID vo.ID, aggregates ...agg_interface.Aggr
 }
 
 // video
-func (s *AccessService) videoHandler(userID vo.ID, aggregate agg_interface.Aggregate) error {
+func (s *AccessService) videoHandler(userID vo.ID, aggregate dtointerface.Aggregate) error {
 	videoAgg, ok := aggregate.(*agg.Video)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -91,7 +91,7 @@ func (s *AccessService) videoHandler(userID vo.ID, aggregate agg_interface.Aggre
 		),
 	)
 }
-func (s *AccessService) audioIsAppropriateHandler(aggregate agg_interface.Aggregate) (isAppropriate bool) {
+func (s *AccessService) audioIsAppropriateHandler(aggregate dtointerface.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Audio); ok {
 		return true
 	}
@@ -99,7 +99,7 @@ func (s *AccessService) audioIsAppropriateHandler(aggregate agg_interface.Aggreg
 }
 
 // audio
-func (s *AccessService) audioHandler(userID vo.ID, aggregate agg_interface.Aggregate) error {
+func (s *AccessService) audioHandler(userID vo.ID, aggregate dtointerface.Aggregate) error {
 	audioAgg, ok := aggregate.(*agg.Audio)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -122,7 +122,7 @@ func (s *AccessService) audioHandler(userID vo.ID, aggregate agg_interface.Aggre
 		),
 	)
 }
-func (s *AccessService) videoIsAppropriateHandler(aggregate agg_interface.Aggregate) (isAppropriate bool) {
+func (s *AccessService) videoIsAppropriateHandler(aggregate dtointerface.Aggregate) (isAppropriate bool) {
 	if _, ok := aggregate.(*agg.Video); ok {
 		return true
 	}
@@ -130,7 +130,7 @@ func (s *AccessService) videoIsAppropriateHandler(aggregate agg_interface.Aggreg
 }
 
 // resource
-func (s *AccessService) resourceHandler(userID vo.ID, aggregate agg_interface.Aggregate) error {
+func (s *AccessService) resourceHandler(userID vo.ID, aggregate dtointerface.Aggregate) error {
 	resourceAgg, ok := aggregate.(*agg.Resource)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -153,7 +153,7 @@ func (s *AccessService) resourceHandler(userID vo.ID, aggregate agg_interface.Ag
 		),
 	)
 }
-func (s *AccessService) resourceIsAppropriateHandler(v agg_interface.Aggregate) (isAppropriate bool) {
+func (s *AccessService) resourceIsAppropriateHandler(v dtointerface.Aggregate) (isAppropriate bool) {
 	if _, ok := v.(*agg.Resource); ok {
 		return true
 	}
@@ -161,7 +161,7 @@ func (s *AccessService) resourceIsAppropriateHandler(v agg_interface.Aggregate) 
 }
 
 // user
-func (s *AccessService) userHandler(userID vo.ID, aggregate agg_interface.Aggregate) error {
+func (s *AccessService) userHandler(userID vo.ID, aggregate dtointerface.Aggregate) error {
 	userAgg, ok := aggregate.(*agg.User)
 	if !ok {
 		return s.logger.LogPropagate(
@@ -184,7 +184,7 @@ func (s *AccessService) userHandler(userID vo.ID, aggregate agg_interface.Aggreg
 		),
 	)
 }
-func (s *AccessService) userIsAppropriateHandler(v agg_interface.Aggregate) (isAppropriate bool) {
+func (s *AccessService) userIsAppropriateHandler(v dtointerface.Aggregate) (isAppropriate bool) {
 	if _, ok := v.(*agg.User); ok {
 		return true
 	}
