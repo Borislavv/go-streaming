@@ -1,4 +1,4 @@
-package security_interface
+package securityinterface
 
 type Passwordness interface {
 	GetPassword() string
