@@ -3,34 +3,34 @@ package di
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/app"
-	builder_interface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
-	accessor_interface "github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
-	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
-	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
-	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	accessorinterface "github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
+	authenticatorinterface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	extractorinterface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	resourceservice "github.com/Borislavv/video-streaming/internal/domain/service/resource/interface"
-	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
-	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
-	uploader_interface "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
+	securityinterface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
+	tokenizerinterface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	uploaderinterface "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
 	userservice "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
 	videoservice "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
-	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	validatorinterface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/di"
 	diinterface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
-	cache_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache/interface"
+	cacheinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache/interface"
 	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
-	detector_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
-	reader_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
-	handler_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
-	strategy_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
-	listener_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener/interface"
-	streamer_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
-	proto_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
-	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
+	detectorinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
+	readerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
+	handlerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
+	strategyinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
+	listenerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener/interface"
+	streamerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
+	protointerface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
+	fileinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 	"go.mongodb.org/mongo-driver/mongo"
 	"reflect"
 )
@@ -149,91 +149,91 @@ func (s *ServiceContainerManager) GetBlockedTokenMongoRepository() (mongodbinter
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetResourceCacheRepository() (cache_interface.Resource, error) {
-	key := (*cache_interface.Resource)(nil)
+func (s *ServiceContainerManager) GetResourceCacheRepository() (cacheinterface.Resource, error) {
+	key := (*cacheinterface.Resource)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(cache_interface.Resource)
+	repo, ok := service.Interface().(cacheinterface.Resource)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetVideoCacheRepository() (cache_interface.Video, error) {
-	key := (*cache_interface.Video)(nil)
+func (s *ServiceContainerManager) GetVideoCacheRepository() (cacheinterface.Video, error) {
+	key := (*cacheinterface.Video)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(cache_interface.Video)
+	repo, ok := service.Interface().(cacheinterface.Video)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetUserCacheRepository() (cache_interface.User, error) {
-	key := (*cache_interface.User)(nil)
+func (s *ServiceContainerManager) GetUserCacheRepository() (cacheinterface.User, error) {
+	key := (*cacheinterface.User)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(cache_interface.User)
+	repo, ok := service.Interface().(cacheinterface.User)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetAccessService() (accessor_interface.Accessor, error) {
-	key := (*accessor_interface.Accessor)(nil)
+func (s *ServiceContainerManager) GetAccessService() (accessorinterface.Accessor, error) {
+	key := (*accessorinterface.Accessor)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	accessService, ok := service.Interface().(accessor_interface.Accessor)
+	accessService, ok := service.Interface().(accessorinterface.Accessor)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return accessService, nil
 }
 
-func (s *ServiceContainerManager) GetResourceBuilder() (builder_interface.Resource, error) {
-	key := (*builder_interface.Resource)(nil)
+func (s *ServiceContainerManager) GetResourceBuilder() (builderinterface.Resource, error) {
+	key := (*builderinterface.Resource)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	builderService, ok := service.Interface().(builder_interface.Resource)
+	builderService, ok := service.Interface().(builderinterface.Resource)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return builderService, nil
 }
 
-func (s *ServiceContainerManager) GetResourceValidator() (validator_interface.Resource, error) {
-	key := (*validator_interface.Resource)(nil)
+func (s *ServiceContainerManager) GetResourceValidator() (validatorinterface.Resource, error) {
+	key := (*validatorinterface.Resource)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	validatorService, ok := service.Interface().(validator_interface.Resource)
+	validatorService, ok := service.Interface().(validatorinterface.Resource)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return validatorService, nil
 }
 
-func (s *ServiceContainerManager) GetResourceRepository() (repository_interface.Resource, error) {
-	key := (*repository_interface.Resource)(nil)
+func (s *ServiceContainerManager) GetResourceRepository() (repositoryinterface.Resource, error) {
+	key := (*repositoryinterface.Resource)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(repository_interface.Resource)
+	repo, ok := service.Interface().(repositoryinterface.Resource)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
@@ -253,52 +253,52 @@ func (s *ServiceContainerManager) GetResourceCRUDService() (resourceservice.CRUD
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetBlockedTokenRepository() (repository_interface.BlockedToken, error) {
-	key := (*repository_interface.BlockedToken)(nil)
+func (s *ServiceContainerManager) GetBlockedTokenRepository() (repositoryinterface.BlockedToken, error) {
+	key := (*repositoryinterface.BlockedToken)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(repository_interface.BlockedToken)
+	service, ok := reflectService.Interface().(repositoryinterface.BlockedToken)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetVideoBuilder() (builder_interface.Video, error) {
-	key := (*builder_interface.Video)(nil)
+func (s *ServiceContainerManager) GetVideoBuilder() (builderinterface.Video, error) {
+	key := (*builderinterface.Video)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(builder_interface.Video)
+	service, ok := reflectService.Interface().(builderinterface.Video)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetVideoValidator() (validator_interface.Video, error) {
-	key := (*validator_interface.Video)(nil)
+func (s *ServiceContainerManager) GetVideoValidator() (validatorinterface.Video, error) {
+	key := (*validatorinterface.Video)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(validator_interface.Video)
+	service, ok := reflectService.Interface().(validatorinterface.Video)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetVideoRepository() (repository_interface.Video, error) {
-	key := (*repository_interface.Video)(nil)
+func (s *ServiceContainerManager) GetVideoRepository() (repositoryinterface.Video, error) {
+	key := (*repositoryinterface.Video)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(repository_interface.Video)
+	service, ok := reflectService.Interface().(repositoryinterface.Video)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
@@ -318,39 +318,39 @@ func (s *ServiceContainerManager) GetVideoCRUDService() (videoservice.CRUD, erro
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetUserBuilder() (builder_interface.User, error) {
-	key := (*builder_interface.User)(nil)
+func (s *ServiceContainerManager) GetUserBuilder() (builderinterface.User, error) {
+	key := (*builderinterface.User)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(builder_interface.User)
+	service, ok := reflectService.Interface().(builderinterface.User)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetUserValidator() (validator_interface.User, error) {
-	key := (*validator_interface.User)(nil)
+func (s *ServiceContainerManager) GetUserValidator() (validatorinterface.User, error) {
+	key := (*validatorinterface.User)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(validator_interface.User)
+	service, ok := reflectService.Interface().(validatorinterface.User)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetUserRepository() (repository_interface.User, error) {
-	key := (*repository_interface.User)(nil)
+func (s *ServiceContainerManager) GetUserRepository() (repositoryinterface.User, error) {
+	key := (*repositoryinterface.User)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(repository_interface.User)
+	service, ok := reflectService.Interface().(repositoryinterface.User)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
@@ -370,39 +370,39 @@ func (s *ServiceContainerManager) GetUserCRUDService() (userservice.CRUD, error)
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetAuthBuilder() (builder_interface.Auth, error) {
-	key := (*builder_interface.Auth)(nil)
+func (s *ServiceContainerManager) GetAuthBuilder() (builderinterface.Auth, error) {
+	key := (*builderinterface.Auth)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(builder_interface.Auth)
+	service, ok := reflectService.Interface().(builderinterface.Auth)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetAuthValidator() (validator_interface.Auth, error) {
-	key := (*validator_interface.Auth)(nil)
+func (s *ServiceContainerManager) GetAuthValidator() (validatorinterface.Auth, error) {
+	key := (*validatorinterface.Auth)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(validator_interface.Auth)
+	service, ok := reflectService.Interface().(validatorinterface.Auth)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetAuthService() (authenticator_interface.Authenticator, error) {
-	key := (*authenticator_interface.Authenticator)(nil)
+func (s *ServiceContainerManager) GetAuthService() (authenticatorinterface.Authenticator, error) {
+	key := (*authenticatorinterface.Authenticator)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(authenticator_interface.Authenticator)
+	service, ok := reflectService.Interface().(authenticatorinterface.Authenticator)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
@@ -422,195 +422,195 @@ func (s *ServiceContainerManager) GetLoggerService() (loggerinterface.Logger, er
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetCacheService() (cacher_interface.Cacher, error) {
-	key := (*cacher_interface.Cacher)(nil)
+func (s *ServiceContainerManager) GetCacheService() (cacherinterface.Cacher, error) {
+	key := (*cacherinterface.Cacher)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(cacher_interface.Cacher)
+	service, ok := reflectService.Interface().(cacherinterface.Cacher)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetFileStorageService() (file_interface.Storage, error) {
-	key := (*file_interface.Storage)(nil)
+func (s *ServiceContainerManager) GetFileStorageService() (fileinterface.Storage, error) {
+	key := (*fileinterface.Storage)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(file_interface.Storage)
+	service, ok := reflectService.Interface().(fileinterface.Storage)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetFileNameComputerService() (file_interface.NameComputer, error) {
-	key := (*file_interface.NameComputer)(nil)
+func (s *ServiceContainerManager) GetFileNameComputerService() (fileinterface.NameComputer, error) {
+	key := (*fileinterface.NameComputer)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(file_interface.NameComputer)
+	service, ok := reflectService.Interface().(fileinterface.NameComputer)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetFileUploaderService() (uploader_interface.Uploader, error) {
-	key := (*uploader_interface.Uploader)(nil)
+func (s *ServiceContainerManager) GetFileUploaderService() (uploaderinterface.Uploader, error) {
+	key := (*uploaderinterface.Uploader)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(uploader_interface.Uploader)
+	service, ok := reflectService.Interface().(uploaderinterface.Uploader)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetFileReaderService() (reader_interface.FileReader, error) {
-	key := (*reader_interface.FileReader)(nil)
+func (s *ServiceContainerManager) GetFileReaderService() (readerinterface.FileReader, error) {
+	key := (*readerinterface.FileReader)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(reader_interface.FileReader)
+	service, ok := reflectService.Interface().(readerinterface.FileReader)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetRequestParametersExtractorService() (extractor_interface.RequestParams, error) {
-	key := (*extractor_interface.RequestParams)(nil)
+func (s *ServiceContainerManager) GetRequestParametersExtractorService() (extractorinterface.RequestParams, error) {
+	key := (*extractorinterface.RequestParams)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(extractor_interface.RequestParams)
+	service, ok := reflectService.Interface().(extractorinterface.RequestParams)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetResponderService() (response_interface.Responder, error) {
-	key := (*response_interface.Responder)(nil)
+func (s *ServiceContainerManager) GetResponderService() (responseinterface.Responder, error) {
+	key := (*responseinterface.Responder)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(response_interface.Responder)
+	service, ok := reflectService.Interface().(responseinterface.Responder)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetPasswordHasherService() (security_interface.PasswordHasher, error) {
-	key := (*security_interface.PasswordHasher)(nil)
+func (s *ServiceContainerManager) GetPasswordHasherService() (securityinterface.PasswordHasher, error) {
+	key := (*securityinterface.PasswordHasher)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(security_interface.PasswordHasher)
+	service, ok := reflectService.Interface().(securityinterface.PasswordHasher)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetTokenizerService() (tokenizer_interface.Tokenizer, error) {
-	key := (*tokenizer_interface.Tokenizer)(nil)
+func (s *ServiceContainerManager) GetTokenizerService() (tokenizerinterface.Tokenizer, error) {
+	key := (*tokenizerinterface.Tokenizer)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(tokenizer_interface.Tokenizer)
+	service, ok := reflectService.Interface().(tokenizerinterface.Tokenizer)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetWebSocketCommunicatorService() (proto_interface.Communicator, error) {
-	key := (*proto_interface.Communicator)(nil)
+func (s *ServiceContainerManager) GetWebSocketCommunicatorService() (protointerface.Communicator, error) {
+	key := (*protointerface.Communicator)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(proto_interface.Communicator)
+	service, ok := reflectService.Interface().(protointerface.Communicator)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetWebSocketHandlerStrategies() ([]strategy_interface.ActionStrategy, error) {
-	key := (*[]strategy_interface.ActionStrategy)(nil)
+func (s *ServiceContainerManager) GetWebSocketHandlerStrategies() ([]strategyinterface.ActionStrategy, error) {
+	key := (*[]strategyinterface.ActionStrategy)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().([]strategy_interface.ActionStrategy)
+	service, ok := reflectService.Interface().([]strategyinterface.ActionStrategy)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetWebSocketListener() (listener_interface.ActionsListener, error) {
-	key := (*listener_interface.ActionsListener)(nil)
+func (s *ServiceContainerManager) GetWebSocketListener() (listenerinterface.ActionsListener, error) {
+	key := (*listenerinterface.ActionsListener)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(listener_interface.ActionsListener)
+	service, ok := reflectService.Interface().(listenerinterface.ActionsListener)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetWebSocketHandler() (handler_interface.ActionsHandler, error) {
-	key := (*handler_interface.ActionsHandler)(nil)
+func (s *ServiceContainerManager) GetWebSocketHandler() (handlerinterface.ActionsHandler, error) {
+	key := (*handlerinterface.ActionsHandler)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(handler_interface.ActionsHandler)
+	service, ok := reflectService.Interface().(handlerinterface.ActionsHandler)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetCodecsDetectorService() (detector_interface.Codecs, error) {
-	key := (*detector_interface.Codecs)(nil)
+func (s *ServiceContainerManager) GetCodecsDetectorService() (detectorinterface.Codecs, error) {
+	key := (*detectorinterface.Codecs)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(detector_interface.Codecs)
+	service, ok := reflectService.Interface().(detectorinterface.Codecs)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetStreamingService() (streamer_interface.Streamer, error) {
-	key := (*streamer_interface.Streamer)(nil)
+func (s *ServiceContainerManager) GetStreamingService() (streamerinterface.Streamer, error) {
+	key := (*streamerinterface.Streamer)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(streamer_interface.Streamer)
+	service, ok := reflectService.Interface().(streamerinterface.Streamer)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
