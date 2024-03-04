@@ -1,4 +1,4 @@
-package extractor_interface
+package extractorinterface
 
 import "net/http"
 
