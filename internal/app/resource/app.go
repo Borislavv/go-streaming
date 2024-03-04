@@ -52,7 +52,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log"
 	"os"
 	"os/signal"
 	"reflect"
@@ -79,7 +78,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	// logger
 	loggerService, loggerCancelFunc, err := app.InitLoggerService()
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	defer loggerCancelFunc()
 
