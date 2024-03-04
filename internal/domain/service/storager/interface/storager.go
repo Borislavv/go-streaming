@@ -1,5 +1,5 @@
-package storager_interface
+package storagerinterface
 
-import file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
+import fileinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 
-type Storage file_interface.Storage
+type Storage fileinterface.Storage
