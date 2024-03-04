@@ -1,4 +1,4 @@
-package audio_interface
+package audiointerface
 
 type CRUD interface {
 }
