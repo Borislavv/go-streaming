@@ -3,24 +3,24 @@ package resource
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	builder_interface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
-	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	storager_interface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
-	uploader_interface "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
-	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
+	storagerinterface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
+	uploaderinterface "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
+	validatorinterface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 )
 
 type CRUDService struct {
 	ctx        context.Context
 	logger     loggerinterface.Logger
-	uploader   uploader_interface.Uploader
-	validator  validator_interface.Resource
-	builder    builder_interface.Resource
-	repository repository_interface.Resource
-	storage    storager_interface.Storage
+	uploader   uploaderinterface.Uploader
+	validator  validatorinterface.Resource
+	builder    builderinterface.Resource
+	repository repositoryinterface.Resource
+	storage    storagerinterface.Storage
 }
 
 func NewResourceService(serviceContainer diinterface.ContainerManager) (*CRUDService, error) {
@@ -73,7 +73,7 @@ func NewResourceService(serviceContainer diinterface.ContainerManager) (*CRUDSer
 // Upload - will be prepared and  will be saved a file from the request. Important: the input request's DTO will
 // mutate per uploading. Also, of course will be created a new instance of agg.Resource as the contract says and
 // will be saved into the database.
-func (s *CRUDService) Upload(req dto_interface.UploadResourceRequest) (resource *agg.Resource, err error) {
+func (s *CRUDService) Upload(req dtointerface.UploadResourceRequest) (resource *agg.Resource, err error) {
 	defer func() {
 		if err != nil {
 			if e := s.onUploadingFailed(req); e != nil {
@@ -110,7 +110,7 @@ func (s *CRUDService) Upload(req dto_interface.UploadResourceRequest) (resource 
 }
 
 // onUploadingFailed - will check that created file is removed.
-func (s *CRUDService) onUploadingFailed(req dto_interface.UploadResourceRequest) error {
+func (s *CRUDService) onUploadingFailed(req dtointerface.UploadResourceRequest) error {
 	// handle the case when the file was uploaded, but error occurred while saving an aggregate
 	if req.GetUploadedFilename() != "" { // in this case, we need remove the uploaded file
 		has, err := s.storage.Has(req.GetUploadedFilename())
@@ -129,7 +129,7 @@ func (s *CRUDService) onUploadingFailed(req dto_interface.UploadResourceRequest)
 }
 
 // Delete - will remove a single video by id with dependencies.
-func (s *CRUDService) Delete(req dto_interface.DeleteResourceRequest) (err error) {
+func (s *CRUDService) Delete(req dtointerface.DeleteResourceRequest) (err error) {
 	// validation of raw delete request
 	if err = s.validator.ValidateDeleteRequestDTO(req); err != nil {
 		return s.logger.LogPropagate(err)
