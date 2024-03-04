@@ -1,4 +1,4 @@
-package security_interface
+package securityinterface
 
 type PasswordHasher interface {
 	Hash(password string) (hash string, err error)
