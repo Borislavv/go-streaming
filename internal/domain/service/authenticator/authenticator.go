@@ -7,10 +7,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
-	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
-	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
-	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
+	securityinterface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
+	tokenizerinterface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	userinterface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
+	validatorinterface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"net/http"
 )
@@ -21,10 +21,10 @@ var (
 
 type AuthService struct {
 	logger         loggerinterface.Logger
-	userService    user_interface.CRUD
-	validator      validator_interface.Auth
-	tokenizer      tokenizer_interface.Tokenizer
-	passwordHasher security_interface.PasswordHasher
+	userService    userinterface.CRUD
+	validator      validatorinterface.Auth
+	tokenizer      tokenizerinterface.Tokenizer
+	passwordHasher securityinterface.PasswordHasher
 }
 
 func NewAuthService(serviceContainer diinterface.ContainerManager) (*AuthService, error) {
@@ -63,7 +63,7 @@ func NewAuthService(serviceContainer diinterface.ContainerManager) (*AuthService
 }
 
 // Auth will check raw credentials and generate a new access token for given user.
-func (s *AuthService) Auth(req dto_interface.AuthRequest) (token string, err error) {
+func (s *AuthService) Auth(req dtointerface.AuthRequest) (token string, err error) {
 	// raw request validation (checking that email and pass is not empty)
 	if err = s.validator.ValidateAuthRequest(req); err != nil {
 		return "", s.logger.LogPropagate(err)
