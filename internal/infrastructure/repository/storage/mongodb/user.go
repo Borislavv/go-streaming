@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,7 +32,7 @@ type UserRepository struct {
 	timeout time.Duration
 }
 
-func NewUserRepository(serviceContainer di_interface.ContainerManager) (*UserRepository, error) {
+func NewUserRepository(serviceContainer diinterface.ContainerManager) (*UserRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
