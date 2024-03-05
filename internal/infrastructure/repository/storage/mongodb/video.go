@@ -33,7 +33,7 @@ type VideoRepository struct {
 	timeout time.Duration
 }
 
-func NewVideoRepository(serviceContainer di_interface.ContainerManager) (*VideoRepository, error) {
+func NewVideoRepository(serviceContainer diinterface.ContainerManager) (*VideoRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
