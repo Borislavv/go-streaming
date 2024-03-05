@@ -1,4 +1,4 @@
-package server_interface
+package serverinterface
 
 import (
 	"context"
