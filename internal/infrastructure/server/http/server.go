@@ -43,7 +43,7 @@ type Server struct {
 }
 
 func NewHttpServer(
-	serviceContainer di_interface.ContainerManager,
+	serviceContainer diinterface.ContainerManager,
 	restAuthedControllers []controller.Controller,
 	restUnauthedControllers []controller.Controller,
 	renderAuthedControllers []controller.Controller,
