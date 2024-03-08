@@ -2,7 +2,6 @@ package audio
 
 import (
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
@@ -18,7 +17,7 @@ func NewGetController() *GetAudioController {
 
 func (g *GetAudioController) Get(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("Sorry, the route is not implemented yet :(")); err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 }
 
