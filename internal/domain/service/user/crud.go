@@ -17,7 +17,7 @@ import (
 
 type CRUDService struct {
 	ctx          context.Context
-	logger       logger_interface.Logger
+	logger       loggerinterface.Logger
 	builder      builder_interface.User
 	validator    validator_interface.User
 	repository   repository_interface.User
