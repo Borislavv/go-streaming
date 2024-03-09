@@ -20,7 +20,7 @@ var (
 )
 
 type AuthService struct {
-	logger         logger_interface.Logger
+	logger         loggerinterface.Logger
 	userService    user_interface.CRUD
 	validator      validator_interface.Auth
 	tokenizer      tokenizer_interface.Tokenizer
