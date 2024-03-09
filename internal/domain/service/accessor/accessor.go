@@ -23,7 +23,7 @@ const (
 )
 
 type AccessService struct {
-	logger                    logger_interface.Logger
+	logger                    loggerinterface.Logger
 	handlers                  map[AggregateAccessType]AggregateAccessHandler
 	isAppropriateHandlerFuncs map[AggregateAccessType]AggregateAccessIsAppropriateHandler
 }
