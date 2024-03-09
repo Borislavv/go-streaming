@@ -22,7 +22,7 @@ import (
 )
 
 type UserBuilder struct {
-	logger         logger_interface.Logger
+	logger         loggerinterface.Logger
 	ctx            context.Context
 	extractor      extractor_interface.RequestParams
 	userRepository repository_interface.User
