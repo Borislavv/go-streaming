@@ -409,13 +409,13 @@ func (s *ServiceContainerManager) GetAuthService() (authenticator_interface.Auth
 	return service, nil
 }
 
-func (s *ServiceContainerManager) GetLoggerService() (logger_interface.Logger, error) {
-	key := (*logger_interface.Logger)(nil)
+func (s *ServiceContainerManager) GetLoggerService() (loggerinterface.Logger, error) {
+	key := (*loggerinterface.Logger)(nil)
 	reflectService, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	service, ok := reflectService.Interface().(logger_interface.Logger)
+	service, ok := reflectService.Interface().(loggerinterface.Logger)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(reflectService), reflect.TypeOf(key))
 	}
