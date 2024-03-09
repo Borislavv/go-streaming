@@ -14,7 +14,7 @@ import (
 )
 
 type ResourceBuilder struct {
-	logger                    logger_interface.Logger
+	logger                    loggerinterface.Logger
 	formFilename              string
 	inMemoryFileSizeThreshold int64
 }
