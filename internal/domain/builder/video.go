@@ -35,7 +35,7 @@ const (
 )
 
 type VideoBuilder struct {
-	logger             logger_interface.Logger
+	logger             loggerinterface.Logger
 	ctx                context.Context
 	extractor          extractor_interface.RequestParams
 	videoRepository    repository_interface.Video
