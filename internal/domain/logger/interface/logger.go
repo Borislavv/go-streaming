@@ -1,4 +1,4 @@
-package logger_interface
+package loggerinterface
 
 import (
 	"context"
