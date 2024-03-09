@@ -12,7 +12,7 @@ import (
 )
 
 type AuthBuilder struct {
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 }
 
 func NewAuthBuilder(serviceContainer diinterface.ContainerManager) (*AuthBuilder, error) {
