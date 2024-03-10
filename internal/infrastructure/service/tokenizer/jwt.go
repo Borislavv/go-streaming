@@ -16,7 +16,7 @@ import (
 
 type JwtService struct {
 	ctx                     context.Context
-	logger                  logger_interface.Logger
+	logger                  loggerinterface.Logger
 	blockedTokenRepository  repository_interface.BlockedToken
 	jwtTokenAcceptedIssuers []string
 	jwtSecretSalt           []byte
