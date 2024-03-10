@@ -18,7 +18,7 @@ var (
 )
 
 type WebSocketActionsListener struct {
-	logger       logger_interface.Logger
+	logger       loggerinterface.Logger
 	communicator proto_interface.Communicator
 }
 
