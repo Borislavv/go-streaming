@@ -16,7 +16,7 @@ const MultipartFormUploadingType = "multipart_form"
 // If you care of performance, you need use this approach, but take care of using RAM and set up
 // the appropriate value of 'inMemoryFileSizeThreshold' through env. configuration.
 type MultipartFormUploader struct {
-	logger                    logger_interface.Logger
+	logger                    loggerinterface.Logger
 	fileStorage               file_interface.Storage
 	fileNameComputer          file_interface.NameComputer
 	formFilename              string
