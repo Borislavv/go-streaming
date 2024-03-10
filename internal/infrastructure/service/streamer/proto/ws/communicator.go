@@ -23,7 +23,7 @@ const (
 )
 
 type Communicator struct {
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 }
 
 func NewWebSocketCommunicator(serviceContainer diinterface.ContainerManager) (*Communicator, error) {
