@@ -17,7 +17,7 @@ const MultipartPartUploadingType = "multipart_part"
 // In such case it takes more time but takes much less memory.
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
 type MultipartPartUploader struct {
-	logger      logger_interface.Logger
+	logger      loggerinterface.Logger
 	storage     storager_interface.Storage
 	filename    file_interface.NameComputer
 	maxFilesize int64
