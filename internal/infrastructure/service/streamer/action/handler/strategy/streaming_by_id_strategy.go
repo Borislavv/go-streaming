@@ -25,7 +25,7 @@ const zeroOffset = 0
 
 type StreamByIDActionStrategy struct {
 	ctx             context.Context
-	logger          logger_interface.Logger
+	logger          loggerinterface.Logger
 	videoRepository repository_interface.Video
 	reader          reader_interface.FileReader
 	codecInfo       detector_interface.Codecs
