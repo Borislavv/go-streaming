@@ -23,7 +23,7 @@ import (
 
 type StreamByIDWithOffsetActionStrategy struct {
 	ctx             context.Context
-	logger          logger_interface.Logger
+	logger          loggerinterface.Logger
 	videoRepository repository_interface.Video
 	reader          reader_interface.FileReader
 	codecInfo       detector_interface.Codecs
@@ -34,7 +34,7 @@ type StreamByIDWithOffsetActionStrategy struct {
 
 func NewStreamByIDWithOffsetActionStrategy(
 	ctx context.Context,
-	logger logger_interface.Logger,
+	logger loggerinterface.Logger,
 	videoRepository repository_interface.Video,
 	reader reader_interface.FileReader,
 	codecInfo detector_interface.Codecs,
