@@ -11,7 +11,7 @@ import (
 
 type WebSocketActionsHandler struct {
 	ctx              context.Context
-	logger           logger_interface.Logger
+	logger           loggerinterface.Logger
 	actionStrategies []strategy_interface.ActionStrategy
 }
 
