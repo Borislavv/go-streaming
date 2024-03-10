@@ -11,7 +11,7 @@ import (
 )
 
 type ResourceStreamer struct {
-	logger   logger_interface.Logger
+	logger   loggerinterface.Logger
 	listener listener_interface.ActionsListener
 	handler  handler_interface.ActionsHandler
 }
