@@ -52,7 +52,7 @@ func RequestUniqueID(r *http.Request) string {
 
 	hash := md5.New()
 	if _, err = hash.Write([]byte(strReqID)); err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	return hex.EncodeToString(hash.Sum(nil))
 }
