@@ -308,13 +308,13 @@ func (l *abstract) handle() {
 				_, fmterr := fmt.Fprintln(l.writer, e)
 				if fmterr != nil {
 					log.Println(err)
-					log.Fatalln(fmterr)
+					panic(fmterr)
 				}
 			} else {
 				_, fmterr := fmt.Fprintln(l.writer, string(j))
 				if fmterr != nil {
 					log.Println(err)
-					log.Fatalln(fmterr)
+					panic(fmterr)
 				}
 			}
 		}
@@ -337,13 +337,13 @@ func (l *abstract) handle() {
 				_, fmterr := fmt.Fprintln(l.writer, e)
 				if fmterr != nil {
 					log.Println(info)
-					log.Fatalln(fmterr)
+					panic(fmterr)
 				}
 			} else {
 				_, fmterr := fmt.Fprintln(l.writer, string(j))
 				if fmterr != nil {
 					log.Println(info)
-					log.Fatalln(fmterr)
+					panic(fmterr)
 				}
 			}
 		}
