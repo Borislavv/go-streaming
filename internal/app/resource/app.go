@@ -102,13 +102,13 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	}
 	defer databaseCancelFunc()
 
-	// cache dependencies initialization
+	// cache and dependencies
 	if err = app.InitCacheService(); err != nil {
 		loggerService.Critical(err)
 		return
 	}
 
-	// request-response dependencies initialization
+	// request-response and dependencies
 	if err = app.InitRequestResponseServices(); err != nil {
 		loggerService.Critical(err)
 		return
@@ -120,7 +120,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// file uploader dependencies initialization
+	// file uploader and dependencies
 	if err = app.InitUploaderServices(); err != nil {
 		loggerService.Critical(err)
 		return
