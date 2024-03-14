@@ -25,7 +25,7 @@ type JwtService struct {
 	jwtTokenExpiresAfter    int64
 }
 
-func NewJwtService(serviceContainer di_interface.ContainerManager) (*JwtService, error) {
+func NewJwtService(serviceContainer diinterface.ContainerManager) (*JwtService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
