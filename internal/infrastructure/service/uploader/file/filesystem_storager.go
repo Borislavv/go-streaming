@@ -19,7 +19,7 @@ type FilesystemStorageService struct {
 	logger logger_interface.Logger
 }
 
-func NewFilesystemStorageService(serviceContainer di_interface.ContainerManager) (*FilesystemStorageService, error) {
+func NewFilesystemStorageService(serviceContainer diinterface.ContainerManager) (*FilesystemStorageService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
