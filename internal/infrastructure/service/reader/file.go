@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/model"
 	"math"
 	"os"
@@ -22,7 +22,7 @@ type FileReaderService struct {
 	chunkSize int
 }
 
-func NewFileReaderService(serviceContainer di_interface.ContainerManager) (*FileReaderService, error) {
+func NewFileReaderService(serviceContainer diinterface.ContainerManager) (*FileReaderService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
