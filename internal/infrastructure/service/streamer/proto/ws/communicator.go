@@ -26,7 +26,7 @@ type Communicator struct {
 	logger logger_interface.Logger
 }
 
-func NewWebSocketCommunicator(serviceContainer di_interface.ContainerManager) (*Communicator, error) {
+func NewWebSocketCommunicator(serviceContainer diinterface.ContainerManager) (*Communicator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
