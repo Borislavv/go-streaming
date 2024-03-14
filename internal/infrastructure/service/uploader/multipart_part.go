@@ -23,7 +23,7 @@ type MultipartPartUploader struct {
 	maxFilesize int64
 }
 
-func NewPartsUploader(serviceContainer di_interface.ContainerManager) (*MultipartPartUploader, error) {
+func NewPartsUploader(serviceContainer diinterface.ContainerManager) (*MultipartPartUploader, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
