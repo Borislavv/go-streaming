@@ -8,7 +8,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -63,7 +62,7 @@ func NewVideoRepository(serviceContainer di_interface.ContainerManager) (*VideoR
 	}, nil
 }
 
-func (r *VideoRepository) FindOneByID(ctx context.Context, q query_interface.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByID(ctx context.Context, q queryinterface.FindOneVideoByID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -83,7 +82,7 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query_interface.Fin
 	return video, nil
 }
 
-func (r *VideoRepository) FindList(ctx context.Context, q query_interface.FindVideoList) (list []*agg.Video, total int64, err error) {
+func (r *VideoRepository) FindList(ctx context.Context, q queryinterface.FindVideoList) (list []*agg.Video, total int64, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -153,7 +152,7 @@ func (r *VideoRepository) FindList(ctx context.Context, q query_interface.FindVi
 	return list, total, nil
 }
 
-func (r *VideoRepository) FindOneByName(ctx context.Context, q query_interface.FindOneVideoByName) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByName(ctx context.Context, q queryinterface.FindOneVideoByName) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -173,7 +172,7 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query_interface.F
 	return video, nil
 }
 
-func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query_interface.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q queryinterface.FindOneVideoByResourceID) (*agg.Video, error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
