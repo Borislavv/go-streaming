@@ -126,7 +126,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// resource dependencies initialization
+	// resource services
 	if err = app.InitResourceServices(); err != nil {
 		loggerService.Critical(err)
 		return
