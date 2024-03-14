@@ -16,7 +16,7 @@ type ResourceStreamer struct {
 	handler  handler_interface.ActionsHandler
 }
 
-func NewStreamingService(serviceContainer di_interface.ContainerManager) (*ResourceStreamer, error) {
+func NewStreamingService(serviceContainer diinterface.ContainerManager) (*ResourceStreamer, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
