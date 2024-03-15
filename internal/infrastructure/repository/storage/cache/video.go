@@ -16,7 +16,7 @@ import (
 
 type VideoRepository struct {
 	mongodbinterface.Video
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 	cache  cacher_interface.Cacher
 }
 
