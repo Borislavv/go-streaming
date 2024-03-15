@@ -11,7 +11,7 @@ import (
 
 type ResourceCodecs struct {
 	ctx    context.Context
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 }
 
 func NewResourceCodecs(serviceContainer diinterface.ContainerManager) (*ResourceCodecs, error) {
