@@ -36,7 +36,7 @@ type Server struct {
 	renderUnauthedControllers []controller.Controller
 	staticControllers         []controller.Controller
 
-	logger             logger_interface.Logger
+	logger             loggerinterface.Logger
 	authService        authenticator_interface.Authenticator
 	reqParamsExtractor extractor_interface.RequestParams
 	responder          response_interface.Responder
