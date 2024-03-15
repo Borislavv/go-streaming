@@ -20,7 +20,7 @@ const BlockedTokensCollection = "blockedTokens"
 type BlockedTokenRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
-	logger  logger_interface.Logger
+	logger  loggerinterface.Logger
 	timeout time.Duration
 }
 
