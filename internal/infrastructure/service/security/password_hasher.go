@@ -9,7 +9,7 @@ import (
 )
 
 type PasswordHasher struct {
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 	cost   int
 }
 
