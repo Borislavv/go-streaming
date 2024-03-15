@@ -19,7 +19,7 @@ type Server struct {
 	transportProto string // example: "tcp"
 
 	streamer streamer_interface.Streamer
-	logger   logger_interface.Logger
+	logger   loggerinterface.Logger
 }
 
 func NewWebSocketServer(serviceContainer diinterface.ContainerManager) (*Server, error) {
