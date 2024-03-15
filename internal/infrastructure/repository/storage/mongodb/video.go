@@ -8,6 +8,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
+	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,7 +30,7 @@ var (
 type VideoRepository struct {
 	db      *mongo.Collection
 	mu      *sync.Mutex
-	logger  logger_interface.Logger
+	logger  loggerinterface.Logger
 	timeout time.Duration
 }
 
