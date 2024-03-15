@@ -8,7 +8,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -62,7 +61,7 @@ func NewUserRepository(serviceContainer di_interface.ContainerManager) (*UserRep
 	}, nil
 }
 
-func (r *UserRepository) FindOneByID(ctx context.Context, q query_interface.FindOneUserByID) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByID(ctx context.Context, q queryinterface.FindOneUserByID) (user *agg.User, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -79,7 +78,7 @@ func (r *UserRepository) FindOneByID(ctx context.Context, q query_interface.Find
 	return user, nil
 }
 
-func (r *UserRepository) FindOneByEmail(ctx context.Context, q query_interface.FindOneUserByEmail) (user *agg.User, err error) {
+func (r *UserRepository) FindOneByEmail(ctx context.Context, q queryinterface.FindOneUserByEmail) (user *agg.User, err error) {
 	qCtx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
