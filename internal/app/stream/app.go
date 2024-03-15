@@ -84,7 +84,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	}
 	defer databaseCancelFunc()
 
-	// cache dependencies initialization
+	// cache and dependencies
 	if err = app.InitCacheService(); err != nil {
 		loggerService.Critical(err)
 		return
