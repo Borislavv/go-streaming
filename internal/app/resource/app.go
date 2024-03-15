@@ -132,7 +132,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// video dependencies initialization
+	// video services
 	if err = app.InitVideoServices(); err != nil {
 		loggerService.Critical(err)
 		return
@@ -144,13 +144,13 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// user dependencies initialization
+	// user services
 	if err = app.InitUserServices(); err != nil {
 		loggerService.Critical(err)
 		return
 	}
 
-	// token dependencies initialization
+	// token services
 	if err = app.InitTokenServices(); err != nil {
 		loggerService.Critical(err)
 		return
