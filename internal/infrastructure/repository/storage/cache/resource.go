@@ -17,7 +17,7 @@ import (
 
 type ResourceRepository struct {
 	mongodbinterface.Resource
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 	cache  cacher_interface.Cacher
 }
 
