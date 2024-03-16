@@ -13,7 +13,7 @@ import (
 const UpdatePath = "/video/{id}"
 
 type UpdateController struct {
-	logger   logger_interface.Logger
+	logger   loggerinterface.Logger
 	builder  builder_interface.Video
 	service  video_interface.CRUD
 	response response_interface.Responder
