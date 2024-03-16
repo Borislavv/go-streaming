@@ -13,7 +13,7 @@ import (
 const DeletePath = "/video/{id}"
 
 type DeleteController struct {
-	logger    logger_interface.Logger
+	logger    loggerinterface.Logger
 	builder   builder_interface.Video
 	service   video_interface.CRUD
 	responder response_interface.Responder
