@@ -90,7 +90,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// video dependencies initialization
+	// video services
 	if err = app.InitVideoServices(); err != nil {
 		loggerService.Critical(err)
 		return
