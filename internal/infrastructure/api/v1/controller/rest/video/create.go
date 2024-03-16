@@ -14,7 +14,7 @@ import (
 const CreatePath = "/video"
 
 type CreateController struct {
-	logger      logger_interface.Logger
+	logger      loggerinterface.Logger
 	builder     builder_interface.Video
 	service     video_interface.CRUD
 	authService authenticator_interface.Authenticator
