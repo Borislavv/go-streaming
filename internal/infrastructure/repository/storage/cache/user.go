@@ -9,6 +9,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
+	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
@@ -16,7 +17,7 @@ import (
 
 type UserRepository struct {
 	mongodbinterface.User
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 	cache  cacher_interface.Cacher
 }
 
