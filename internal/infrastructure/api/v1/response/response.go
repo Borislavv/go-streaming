@@ -29,7 +29,7 @@ func NewErrorResponse(err error) ErrorResponse {
 
 // Response - response service
 type Response struct {
-	logger logger_interface.Logger
+	logger loggerinterface.Logger
 }
 
 func NewResponseService(serviceContainer diinterface.ContainerManager) (*Response, error) {
