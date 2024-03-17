@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
@@ -18,7 +18,7 @@ import (
 type ResourceRepository struct {
 	mongodbinterface.Resource
 	logger loggerinterface.Logger
-	cache  cacher_interface.Cacher
+	cache  cacherinterface.Cacher
 }
 
 func NewResourceRepository(serviceContainer diinterface.ContainerManager) (*ResourceRepository, error) {
@@ -60,7 +60,7 @@ func (r *ResourceRepository) findOneByID(ctx context.Context, q queryinterface.F
 	}
 	cacheKey := helper.MD5(p)
 
-	resourceInterface, err := r.cache.Get(cacheKey, func(item cacher_interface.CacheItem) (data interface{}, err error) {
+	resourceInterface, err := r.cache.Get(cacheKey, func(item cacherinterface.CacheItem) (data interface{}, err error) {
 		item.SetTTL(time.Hour)
 
 		resourceAgg, err := r.Resource.FindOneByID(ctx, q)
