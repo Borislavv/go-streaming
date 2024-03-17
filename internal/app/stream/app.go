@@ -96,7 +96,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// resource reader service
+	// file reader service
 	if err = app.InitFileReaderService(); err != nil {
 		loggerService.Critical(err)
 		return
