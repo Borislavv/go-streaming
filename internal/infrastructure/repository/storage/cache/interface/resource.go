@@ -1,4 +1,4 @@
-package cache_interface
+package cacheinterface
 
 import (
 	"context"
