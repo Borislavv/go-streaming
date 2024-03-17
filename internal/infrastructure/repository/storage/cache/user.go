@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	"github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
@@ -18,7 +18,7 @@ import (
 type UserRepository struct {
 	mongodbinterface.User
 	logger loggerinterface.Logger
-	cache  cacher_interface.Cacher
+	cache  cacherinterface.Cacher
 }
 
 func NewUserRepository(serviceContainer diinterface.ContainerManager) (*UserRepository, error) {
@@ -64,7 +64,7 @@ func (r *UserRepository) findOneByID(ctx context.Context, q queryinterface.FindO
 	// fetching data from cache/storage
 	userInterface, err := r.cache.Get(
 		cacheKey,
-		func(item cacher_interface.CacheItem) (data interface{}, err error) {
+		func(item cacherinterface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
 			userAgg, err := r.User.FindOneByID(ctx, q)
@@ -108,7 +108,7 @@ func (r *UserRepository) findOneByEmail(ctx context.Context, q queryinterface.Fi
 	// fetching data from cache/storage
 	userInterface, err := r.cache.Get(
 		cacheKey,
-		func(item cacher_interface.CacheItem) (data interface{}, err error) {
+		func(item cacherinterface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
 			userAgg, err := r.User.FindOneByEmail(ctx, q)
