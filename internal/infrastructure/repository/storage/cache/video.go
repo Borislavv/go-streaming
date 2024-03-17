@@ -6,9 +6,10 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
+	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
+	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
@@ -17,7 +18,7 @@ import (
 type VideoRepository struct {
 	mongodbinterface.Video
 	logger loggerinterface.Logger
-	cache  cacher_interface.Cacher
+	cache  cacherinterface.Cacher
 }
 
 func NewVideoRepository(serviceContainer diinterface.ContainerManager) (*VideoRepository, error) {
@@ -62,7 +63,7 @@ func (r *VideoRepository) findOneByID(ctx context.Context, q queryinterface.Find
 	// fetching data from cache/storage
 	videoInterface, err := r.cache.Get(
 		cacheKey,
-		func(item cacher_interface.CacheItem) (data interface{}, err error) {
+		func(item cacherinterface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
 			videoAgg, err := r.Video.FindOneByID(ctx, q)
@@ -109,7 +110,7 @@ func (r *VideoRepository) findList(ctx context.Context, q queryinterface.FindVid
 
 	responseInterface, err := r.cache.Get(
 		cacheKey,
-		func(item cacher_interface.CacheItem) (data interface{}, err error) {
+		func(item cacherinterface.CacheItem) (data interface{}, err error) {
 			item.SetTTL(time.Hour)
 
 			l, t, e := r.Video.FindList(ctx, q)
@@ -150,7 +151,7 @@ func (r *VideoRepository) findOneByName(ctx context.Context, q queryinterface.Fi
 	}
 	cacheKey := helper.MD5(p)
 
-	videoInterface, err := r.cache.Get(cacheKey, func(item cacher_interface.CacheItem) (data interface{}, err error) {
+	videoInterface, err := r.cache.Get(cacheKey, func(item cacherinterface.CacheItem) (data interface{}, err error) {
 		item.SetTTL(time.Hour)
 
 		videoAgg, err := r.Video.FindOneByName(ctx, q)
@@ -190,7 +191,7 @@ func (r *VideoRepository) findOneByResourceID(ctx context.Context, q queryinterf
 	}
 	cacheKey := helper.MD5(p)
 
-	videoInterface, err := r.cache.Get(cacheKey, func(item cacher_interface.CacheItem) (data interface{}, err error) {
+	videoInterface, err := r.cache.Get(cacheKey, func(item cacherinterface.CacheItem) (data interface{}, err error) {
 		item.SetTTL(time.Hour)
 
 		videoAgg, err := r.Video.FindOneByResourceID(ctx, q)
