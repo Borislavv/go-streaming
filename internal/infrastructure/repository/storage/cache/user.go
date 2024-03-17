@@ -9,7 +9,6 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
@@ -44,7 +43,7 @@ func NewUserRepository(serviceContainer di_interface.ContainerManager) (*UserRep
 	}, nil
 }
 
-func (r *UserRepository) FindOneByID(ctx context.Context, q query_interface.FindOneUserByID) (*agg.User, error) {
+func (r *UserRepository) FindOneByID(ctx context.Context, q queryinterface.FindOneUserByID) (*agg.User, error) {
 	// attempt to fetch data from cache
 	if user, err := r.findOneByID(ctx, q); err == nil {
 		return user, nil
@@ -53,7 +52,7 @@ func (r *UserRepository) FindOneByID(ctx context.Context, q query_interface.Find
 	return r.User.FindOneByID(ctx, q)
 }
 
-func (r *UserRepository) findOneByID(ctx context.Context, q query_interface.FindOneUserByID) (*agg.User, error) {
+func (r *UserRepository) findOneByID(ctx context.Context, q queryinterface.FindOneUserByID) (*agg.User, error) {
 	// building a cache key
 	p, err := json.Marshal(q)
 	if err != nil {
@@ -88,7 +87,7 @@ func (r *UserRepository) findOneByID(ctx context.Context, q query_interface.Find
 	return userAgg, nil
 }
 
-func (r *UserRepository) FindOneByEmail(ctx context.Context, q query_interface.FindOneUserByEmail) (*agg.User, error) {
+func (r *UserRepository) FindOneByEmail(ctx context.Context, q queryinterface.FindOneUserByEmail) (*agg.User, error) {
 	// attempt to fetch data from cache
 	if user, err := r.findOneByEmail(ctx, q); err == nil {
 		return user, nil
@@ -97,7 +96,7 @@ func (r *UserRepository) FindOneByEmail(ctx context.Context, q query_interface.F
 	return r.User.FindOneByEmail(ctx, q)
 }
 
-func (r *UserRepository) findOneByEmail(ctx context.Context, q query_interface.FindOneUserByEmail) (user *agg.User, err error) {
+func (r *UserRepository) findOneByEmail(ctx context.Context, q queryinterface.FindOneUserByEmail) (user *agg.User, err error) {
 	// building a cache key
 	p, err := json.Marshal(q)
 	if err != nil {
