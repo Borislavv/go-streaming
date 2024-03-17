@@ -9,7 +9,6 @@ import (
 	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
@@ -44,7 +43,7 @@ func NewVideoRepository(serviceContainer di_interface.ContainerManager) (*VideoR
 	}, nil
 }
 
-func (r *VideoRepository) FindOneByID(ctx context.Context, q query_interface.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByID(ctx context.Context, q queryinterface.FindOneVideoByID) (*agg.Video, error) {
 	// attempt to fetch data from cache
 	if video, err := r.findOneByID(ctx, q); err == nil {
 		return video, nil
@@ -53,7 +52,7 @@ func (r *VideoRepository) FindOneByID(ctx context.Context, q query_interface.Fin
 	return r.Video.FindOneByID(ctx, q)
 }
 
-func (r *VideoRepository) findOneByID(ctx context.Context, q query_interface.FindOneVideoByID) (*agg.Video, error) {
+func (r *VideoRepository) findOneByID(ctx context.Context, q queryinterface.FindOneVideoByID) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
@@ -87,7 +86,7 @@ func (r *VideoRepository) findOneByID(ctx context.Context, q query_interface.Fin
 	return videoAgg, nil
 }
 
-func (r *VideoRepository) FindList(ctx context.Context, q query_interface.FindVideoList) (list []*agg.Video, total int64, err error) {
+func (r *VideoRepository) FindList(ctx context.Context, q queryinterface.FindVideoList) (list []*agg.Video, total int64, err error) {
 	// attempt to fetch data from cache
 	if list, total, err = r.findList(ctx, q); err == nil {
 		return list, total, nil
@@ -96,7 +95,7 @@ func (r *VideoRepository) FindList(ctx context.Context, q query_interface.FindVi
 	return r.Video.FindList(ctx, q)
 }
 
-func (r *VideoRepository) findList(ctx context.Context, q query_interface.FindVideoList) (list []*agg.Video, total int64, err error) {
+func (r *VideoRepository) findList(ctx context.Context, q queryinterface.FindVideoList) (list []*agg.Video, total int64, err error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, 0, r.logger.LogPropagate(err)
@@ -135,7 +134,7 @@ func (r *VideoRepository) findList(ctx context.Context, q query_interface.FindVi
 	return listResponse.List, listResponse.Total, nil
 }
 
-func (r *VideoRepository) FindOneByName(ctx context.Context, q query_interface.FindOneVideoByName) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByName(ctx context.Context, q queryinterface.FindOneVideoByName) (*agg.Video, error) {
 	// attempt to fetch data from cache
 	if video, err := r.findOneByName(ctx, q); err == nil {
 		return video, nil
@@ -144,7 +143,7 @@ func (r *VideoRepository) FindOneByName(ctx context.Context, q query_interface.F
 	return r.Video.FindOneByName(ctx, q)
 }
 
-func (r *VideoRepository) findOneByName(ctx context.Context, q query_interface.FindOneVideoByName) (*agg.Video, error) {
+func (r *VideoRepository) findOneByName(ctx context.Context, q queryinterface.FindOneVideoByName) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
@@ -175,7 +174,7 @@ func (r *VideoRepository) findOneByName(ctx context.Context, q query_interface.F
 	return videoAgg, nil
 }
 
-func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query_interface.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q queryinterface.FindOneVideoByResourceID) (*agg.Video, error) {
 	// attempt to fetch data from cache
 	if video, err := r.findOneByResourceID(ctx, q); err == nil {
 		return video, nil
@@ -184,7 +183,7 @@ func (r *VideoRepository) FindOneByResourceID(ctx context.Context, q query_inter
 	return r.Video.FindOneByResourceID(ctx, q)
 }
 
-func (r *VideoRepository) findOneByResourceID(ctx context.Context, q query_interface.FindOneVideoByResourceID) (*agg.Video, error) {
+func (r *VideoRepository) findOneByResourceID(ctx context.Context, q queryinterface.FindOneVideoByResourceID) (*agg.Video, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
