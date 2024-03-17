@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
+	authenticatorinterface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
+	extractorinterface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/controller/render"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/request"
-	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
+	responseinterface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper/ruid"
 	"github.com/gorilla/mux"
 	"net"
@@ -37,9 +37,9 @@ type Server struct {
 	staticControllers         []controller.Controller
 
 	logger             loggerinterface.Logger
-	authService        authenticator_interface.Authenticator
-	reqParamsExtractor extractor_interface.RequestParams
-	responder          response_interface.Responder
+	authService        authenticatorinterface.Authenticator
+	reqParamsExtractor extractorinterface.RequestParams
+	responder          responseinterface.Responder
 }
 
 func NewHttpServer(
