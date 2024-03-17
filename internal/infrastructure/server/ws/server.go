@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	streamer_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
+	streamerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/interface"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -18,7 +18,7 @@ type Server struct {
 	port           string // example: "9988"
 	transportProto string // example: "tcp"
 
-	streamer streamer_interface.Streamer
+	streamer streamerinterface.Streamer
 	logger   loggerinterface.Logger
 }
 
