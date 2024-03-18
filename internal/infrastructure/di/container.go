@@ -2,7 +2,7 @@ package di
 
 import (
 	"fmt"
-	di_interface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
 	"reflect"
 )
 
@@ -24,7 +24,7 @@ func NewServiceContainer(services ...any) *ServiceContainer {
 	return s
 }
 
-func (s *ServiceContainer) Set(service any, alias reflect.Type) (self di_interface.Container) {
+func (s *ServiceContainer) Set(service any, alias reflect.Type) (self diinterface.Container) {
 	if alias == nil || alias == reflect.TypeOf(nil) {
 		alias = reflect.TypeOf(service)
 	}
