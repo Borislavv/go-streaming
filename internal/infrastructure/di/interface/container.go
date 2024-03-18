@@ -1,4 +1,4 @@
-package di_interface
+package diinterface
 
 import "reflect"
 
