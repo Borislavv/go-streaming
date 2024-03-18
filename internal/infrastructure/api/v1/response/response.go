@@ -32,7 +32,7 @@ type Response struct {
 	logger logger_interface.Logger
 }
 
-func NewResponseService(serviceContainer di_interface.ContainerManager) (*Response, error) {
+func NewResponseService(serviceContainer diinterface.ContainerManager) (*Response, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
