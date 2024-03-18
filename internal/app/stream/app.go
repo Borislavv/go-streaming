@@ -102,13 +102,13 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 		return
 	}
 
-	// custom websocket communication protocol
+	// websocket communication service
 	if err = app.InitWebSocketCommunicator(); err != nil {
 		loggerService.Critical(err)
 		return
 	}
 
-	// resource codecs detector
+	// resource codecs detector service
 	if err = app.InitCodecsInfoService(); err != nil {
 		loggerService.Critical(err)
 		return
