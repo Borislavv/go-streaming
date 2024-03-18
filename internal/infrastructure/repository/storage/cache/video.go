@@ -7,20 +7,20 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
+	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
 )
 
 type VideoRepository struct {
-	mongodb_interface.Video
+	mongodbinterface.Video
 	logger logger_interface.Logger
 	cache  cacher_interface.Cacher
 }
 
-func NewVideoRepository(serviceContainer di_interface.ContainerManager) (*VideoRepository, error) {
+func NewVideoRepository(serviceContainer diinterface.ContainerManager) (*VideoRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
