@@ -1,4 +1,4 @@
-package mongodb_interface
+package mongodbinterface
 
 import (
 	"context"
