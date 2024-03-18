@@ -9,18 +9,19 @@ import (
 	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
+	queryinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
+	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
 )
 
 type ResourceRepository struct {
-	mongodb_interface.Resource
+	mongodbinterface.Resource
 	logger logger_interface.Logger
 	cache  cacher_interface.Cacher
 }
 
-func NewResourceRepository(serviceContainer di_interface.ContainerManager) (*ResourceRepository, error) {
+func NewResourceRepository(serviceContainer diinterface.ContainerManager) (*ResourceRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
