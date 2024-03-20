@@ -1,4 +1,4 @@
-package streamer_interface
+package streamerinterface
 
 import "github.com/gorilla/websocket"
 
