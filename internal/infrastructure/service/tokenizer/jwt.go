@@ -5,7 +5,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,7 +17,7 @@ import (
 type JwtService struct {
 	ctx                     context.Context
 	logger                  loggerinterface.Logger
-	blockedTokenRepository  repository_interface.BlockedToken
+	blockedTokenRepository  repositoryinterface.BlockedToken
 	jwtTokenAcceptedIssuers []string
 	jwtSecretSalt           []byte
 	jwtTokenIssuer          string
