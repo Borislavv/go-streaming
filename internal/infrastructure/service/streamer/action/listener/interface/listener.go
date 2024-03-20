@@ -1,4 +1,4 @@
-package listener_interface
+package listenerinterface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
