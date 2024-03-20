@@ -1,4 +1,4 @@
-package file_interface
+package fileinterface
 
 import "io"
 
