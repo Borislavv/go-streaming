@@ -31,7 +31,7 @@ type GetController struct {
 	responder response_interface.Responder
 }
 
-func NewGetController(serviceContainer di_interface.ContainerManager) (*GetController, error) {
+func NewGetController(serviceContainer diinterface.ContainerManager) (*GetController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
