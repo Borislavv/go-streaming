@@ -3,7 +3,7 @@ package video
 import (
 	builder_interface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
@@ -19,7 +19,7 @@ type DeleteController struct {
 	responder response_interface.Responder
 }
 
-func NewDeleteController(serviceContainer di_interface.ContainerManager) (*DeleteController, error) {
+func NewDeleteController(serviceContainer diinterface.ContainerManager) (*DeleteController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
