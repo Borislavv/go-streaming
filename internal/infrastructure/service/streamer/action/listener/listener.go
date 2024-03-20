@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
-	proto_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
+	protointerface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
 	"github.com/gorilla/websocket"
 	"sync"
 )
@@ -19,7 +19,7 @@ var (
 
 type WebSocketActionsListener struct {
 	logger       loggerinterface.Logger
-	communicator proto_interface.Communicator
+	communicator protointerface.Communicator
 }
 
 func NewWebSocketActionsListener(serviceContainer diinterface.ContainerManager) (*WebSocketActionsListener, error) {
