@@ -4,7 +4,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	authenticator_interface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	video_interface "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
@@ -21,7 +21,7 @@ type CreateController struct {
 	responder   response_interface.Responder
 }
 
-func NewCreateController(serviceContainer di_interface.ContainerManager) (*CreateController, error) {
+func NewCreateController(serviceContainer diinterface.ContainerManager) (*CreateController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
