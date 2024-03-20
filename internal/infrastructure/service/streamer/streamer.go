@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	handler_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
-	listener_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener/interface"
+	handlerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
+	listenerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/listener/interface"
 	"github.com/gorilla/websocket"
 	"sync"
 )
 
 type ResourceStreamer struct {
 	logger   loggerinterface.Logger
-	listener listener_interface.ActionsListener
-	handler  handler_interface.ActionsHandler
+	listener listenerinterface.ActionsListener
+	handler  handlerinterface.ActionsHandler
 }
 
 func NewStreamingService(serviceContainer diinterface.ContainerManager) (*ResourceStreamer, error) {
