@@ -1,11 +1,11 @@
 package uploader
 
 import (
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
+	fileinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 )
 
 const MultipartFormUploadingType = "multipart_form"
@@ -17,8 +17,8 @@ const MultipartFormUploadingType = "multipart_form"
 // the appropriate value of 'inMemoryFileSizeThreshold' through env. configuration.
 type MultipartFormUploader struct {
 	logger                    loggerinterface.Logger
-	fileStorage               file_interface.Storage
-	fileNameComputer          file_interface.NameComputer
+	fileStorage               fileinterface.Storage
+	fileNameComputer          fileinterface.NameComputer
 	formFilename              string
 	maxFilesize               int64
 	inMemoryFileSizeThreshold int64
@@ -55,7 +55,7 @@ func NewNativeUploader(serviceContainer diinterface.ContainerManager) (*Multipar
 }
 
 // Upload method will be store a file on a disk and calculate a new hashed name. Request DTO mutation!
-func (u *MultipartFormUploader) Upload(reqDTO dto_interface.UploadResourceRequest) (err error) {
+func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest) (err error) {
 	// request will be parsed and stored in the memory if it is under the RAM threshold,
 	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
 	if err = reqDTO.GetRequest().ParseMultipartForm(u.inMemoryFileSizeThreshold); err != nil {
