@@ -1,4 +1,4 @@
-package file_interface
+package fileinterface
 
 type NameComputer interface {
 	Get(remoteName string, contentType string, contentDisposition string) (filename string, err error)
