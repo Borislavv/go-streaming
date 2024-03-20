@@ -9,7 +9,6 @@ import (
 	cacher_interface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
-	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/query/interface"
 	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"reflect"
 	"time"
@@ -44,7 +43,7 @@ func NewResourceRepository(serviceContainer di_interface.ContainerManager) (*Res
 	}, nil
 }
 
-func (r *ResourceRepository) FindOneByID(ctx context.Context, q query_interface.FindOneResourceByID) (*agg.Resource, error) {
+func (r *ResourceRepository) FindOneByID(ctx context.Context, q queryinterface.FindOneResourceByID) (*agg.Resource, error) {
 	// attempt to fetch data from cache
 	if resource, err := r.findOneByID(ctx, q); err == nil {
 		return resource, nil
@@ -53,7 +52,7 @@ func (r *ResourceRepository) FindOneByID(ctx context.Context, q query_interface.
 	return r.Resource.FindOneByID(ctx, q)
 }
 
-func (r *ResourceRepository) findOneByID(ctx context.Context, q query_interface.FindOneResourceByID) (*agg.Resource, error) {
+func (r *ResourceRepository) findOneByID(ctx context.Context, q queryinterface.FindOneResourceByID) (*agg.Resource, error) {
 	p, err := json.Marshal(q)
 	if err != nil {
 		return nil, r.logger.LogPropagate(err)
