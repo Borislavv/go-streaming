@@ -1,12 +1,12 @@
 package uploader
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	storager_interface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
-	file_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
+	storagerinterface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
+	fileinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
 	"io"
 	"mime/multipart"
 )
@@ -18,8 +18,8 @@ const MultipartPartUploadingType = "multipart_part"
 // Approximately, to upload a 50MB file you will need only 10MB of RAM.
 type MultipartPartUploader struct {
 	logger      loggerinterface.Logger
-	storage     storager_interface.Storage
-	filename    file_interface.NameComputer
+	storage     storagerinterface.Storage
+	filename    fileinterface.NameComputer
 	maxFilesize int64
 }
 
@@ -46,7 +46,7 @@ func NewPartsUploader(serviceContainer diinterface.ContainerManager) (*Multipart
 	}, nil
 }
 
-func (u *MultipartPartUploader) Upload(reqDTO dto_interface.UploadResourceRequest) (err error) {
+func (u *MultipartPartUploader) Upload(reqDTO dtointerface.UploadResourceRequest) (err error) {
 	part, err := u.getFilePart(reqDTO)
 	if err != nil {
 		return u.logger.LogPropagate(err)
@@ -84,7 +84,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dto_interface.UploadResourceReques
 	return nil
 }
 
-func (u *MultipartPartUploader) getFilePart(reqDTO dto_interface.UploadResourceRequest) (part *multipart.Part, err error) {
+func (u *MultipartPartUploader) getFilePart(reqDTO dtointerface.UploadResourceRequest) (part *multipart.Part, err error) {
 	// extract the multipart form reader (handling the form as a stream)
 	reader, err := reqDTO.GetRequest().MultipartReader()
 	if err != nil {
