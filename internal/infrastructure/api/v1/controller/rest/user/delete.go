@@ -19,7 +19,7 @@ type DeleteController struct {
 	responder response_interface.Responder
 }
 
-func NewDeleteController(serviceContainer di_interface.ContainerManager) (*DeleteController, error) {
+func NewDeleteController(serviceContainer diinterface.ContainerManager) (*DeleteController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
