@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	dto_interface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
+	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
@@ -54,7 +54,7 @@ func (w *Communicator) Start(audioCodec string, videoCodec string, conn *websock
 	return nil
 }
 
-func (w *Communicator) Send(chunk dto_interface.Chunk, conn *websocket.Conn) error {
+func (w *Communicator) Send(chunk dtointerface.Chunk, conn *websocket.Conn) error {
 	if chunk.GetError() != nil {
 		return w.logger.CriticalPropagate(fmt.Sprintf("[%v]: %v", conn.RemoteAddr(), chunk.GetError().Error()))
 	}
