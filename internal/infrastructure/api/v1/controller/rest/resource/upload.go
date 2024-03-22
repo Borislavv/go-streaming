@@ -19,7 +19,7 @@ type UploadResourceController struct {
 	responder response_interface.Responder
 }
 
-func NewUploadController(serviceContainer di_interface.ContainerManager) (*UploadResourceController, error) {
+func NewUploadController(serviceContainer diinterface.ContainerManager) (*UploadResourceController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
