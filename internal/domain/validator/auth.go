@@ -5,7 +5,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ type AuthValidator struct {
 	adminContactEmailAddress string
 }
 
-func NewAuthValidator(serviceContainer di_interface.ContainerManager) (*AuthValidator, error) {
+func NewAuthValidator(serviceContainer diinterface.ContainerManager) (*AuthValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
