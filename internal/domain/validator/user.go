@@ -9,7 +9,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"time"
@@ -28,7 +28,7 @@ type UserValidator struct {
 	adminContactEmail string
 }
 
-func NewUserValidator(serviceContainer di_interface.ContainerManager) (*UserValidator, error) {
+func NewUserValidator(serviceContainer diinterface.ContainerManager) (*UserValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
