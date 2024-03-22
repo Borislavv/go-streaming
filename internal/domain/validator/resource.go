@@ -8,7 +8,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 )
 
 type ResourceValidator struct {
@@ -17,7 +17,7 @@ type ResourceValidator struct {
 	maxFilesize int64
 }
 
-func NewResourceValidator(serviceContainer di_interface.ContainerManager) (*ResourceValidator, error) {
+func NewResourceValidator(serviceContainer diinterface.ContainerManager) (*ResourceValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
