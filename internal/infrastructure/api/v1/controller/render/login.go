@@ -20,7 +20,7 @@ type LoginController struct {
 	responder response_interface.Responder
 }
 
-func NewLoginController(serviceContainer di_interface.ContainerManager) (*LoginController, error) {
+func NewLoginController(serviceContainer diinterface.ContainerManager) (*LoginController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
