@@ -22,7 +22,7 @@ type CRUDService struct {
 	resourceService resource_interface.CRUD
 }
 
-func NewCRUDService(serviceContainer di_interface.ContainerManager) (*CRUDService, error) {
+func NewCRUDService(serviceContainer diinterface.ContainerManager) (*CRUDService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
