@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	user_interface "github.com/Borislavv/video-streaming/internal/domain/service/user/interface"
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/gorilla/mux"
@@ -19,7 +19,7 @@ type RegistrationController struct {
 	responder response_interface.Responder
 }
 
-func NewRegistrationController(serviceContainer di_interface.ContainerManager) (*RegistrationController, error) {
+func NewRegistrationController(serviceContainer diinterface.ContainerManager) (*RegistrationController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
