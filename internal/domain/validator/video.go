@@ -9,7 +9,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/accessor/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 )
@@ -30,7 +30,7 @@ type VideoValidator struct {
 	resourceRepository repository_interface.Resource
 }
 
-func NewVideoValidator(serviceContainer di_interface.ContainerManager) (*VideoValidator, error) {
+func NewVideoValidator(serviceContainer diinterface.ContainerManager) (*VideoValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
