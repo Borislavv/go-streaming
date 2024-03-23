@@ -30,7 +30,7 @@ type UserBuilder struct {
 }
 
 // NewUserBuilder is a constructor of UserBuilder.
-func NewUserBuilder(serviceContainer di_interface.ContainerManager) (*UserBuilder, error) {
+func NewUserBuilder(serviceContainer diinterface.ContainerManager) (*UserBuilder, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
