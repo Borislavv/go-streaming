@@ -27,7 +27,7 @@ type AuthService struct {
 	passwordHasher security_interface.PasswordHasher
 }
 
-func NewAuthService(serviceContainer di_interface.ContainerManager) (*AuthService, error) {
+func NewAuthService(serviceContainer diinterface.ContainerManager) (*AuthService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
