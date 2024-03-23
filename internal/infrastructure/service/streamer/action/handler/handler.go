@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	strategy_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
+	strategyinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/strategy/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
 	"sync"
 )
@@ -12,7 +12,7 @@ import (
 type WebSocketActionsHandler struct {
 	ctx              context.Context
 	logger           loggerinterface.Logger
-	actionStrategies []strategy_interface.ActionStrategy
+	actionStrategies []strategyinterface.ActionStrategy
 }
 
 func NewWebSocketActionsHandler(serviceContainer diinterface.ContainerManager) (*WebSocketActionsHandler, error) {
