@@ -7,14 +7,14 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
-	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
-	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
+	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
+	tokenizerinterface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
-	detector_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
-	reader_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
+	detectorinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
+	readerinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/enum"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
-	proto_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
+	protointerface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/proto/interface"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"math"
@@ -24,22 +24,22 @@ import (
 type StreamByIDWithOffsetActionStrategy struct {
 	ctx             context.Context
 	logger          loggerinterface.Logger
-	videoRepository repository_interface.Video
-	reader          reader_interface.FileReader
-	codecInfo       detector_interface.Codecs
-	communicator    proto_interface.Communicator
-	tokenizer       tokenizer_interface.Tokenizer
+	videoRepository repositoryinterface.Video
+	reader          readerinterface.FileReader
+	codecInfo       detectorinterface.Codecs
+	communicator    protointerface.Communicator
+	tokenizer       tokenizerinterface.Tokenizer
 	chunkSize       int
 }
 
 func NewStreamByIDWithOffsetActionStrategy(
 	ctx context.Context,
 	logger loggerinterface.Logger,
-	videoRepository repository_interface.Video,
-	reader reader_interface.FileReader,
-	codecInfo detector_interface.Codecs,
-	communicator proto_interface.Communicator,
-	tokenizer tokenizer_interface.Tokenizer,
+	videoRepository repositoryinterface.Video,
+	reader readerinterface.FileReader,
+	codecInfo detectorinterface.Codecs,
+	communicator protointerface.Communicator,
+	tokenizer tokenizerinterface.Tokenizer,
 	chunkSize int,
 ) *StreamByIDWithOffsetActionStrategy {
 	return &StreamByIDWithOffsetActionStrategy{
