@@ -1,4 +1,4 @@
-package query_interface
+package queryinterface
 
 type Pagination interface {
 	GetPage() int
