@@ -10,7 +10,7 @@ import (
 	tokenizer_interface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
-	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
+	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	server "github.com/Borislavv/video-streaming/internal/infrastructure/server/ws"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/detector"
@@ -43,10 +43,10 @@ import (
 
 type StreamingApp struct {
 	cfg *app.Config
-	di  di_interface.ContainerManager
+	di  diinterface.ContainerManager
 }
 
-func NewStreamingApp(di di_interface.ContainerManager) *StreamingApp {
+func NewStreamingApp(di diinterface.ContainerManager) *StreamingApp {
 	return &StreamingApp{cfg: &app.Config{}, di: di}
 }
 
@@ -255,7 +255,7 @@ func (app *StreamingApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*mongodb_interface.Video)(nil))).
+		Set(r, reflect.TypeOf((*mongodbinterface.Video)(nil))).
 		Set(r, nil)
 
 	c, err := cache.NewVideoRepository(app.di)
