@@ -11,7 +11,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	extractor_interface "github.com/Borislavv/video-streaming/internal/domain/service/extractor/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
@@ -43,7 +43,7 @@ type VideoBuilder struct {
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
-func NewVideoBuilder(serviceContainer di_interface.ContainerManager) (*VideoBuilder, error) {
+func NewVideoBuilder(serviceContainer diinterface.ContainerManager) (*VideoBuilder, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
