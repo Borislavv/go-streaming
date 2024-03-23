@@ -39,7 +39,7 @@ import (
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb"
-	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
+	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/server/http"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/cacher"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
@@ -62,10 +62,10 @@ import (
 
 type ResourcesApp struct {
 	cfg *app.Config
-	di  di_interface.ContainerManager
+	di  diinterface.ContainerManager
 }
 
-func NewResourcesApp(di di_interface.ContainerManager) *ResourcesApp {
+func NewResourcesApp(di diinterface.ContainerManager) *ResourcesApp {
 	return &ResourcesApp{cfg: &app.Config{}, di: di}
 }
 
@@ -312,7 +312,7 @@ func (app *ResourcesApp) InitVideoServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*mongodb_interface.Video)(nil))).
+		Set(r, reflect.TypeOf((*mongodbinterface.Video)(nil))).
 		Set(r, nil)
 
 	c, err := cache.NewVideoRepository(app.di)
@@ -361,7 +361,7 @@ func (app *ResourcesApp) InitResourceServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*mongodb_interface.Resource)(nil))).
+		Set(r, reflect.TypeOf((*mongodbinterface.Resource)(nil))).
 		Set(r, nil)
 
 	c, err := cache.NewResourceRepository(app.di)
@@ -410,7 +410,7 @@ func (app *ResourcesApp) InitUserServices() error {
 		return loggerService.LogPropagate(err)
 	}
 	app.di.
-		Set(r, reflect.TypeOf((*mongodb_interface.User)(nil))).
+		Set(r, reflect.TypeOf((*mongodbinterface.User)(nil))).
 		Set(r, nil)
 
 	c, err := cache.NewUserRepository(app.di)
@@ -493,7 +493,7 @@ func (app *ResourcesApp) InitTokenServices() error {
 	}
 	app.di.
 		Set(r, reflect.TypeOf((*repository_interface.BlockedToken)(nil))).
-		Set(r, reflect.TypeOf((*mongodb_interface.BlockedToken)(nil))).
+		Set(r, reflect.TypeOf((*mongodbinterface.BlockedToken)(nil))).
 		Set(r, nil)
 
 	s, err := tokenizer.NewJwtService(app.di)
