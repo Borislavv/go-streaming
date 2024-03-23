@@ -1,4 +1,4 @@
-package detector_interface
+package detectorinterface
 
 import "github.com/Borislavv/video-streaming/internal/domain/entity"
 
