@@ -1,4 +1,4 @@
-package reader_interface
+package readerinterface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/model"
