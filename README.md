@@ -2,6 +2,9 @@
 
 ---
 
+## Overview
+![image](https://github.com/Borislavv/go-streaming/assets/50691459/d8301df7-7bbf-4854-b957-3374263e892f)
+
 ## Installation
 
 It's a pretty simple process, first of all you need to build the application:
