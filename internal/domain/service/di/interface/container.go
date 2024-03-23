@@ -1,4 +1,4 @@
-package di_interface
+package diinterface
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	videoservice "github.com/Borislavv/video-streaming/internal/domain/service/video/interface"
 	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
 	cache_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache/interface"
-	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
+	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	detector_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
 	reader_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
 	handler_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
@@ -33,7 +33,7 @@ import (
 )
 
 type ContainerManager interface {
-	di_interface.Container
+	diinterface.Container
 
 	// Application
 	GetConfig() (*app.Config, error)
@@ -44,10 +44,10 @@ type ContainerManager interface {
 	GetMongoDatabase() (*mongo.Database, error)
 
 	// Mongo repository
-	GetResourceMongoRepository() (mongodb_interface.Resource, error)
-	GetVideoMongoRepository() (mongodb_interface.Video, error)
-	GetUserMongoRepository() (mongodb_interface.User, error)
-	GetBlockedTokenMongoRepository() (mongodb_interface.BlockedToken, error)
+	GetResourceMongoRepository() (mongodbinterface.Resource, error)
+	GetVideoMongoRepository() (mongodbinterface.Video, error)
+	GetUserMongoRepository() (mongodbinterface.User, error)
+	GetBlockedTokenMongoRepository() (mongodbinterface.BlockedToken, error)
 
 	// Cache repository
 	GetResourceCacheRepository() (cache_interface.Resource, error)
