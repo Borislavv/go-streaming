@@ -1,4 +1,4 @@
-package handler_interface
+package handlerinterface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
