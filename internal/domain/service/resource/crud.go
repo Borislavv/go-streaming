@@ -7,7 +7,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repository_interface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
-	di_interface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	storager_interface "github.com/Borislavv/video-streaming/internal/domain/service/storager/interface"
 	uploader_interface "github.com/Borislavv/video-streaming/internal/domain/service/uploader/interface"
 	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
@@ -23,7 +23,7 @@ type CRUDService struct {
 	storage    storager_interface.Storage
 }
 
-func NewResourceService(serviceContainer di_interface.ContainerManager) (*CRUDService, error) {
+func NewResourceService(serviceContainer diinterface.ContainerManager) (*CRUDService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
