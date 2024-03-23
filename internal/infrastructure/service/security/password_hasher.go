@@ -4,7 +4,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/errors"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
-	security_interface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
+	securityinterface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,7 +33,7 @@ func (s *PasswordHasher) Hash(password string) (hash string, err error) {
 	return string(hashBytes), nil
 }
 
-func (s *PasswordHasher) Verify(user security_interface.Passwordness, password string) (err error) {
+func (s *PasswordHasher) Verify(user securityinterface.Passwordness, password string) (err error) {
 	if err = bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(password)); err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return errors.NewAuthFailedError("passwords did not match")
