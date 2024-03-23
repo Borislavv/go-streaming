@@ -1,4 +1,4 @@
-package strategy_interface
+package strategyinterface
 
 import (
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/model"
