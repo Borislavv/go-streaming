@@ -20,9 +20,9 @@ import (
 	validator_interface "github.com/Borislavv/video-streaming/internal/domain/validator/interface"
 	response_interface "github.com/Borislavv/video-streaming/internal/infrastructure/api/v1/response/interface"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/di"
-	di_interface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
+	diinterface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
 	cache_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/cache/interface"
-	mongodb_interface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
+	mongodbinterface "github.com/Borislavv/video-streaming/internal/infrastructure/repository/storage/mongodb/interface"
 	detector_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/detector/interface"
 	reader_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/reader/interface"
 	handler_interface "github.com/Borislavv/video-streaming/internal/infrastructure/service/streamer/action/handler/interface"
@@ -36,7 +36,7 @@ import (
 )
 
 type ServiceContainerManager struct {
-	di_interface.Container
+	diinterface.Container
 }
 
 func NewServiceContainerManager() *ServiceContainerManager {
@@ -97,52 +97,52 @@ func (s *ServiceContainerManager) GetMongoDatabase() (*mongo.Database, error) {
 	return database, nil
 }
 
-func (s *ServiceContainerManager) GetResourceMongoRepository() (mongodb_interface.Resource, error) {
-	key := (*mongodb_interface.Resource)(nil)
+func (s *ServiceContainerManager) GetResourceMongoRepository() (mongodbinterface.Resource, error) {
+	key := (*mongodbinterface.Resource)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(mongodb_interface.Resource)
+	repo, ok := service.Interface().(mongodbinterface.Resource)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetVideoMongoRepository() (mongodb_interface.Video, error) {
-	key := (*mongodb_interface.Video)(nil)
+func (s *ServiceContainerManager) GetVideoMongoRepository() (mongodbinterface.Video, error) {
+	key := (*mongodbinterface.Video)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(mongodb_interface.Video)
+	repo, ok := service.Interface().(mongodbinterface.Video)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetUserMongoRepository() (mongodb_interface.User, error) {
-	key := (*mongodb_interface.User)(nil)
+func (s *ServiceContainerManager) GetUserMongoRepository() (mongodbinterface.User, error) {
+	key := (*mongodbinterface.User)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(mongodb_interface.User)
+	repo, ok := service.Interface().(mongodbinterface.User)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
 	return repo, nil
 }
 
-func (s *ServiceContainerManager) GetBlockedTokenMongoRepository() (mongodb_interface.BlockedToken, error) {
-	key := (*mongodb_interface.BlockedToken)(nil)
+func (s *ServiceContainerManager) GetBlockedTokenMongoRepository() (mongodbinterface.BlockedToken, error) {
+	key := (*mongodbinterface.BlockedToken)(nil)
 	service, err := s.Get(reflect.TypeOf(key))
 	if err != nil {
 		return nil, errors.NewServiceWasNotFoundIntoContainerError(reflect.TypeOf(key))
 	}
-	repo, ok := service.Interface().(mongodb_interface.BlockedToken)
+	repo, ok := service.Interface().(mongodbinterface.BlockedToken)
 	if !ok {
 		return nil, errors.NewTypesMismatchedServiceContainerError(reflect.TypeOf(service), reflect.TypeOf(key))
 	}
