@@ -9,6 +9,24 @@
     </head>
 
     <body>
+        <div class="sidebar">
+            <ul class="menu">
+                <li id="video-control">Управление video</li>
+                <li>Управление audio</li>
+            </ul>
+        </div>
+
+        <div id="video-upload-popup" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <form id="video-upload-form">
+                    <label for="video-file">Выберите видео для загрузки:</label>
+                    <input type="file" id="video-file" name="video-file"><br><br>
+                    <input type="submit" value="Загрузить">
+                </form>
+            </div>
+        </div>
+
         <header>
             <h1>Streaming video service</h1>
         </header>
