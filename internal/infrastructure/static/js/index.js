@@ -154,6 +154,22 @@ function getCookie(cookieName) {
     return null;
 }
 
+/** PopUP */
+document.getElementById('video-control').addEventListener('click', function() {
+    document.getElementById('video-upload-popup').style.display = 'block';
+});
+
+document.querySelector('.close-button').addEventListener('click', function() {
+    document.getElementById('video-upload-popup').style.display = 'none';
+});
+
+/** PopUp: uploading video to the server */
+document.getElementById('video-upload-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    console.log("VIDEO UPLOADING")
+});
+
 // init. default data
 let currentLimit    = parseInt(limitSelect.value, 10);
 let currentPage     = parseInt(pageSelect.value, 10);
