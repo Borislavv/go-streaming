@@ -1,7 +1,3 @@
-# Streaming service
-
----
-
 ## Overview
 ![image](https://github.com/Borislavv/go-streaming/assets/50691459/b56e06a3-84a9-4a49-9c3a-dae754457454)
 
