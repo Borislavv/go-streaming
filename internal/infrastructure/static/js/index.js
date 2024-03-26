@@ -167,7 +167,19 @@ document.querySelector('.close-button').addEventListener('click', function() {
 document.getElementById('video-upload-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    console.log("VIDEO UPLOADING")
+    let formData = new FormData(this); // 'this' refers to the form
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/v1/resource', true);
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            console.log('Video uploaded successfully');
+        } else {
+            console.error('An error occurred during the upload');
+        }
+    };
+
+    xhr.send(formData);
 });
 
 // init. default data
