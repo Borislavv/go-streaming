@@ -91,16 +91,20 @@ video {
     overflow-y: auto;
     z-index: 1;
     display: none;
-    width: calc(100% - 40px);
     left: 50%;
     transform: translateX(-50%);
     transition: bottom 0.5s ease;
     margin-top: 0;
     margin-bottom: calc(100% - 95%);
+    height: auto; /* Для поддержания соотношения сторон */
+    max-height: calc(100vh - 200px);
+    top: 100%;
+    width: auto;
 }
 
 .dropdown-content.active {
     bottom: calc(100% + 15px); /* Увеличиваем отступ снизу до 15px */
+    display: block;
 }
 
 /* Скрываем полосу прокрутки */
