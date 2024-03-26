@@ -3,7 +3,9 @@
 ---
 
 ## Overview
-![image](https://github.com/Borislavv/go-streaming/assets/50691459/7cf3b525-df6b-49e4-8339-b4f51074b55d)
+![image](https://github.com/Borislavv/go-streaming/assets/50691459/b56e06a3-84a9-4a49-9c3a-dae754457454)
+
+![image](https://github.com/Borislavv/go-streaming/assets/50691459/83e89529-6c0b-4202-bfc0-3af2b9f9111d)
 
 ## Installation
 
