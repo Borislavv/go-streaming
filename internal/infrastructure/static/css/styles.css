@@ -100,6 +100,8 @@ video {
     max-height: calc(100vh - 200px);
     top: 100%;
     width: auto;
+    max-width: calc(100% - 0px);
+    min-width: calc(100% - 0px);
 }
 
 .dropdown-content.active {
