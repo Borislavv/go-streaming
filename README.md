@@ -3,7 +3,7 @@
 ---
 
 ## Overview
-![image](https://github.com/Borislavv/go-streaming/assets/50691459/d8301df7-7bbf-4854-b957-3374263e892f)
+![image](https://github.com/Borislavv/go-streaming/assets/50691459/7cf3b525-df6b-49e4-8339-b4f51074b55d)
 
 ## Installation
 
