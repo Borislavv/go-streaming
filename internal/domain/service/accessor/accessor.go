@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/agg/interface"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -86,7 +86,7 @@ func (s *AccessService) videoHandler(userID vo.ID, aggregate dtointerface.Aggreg
 
 	// video was not matched, access is denied
 	return s.logger.LogPropagate(
-		errors.NewAccessDeniedError(
+		errtype.NewAccessDeniedError(
 			"you have not enough rights, one of entities is video and it's not belong to you",
 		),
 	)
@@ -117,7 +117,7 @@ func (s *AccessService) audioHandler(userID vo.ID, aggregate dtointerface.Aggreg
 
 	// audio was not matched, access is denied
 	return s.logger.LogPropagate(
-		errors.NewAccessDeniedError(
+		errtype.NewAccessDeniedError(
 			"you have not enough rights, one of entities is audio and it's not belong to you",
 		),
 	)
@@ -148,7 +148,7 @@ func (s *AccessService) resourceHandler(userID vo.ID, aggregate dtointerface.Agg
 
 	// resource was not matched, access is denied
 	return s.logger.LogPropagate(
-		errors.NewAccessDeniedError(
+		errtype.NewAccessDeniedError(
 			"you have not enough rights, one of entities is resource and it's not belong to you",
 		),
 	)
@@ -179,7 +179,7 @@ func (s *AccessService) userHandler(userID vo.ID, aggregate dtointerface.Aggrega
 
 	// user was not matched, access is denied
 	return s.logger.LogPropagate(
-		errors.NewAccessDeniedError(
+		errtype.NewAccessDeniedError(
 			"you have not enough rights, one of entities is another user",
 		),
 	)
