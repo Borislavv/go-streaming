@@ -4,7 +4,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	securityinterface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
@@ -125,5 +125,5 @@ func (s *AuthService) extractToken(r *http.Request) (token string, err error) {
 		return cookie.Value, nil
 	}
 
-	return "", errors.NewAccessTokenIsEmptyOrOmittedError()
+	return "", errtype.NewAccessTokenIsEmptyOrOmittedError()
 }
