@@ -3,7 +3,7 @@ package validator
 import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"net/http"
@@ -34,11 +34,11 @@ func NewAuthValidator(serviceContainer diinterface.ContainerManager) (*AuthValid
 // ValidateAuthRequest is method which will check the auth request DTO on valid.
 func (v *AuthValidator) ValidateAuthRequest(req dtointerface.AuthRequest) error {
 	if req.GetEmail() == "" {
-		return errors.NewFieldCannotBeEmptyError(emailField)
+		return errtype.NewFieldCannotBeEmptyError(emailField)
 	}
 
 	if req.GetPassword() == "" {
-		return errors.NewFieldCannotBeEmptyError(passwordField)
+		return errtype.NewFieldCannotBeEmptyError(passwordField)
 	}
 
 	return nil
@@ -54,5 +54,5 @@ func (v *AuthValidator) ValidateTokennessRequest(r *http.Request) error {
 		return nil
 	}
 
-	return errors.NewAuthFailedError("token is not provided")
+	return errtype.NewAuthFailedError("token is not provided")
 }
