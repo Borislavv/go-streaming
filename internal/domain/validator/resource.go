@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 )
@@ -47,13 +47,13 @@ func NewResourceValidator(serviceContainer diinterface.ContainerManager) (*Resou
 
 func (v *ResourceValidator) ValidateUploadRequestDTO(req dtointerface.UploadResourceRequest) error {
 	if req.GetUserID().Value.IsZero() {
-		return errors.NewFieldCannotBeEmptyError(userIDField)
+		return errtype.NewFieldCannotBeEmptyError(userIDField)
 	}
 	if req.GetRequest().ContentLength == 0 {
-		return errors.NewInvalidUploadedFileError("request form file is empty")
+		return errtype.NewInvalidUploadedFileError("request form file is empty")
 	}
 	if req.GetRequest().ContentLength > v.maxFilesize {
-		return errors.NewInvalidUploadedFileError(
+		return errtype.NewInvalidUploadedFileError(
 			fmt.Sprintf("request form file is largest than threshold value %d", v.maxFilesize),
 		)
 	}
@@ -62,22 +62,22 @@ func (v *ResourceValidator) ValidateUploadRequestDTO(req dtointerface.UploadReso
 
 func (v *ResourceValidator) ValidateEntity(entity entity.Resource) error {
 	if entity.UserID.Value.IsZero() {
-		return errors.NewInternalValidationError("field 'userID' cannot be empty")
+		return errtype.NewInternalValidationError("field 'userID' cannot be empty")
 	}
 	if entity.GetName() == "" {
-		return errors.NewInternalValidationError("field 'name' cannot be empty")
+		return errtype.NewInternalValidationError("field 'name' cannot be empty")
 	}
 	if entity.GetFilename() == "" {
-		return errors.NewInternalValidationError("field 'filename' cannot be empty")
+		return errtype.NewInternalValidationError("field 'filename' cannot be empty")
 	}
 	if entity.GetFilepath() == "" {
-		return errors.NewInternalValidationError("field 'filepath' cannot be empty")
+		return errtype.NewInternalValidationError("field 'filepath' cannot be empty")
 	}
 	if entity.GetFilesize() == 0 {
-		return errors.NewInternalValidationError("field 'filesize' cannot be zero")
+		return errtype.NewInternalValidationError("field 'filesize' cannot be zero")
 	}
 	if entity.GetFiletype() == "" {
-		return errors.NewInternalValidationError("field 'filetype' cannot be empty")
+		return errtype.NewInternalValidationError("field 'filetype' cannot be empty")
 	}
 	return nil
 }
@@ -88,10 +88,10 @@ func (v *ResourceValidator) ValidateAggregate(agg *agg.Resource) error {
 
 func (v *ResourceValidator) ValidateGetRequestDTO(req dtointerface.GetResourceRequest) error {
 	if req.GetID().Value.IsZero() {
-		return errors.NewFieldCannotBeEmptyError(idField)
+		return errtype.NewFieldCannotBeEmptyError(idField)
 	}
 	if req.GetUserID().Value.IsZero() {
-		return errors.NewFieldCannotBeEmptyError(userIDField)
+		return errtype.NewFieldCannotBeEmptyError(userIDField)
 	}
 	return nil
 }
