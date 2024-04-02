@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -42,11 +42,11 @@ func (e *ParametersExtractor) HasParameter(param string, req *http.Request) bool
 // GetParameter - checking if the param. is existing in request, it will be returned
 func (e *ParametersExtractor) GetParameter(param string, r *http.Request) (string, error) {
 	if param == "" {
-		return "", errors.NewFieldCannotBeEmptyError(param)
+		return "", errtype.NewFieldCannotBeEmptyError(param)
 	}
 	v, ok := e.Parameters(r)[param]
 	if !ok {
-		return "", errors.NewFieldCannotBeEmptyError(param)
+		return "", errtype.NewFieldCannotBeEmptyError(param)
 	}
 	return v, nil
 }
