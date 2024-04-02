@@ -5,7 +5,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -109,7 +109,7 @@ func (c *GetController) getCached(reqDTO *dto.UserGetRequestDTO) (*agg.User, err
 
 	userAgg, ok := data.(*agg.User)
 	if !ok {
-		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+		return nil, errtype.NewCachedDataTypeWasNotMatchedError(
 			cacheKey, reflect.TypeOf(&agg.User{}), reflect.TypeOf(data),
 		)
 	}
