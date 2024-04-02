@@ -2,8 +2,8 @@ package response
 
 import (
 	"encoding/json"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
-	error_interface "github.com/Borislavv/video-streaming/internal/domain/errors/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
+	error_interface "github.com/Borislavv/video-streaming/internal/domain/errtype/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"io"
@@ -70,7 +70,7 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 			if _, err = w.Write(
 				r.toBytes(
 					NewErrorResponse(
-						errors.NewInternalServerError(),
+						errtype.NewInternalServerError(),
 					),
 				),
 			); err != nil {
