@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"time"
 )
 
@@ -12,9 +12,9 @@ var dateLayouts = []string{
 }
 
 // ParseTime is a user helper function which parsing three types of datetime strings:
-// 	1. 2006-01-02T15:04:05Z07:00
-//	2. 2006-01-02T15:04:05
-// 	3. 2006-01-02
+//  1. 2006-01-02T15:04:05Z07:00
+//  2. 2006-01-02T15:04:05
+//  3. 2006-01-02
 func ParseTime(date string) (time.Time, error) {
 	for _, layout := range dateLayouts {
 		parsed, err := time.Parse(layout, date)
@@ -23,5 +23,5 @@ func ParseTime(date string) (time.Time, error) {
 		}
 		return parsed, nil
 	}
-	return time.Time{}, errors.NewTimeParsingValidationError(date)
+	return time.Time{}, errtype.NewTimeParsingValidationError(date)
 }
