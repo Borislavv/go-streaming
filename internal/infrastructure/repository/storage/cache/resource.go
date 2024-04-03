@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -76,7 +76,7 @@ func (r *ResourceRepository) findOneByID(ctx context.Context, q queryinterface.F
 
 	resourceAgg, ok := resourceInterface.(*agg.Resource)
 	if !ok {
-		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+		return nil, errtype.NewCachedDataTypeWasNotMatchedError(
 			cacheKey, reflect.TypeOf(&agg.Resource{}), reflect.TypeOf(resourceInterface),
 		)
 	}
