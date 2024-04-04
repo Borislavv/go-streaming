@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"go.mongodb.org/mongo-driver/bson"
@@ -64,7 +64,7 @@ func (r *BlockedTokenRepository) Insert(ctx context.Context, token *agg.BlockedT
 
 	if _, ok := res.InsertedID.(primitive.ObjectID); !ok {
 		return r.logger.LogPropagate(
-			errors.NewInternalValidationError(
+			errtype.NewInternalValidationError(
 				fmt.Sprintf("error occurred while inserting a blocked token '%v'", token),
 			),
 		)
