@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -20,8 +20,8 @@ import (
 const ResourcesCollection = "resources"
 
 var (
-	ResourceNotFoundByIdError    = errors.NewEntityNotFoundError("resource", "id")
-	ResourceInsertingFailedError = errors.NewInternalRepositoryError("unable to store 'resource' or retrieve inserted 'id'")
+	ResourceNotFoundByIdError    = errtype.NewEntityNotFoundError("resource", "id")
+	ResourceInsertingFailedError = errtype.NewInternalRepositoryError("unable to store 'resource' or retrieve inserted 'id'")
 )
 
 type ResourceRepository struct {
