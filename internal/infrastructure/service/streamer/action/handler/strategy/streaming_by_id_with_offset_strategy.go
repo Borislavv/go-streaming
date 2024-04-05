@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	tokenizerinterface "github.com/Borislavv/video-streaming/internal/domain/service/tokenizer/interface"
@@ -85,7 +85,7 @@ func (s *StreamByIDWithOffsetActionStrategy) Do(action model.Action) error {
 	q := dto.NewVideoGetRequestDTO(vo.NewID(oid), "", vo.ID{}, userID)
 	v, err := s.videoRepository.FindOneByID(s.ctx, q)
 	if err != nil {
-		if errors.IsEntityNotFoundError(err) {
+		if errtype.IsEntityNotFoundError(err) {
 			if err = s.communicator.Error(err, action.Conn); err != nil {
 				return s.logger.LogPropagate(err)
 			}
