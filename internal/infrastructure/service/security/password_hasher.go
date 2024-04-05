@@ -1,7 +1,8 @@
 package security
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	securityinterface "github.com/Borislavv/video-streaming/internal/domain/service/security/interface"
@@ -35,8 +36,8 @@ func (s *PasswordHasher) Hash(password string) (hash string, err error) {
 
 func (s *PasswordHasher) Verify(user securityinterface.Passwordness, password string) (err error) {
 	if err = bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(password)); err != nil {
-		if err == bcrypt.ErrMismatchedHashAndPassword {
-			return errors.NewAuthFailedError("passwords did not match")
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return errtype.NewAuthFailedError("passwords did not match")
 		} else {
 			return s.logger.LogPropagate(err)
 		}
