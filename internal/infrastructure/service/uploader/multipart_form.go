@@ -2,7 +2,7 @@ package uploader
 
 import (
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	fileinterface "github.com/Borislavv/video-streaming/internal/infrastructure/service/uploader/file/interface"
@@ -83,7 +83,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 		return u.logger.LogPropagate(err)
 	}
 	if has { // if being uploading resource is already exists, then throw an error
-		return u.logger.LogPropagate(errors.NewResourceAlreadyExistsError(header.Filename))
+		return u.logger.LogPropagate(errtype.NewResourceAlreadyExistsError(header.Filename))
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
