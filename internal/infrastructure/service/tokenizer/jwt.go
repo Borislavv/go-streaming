@@ -3,7 +3,7 @@ package tokenizer
 import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -81,17 +81,17 @@ func (s *JwtService) Verify(token string) (userID vo.ID, err error) {
 		return vo.ID{}, s.logger.LogPropagate(err)
 	}
 	if found {
-		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenWasBlockedError())
+		return vo.ID{}, s.logger.LogPropagate(errtype.NewAccessTokenWasBlockedError())
 	}
 
 	parsedToken, err := jwt.Parse(token, func(decodedToken *jwt.Token) (interface{}, error) {
 		if decodedToken.Header["alg"] != s.jwtTokenEncryptAlgo {
 			// user must be banned here because the algo wasn't matched
-			return nil, errors.NewTokenAlgoWasNotMatchedInternalError(token)
+			return nil, errtype.NewTokenAlgoWasNotMatchedInternalError(token)
 		}
 		// cast to the configured givenToken signature type (stored in `s.jwtTokenEncryptAlgo`)
 		if _, success := decodedToken.Method.(*jwt.SigningMethodHMAC); !success {
-			return nil, errors.NewTokenUnexpectedSigningMethodInternalError(token, decodedToken.Header["alg"])
+			return nil, errtype.NewTokenUnexpectedSigningMethodInternalError(token, decodedToken.Header["alg"])
 		}
 		// jwtSecretSalt is a string containing your secret, but you need pass the []byte
 		return s.jwtSecretSalt, nil
@@ -100,7 +100,7 @@ func (s *JwtService) Verify(token string) (userID vo.ID, err error) {
 		// parsing givenToken error occurred
 		s.logger.Log(err)
 		// return a token invalid error
-		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+		return vo.ID{}, s.logger.LogPropagate(errtype.NewAccessTokenIsInvalidError())
 	}
 
 	// extracting claims of the givenToken payload
@@ -109,7 +109,7 @@ func (s *JwtService) Verify(token string) (userID vo.ID, err error) {
 			// the issuer is not valid, log it
 			s.logger.Log(err)
 			// return a token invalid error
-			return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+			return vo.ID{}, s.logger.LogPropagate(errtype.NewAccessTokenIsInvalidError())
 		}
 
 		userID, err = s.getUserID(claims)
@@ -120,9 +120,9 @@ func (s *JwtService) Verify(token string) (userID vo.ID, err error) {
 		return userID, nil
 	} else {
 		// error occurred while extracting claims from givenToken or givenToken is not valid
-		s.logger.Log(errors.NewTokenInvalidInternalError(token))
+		s.logger.Log(errtype.NewTokenInvalidInternalError(token))
 		// return a token invalid error
-		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+		return vo.ID{}, s.logger.LogPropagate(errtype.NewAccessTokenIsInvalidError())
 	}
 }
 
@@ -146,11 +146,11 @@ func (s *JwtService) parseUserID(token string) (userID vo.ID, err error) {
 	parsedToken, err := jwt.Parse(token, func(decodedToken *jwt.Token) (interface{}, error) {
 		if decodedToken.Header["alg"] != s.jwtTokenEncryptAlgo {
 			// user must be banned here because the algo wasn't matched
-			return nil, errors.NewTokenAlgoWasNotMatchedInternalError(token)
+			return nil, errtype.NewTokenAlgoWasNotMatchedInternalError(token)
 		}
 		// cast to the configured givenToken signature type (stored in `s.jwtTokenEncryptAlgo`)
 		if _, success := decodedToken.Method.(*jwt.SigningMethodHMAC); !success {
-			return nil, errors.NewTokenUnexpectedSigningMethodInternalError(token, decodedToken.Header["alg"])
+			return nil, errtype.NewTokenUnexpectedSigningMethodInternalError(token, decodedToken.Header["alg"])
 		}
 		// jwtSecretSalt is a string containing your secret, but you need pass the []byte
 		return s.jwtSecretSalt, nil
@@ -159,7 +159,7 @@ func (s *JwtService) parseUserID(token string) (userID vo.ID, err error) {
 		// parsing givenToken error occurred
 		s.logger.Log(err)
 		// return a token invalid error
-		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+		return vo.ID{}, s.logger.LogPropagate(errtype.NewAccessTokenIsInvalidError())
 	}
 
 	if claims, success := parsedToken.Claims.(jwt.MapClaims); success {
@@ -169,7 +169,7 @@ func (s *JwtService) parseUserID(token string) (userID vo.ID, err error) {
 			return userID, nil
 		}
 	} else {
-		return vo.ID{}, s.logger.LogPropagate(errors.NewAccessTokenIsInvalidError())
+		return vo.ID{}, s.logger.LogPropagate(errtype.NewAccessTokenIsInvalidError())
 	}
 }
 
@@ -188,7 +188,7 @@ func (s *JwtService) isValidIssuer(token string, claims jwt.Claims) error {
 		}
 		return false
 	}()) {
-		return errors.NewTokenIssuerWasNotMatchedInternalError(token)
+		return errtype.NewTokenIssuerWasNotMatchedInternalError(token)
 	}
 
 	return nil
