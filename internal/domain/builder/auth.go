@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"io"
@@ -28,7 +28,7 @@ func (b *AuthBuilder) BuildAuthRequestDTOFromRequest(r *http.Request) (dtointerf
 	authDTO := &dto.AuthRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(authDTO); err != nil {
 		if err == io.EOF {
-			return nil, errors.NewRequestBodyIsEmptyError()
+			return nil, errtype.NewRequestBodyIsEmptyError()
 		}
 		return nil, b.logger.LogPropagate(err)
 	}
