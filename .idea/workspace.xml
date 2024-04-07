@@ -5,10 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="41f323cf-5088-4482-b3ca-5b7676168de3" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/streaming.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.local.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.local.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
@@ -16,16 +12,16 @@
       <change beforePath="$PROJECT_DIR$/internal/domain/builder/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/builder/auth.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/builder/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/builder/user.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/builder/video.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/builder/video.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/access.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/access.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/app.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/app.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/base.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/base.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/cache.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/cache.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/di.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/di.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/interface/error.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/interface/error.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/repository.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/upload.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/upload.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/validation.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/errtype/validation.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/access.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/app.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/auth.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/base.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/cache.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/di.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/interface/error.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/repository.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/upload.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/domain/errors/validation.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/service/accessor/accessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/accessor/accessor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/service/authenticator/authenticator.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/authenticator/authenticator.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/service/di/container.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/di/container.go" afterDir="false" />
@@ -95,7 +91,7 @@
     "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
     "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
     "configurable..is.expanded": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "ui-files-uploading-and-refactoring",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
     "kotlin-language-version-configured": "true",
