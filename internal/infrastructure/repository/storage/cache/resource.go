@@ -21,7 +21,7 @@ type ResourceRepository struct {
 	cache  cacherinterface.Cacher
 }
 
-func NewResourceRepository(serviceContainer diinterface.ContainerManager) (*ResourceRepository, error) {
+func NewResourceRepository(serviceContainer diinterface.ServiceContainer) (*ResourceRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
