@@ -17,7 +17,7 @@ type FilesController struct {
 	responder responseinterface.Responder
 }
 
-func NewFilesController(serviceContainer diinterface.ContainerManager) (*FilesController, error) {
+func NewFilesController(serviceContainer diinterface.ServiceContainer) (*FilesController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
