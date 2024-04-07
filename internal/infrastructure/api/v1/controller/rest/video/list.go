@@ -19,7 +19,7 @@ type ListController struct {
 	responder responseinterface.Responder
 }
 
-func NewListController(serviceContainer diinterface.ContainerManager) (*ListController, error) {
+func NewListController(serviceContainer diinterface.ServiceContainer) (*ListController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
