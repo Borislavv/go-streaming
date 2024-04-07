@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	StaticDirPath    = "/internal/infrastructure/static/"
+	StaticDirPath    = "/public/statics/"
 	TemplatesDirPath = "/html/"
 	ResourcesDirPath = "/public/resources/"
 )
