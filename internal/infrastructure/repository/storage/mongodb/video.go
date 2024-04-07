@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -20,11 +20,11 @@ import (
 const VideosCollection = "videos"
 
 var (
-	VideoNotFoundByIdError         = errors.NewEntityNotFoundError("video", "id")
-	VideoNotFoundByNameError       = errors.NewEntityNotFoundError("video", "name")
-	VideoNotFoundByResourceIdError = errors.NewEntityNotFoundError("video", "resource.id")
-	VideoInsertingFailedError      = errors.NewInternalValidationError("unable to store 'video' or get inserted 'id'")
-	VideoWasNotDeletedError        = errors.NewInternalValidationError("video was not deleted")
+	VideoNotFoundByIdError         = errtype.NewEntityNotFoundError("video", "id")
+	VideoNotFoundByNameError       = errtype.NewEntityNotFoundError("video", "name")
+	VideoNotFoundByResourceIdError = errtype.NewEntityNotFoundError("video", "resource.id")
+	VideoInsertingFailedError      = errtype.NewInternalValidationError("unable to store 'video' or get inserted 'id'")
+	VideoWasNotDeletedError        = errtype.NewInternalValidationError("video was not deleted")
 )
 
 type VideoRepository struct {

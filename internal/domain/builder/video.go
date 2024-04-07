@@ -8,7 +8,7 @@ import (
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -83,7 +83,7 @@ func (b *VideoBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.V
 	videoDTO := &dto.VideoCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(videoDTO); err != nil {
 		if err == io.EOF {
-			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+			return nil, b.logger.LogPropagate(errtype.NewRequestBodyIsEmptyError())
 		}
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -123,7 +123,7 @@ func (b *VideoBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.V
 	videoDTO := &dto.VideoUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&videoDTO); err != nil {
 		if err == io.EOF {
-			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+			return nil, b.logger.LogPropagate(errtype.NewRequestBodyIsEmptyError())
 		}
 		return nil, b.logger.LogPropagate(err)
 	}

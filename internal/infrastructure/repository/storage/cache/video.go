@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	cacherinterface "github.com/Borislavv/video-streaming/internal/domain/service/cacher/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -79,7 +79,7 @@ func (r *VideoRepository) findOneByID(ctx context.Context, q queryinterface.Find
 	// casting found data to struct
 	videoAgg, ok := videoInterface.(*agg.Video)
 	if !ok {
-		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+		return nil, errtype.NewCachedDataTypeWasNotMatchedError(
 			cacheKey, reflect.TypeOf(&agg.User{}), reflect.TypeOf(videoInterface),
 		)
 	}
@@ -127,7 +127,7 @@ func (r *VideoRepository) findList(ctx context.Context, q queryinterface.FindVid
 
 	listResponse, ok := responseInterface.(response)
 	if !ok {
-		return nil, 0, errors.NewCachedDataTypeWasNotMatchedError(
+		return nil, 0, errtype.NewCachedDataTypeWasNotMatchedError(
 			cacheKey, reflect.TypeOf(response{}), reflect.TypeOf(responseInterface),
 		)
 	}
@@ -167,7 +167,7 @@ func (r *VideoRepository) findOneByName(ctx context.Context, q queryinterface.Fi
 
 	videoAgg, ok := videoInterface.(*agg.Video)
 	if !ok {
-		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+		return nil, errtype.NewCachedDataTypeWasNotMatchedError(
 			cacheKey, reflect.TypeOf(&agg.Video{}), reflect.TypeOf(videoInterface),
 		)
 	}
@@ -207,7 +207,7 @@ func (r *VideoRepository) findOneByResourceID(ctx context.Context, q queryinterf
 
 	videoAgg, ok := videoInterface.(*agg.Video)
 	if !ok {
-		return nil, errors.NewCachedDataTypeWasNotMatchedError(
+		return nil, errtype.NewCachedDataTypeWasNotMatchedError(
 			cacheKey, reflect.TypeOf(&agg.Video{}), reflect.TypeOf(videoInterface),
 		)
 	}
