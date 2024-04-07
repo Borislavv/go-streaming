@@ -8,7 +8,7 @@ import (
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/entity"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -79,7 +79,7 @@ func (b *UserBuilder) BuildCreateRequestDTOFromRequest(r *http.Request) (*dto.Us
 	userDTO := &dto.UserCreateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(userDTO); err != nil {
 		if err == io.EOF {
-			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+			return nil, b.logger.LogPropagate(errtype.NewRequestBodyIsEmptyError())
 		}
 		return nil, b.logger.LogPropagate(err)
 	}
@@ -94,7 +94,7 @@ func (b *UserBuilder) BuildAggFromCreateRequestDTO(req dtointerface.CreateUserRe
 		// logging the real parsing error
 		b.logger.Log(err)
 		// logging the error which will be thrown
-		return nil, b.logger.LogPropagate(errors.NewBirthdayIsInvalidError(req.GetBirthday()))
+		return nil, b.logger.LogPropagate(errtype.NewBirthdayIsInvalidError(req.GetBirthday()))
 	}
 
 	// hash user's real password
@@ -122,7 +122,7 @@ func (b *UserBuilder) BuildUpdateRequestDTOFromRequest(r *http.Request) (*dto.Us
 	userDTO := &dto.UserUpdateRequestDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
 		if err == io.EOF {
-			return nil, b.logger.LogPropagate(errors.NewRequestBodyIsEmptyError())
+			return nil, b.logger.LogPropagate(errtype.NewRequestBodyIsEmptyError())
 		}
 		return nil, b.logger.LogPropagate(err)
 	}

@@ -7,7 +7,7 @@ import (
 	builderinterface "github.com/Borislavv/video-streaming/internal/domain/builder/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -159,7 +159,7 @@ func (s *CRUDService) Delete(req dtointerface.DeleteUserRequest) (err error) {
 	if total > 0 {
 		for _, videoAgg := range videoAggs {
 			if err = s.videoService.Delete(dto.NewVideoDeleteRequestDto(videoAgg.ID, userAgg.ID)); err != nil {
-				if errors.IsEntityNotFoundError(err) {
+				if errtype.IsEntityNotFoundError(err) {
 					s.logger.Warning(
 						fmt.Sprintf("user delete warning: reference video '%v' is not exists", videoAgg.ID.Value),
 					)

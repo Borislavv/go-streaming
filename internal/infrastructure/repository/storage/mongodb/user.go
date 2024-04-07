@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Borislavv/video-streaming/internal/domain/agg"
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/vo"
@@ -20,10 +20,10 @@ import (
 const UserCollection = "users"
 
 var (
-	UserNotFoundByIdError    = errors.NewEntityNotFoundError("user", "id")
-	UserNotFoundByEmailError = errors.NewEntityNotFoundError("user", "email")
-	UserInsertingFailedError = errors.NewInternalValidationError("unable to store 'user' or get inserted 'id'")
-	UserWasNotDeletedError   = errors.NewInternalValidationError("user was not deleted")
+	UserNotFoundByIdError    = errtype.NewEntityNotFoundError("user", "id")
+	UserNotFoundByEmailError = errtype.NewEntityNotFoundError("user", "email")
+	UserInsertingFailedError = errtype.NewInternalValidationError("unable to store 'user' or get inserted 'id'")
+	UserWasNotDeletedError   = errtype.NewInternalValidationError("user was not deleted")
 )
 
 type UserRepository struct {

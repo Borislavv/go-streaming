@@ -6,7 +6,7 @@ import (
 	"github.com/Borislavv/video-streaming/internal/domain/dto"
 	dtointerface "github.com/Borislavv/video-streaming/internal/domain/dto/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
-	"github.com/Borislavv/video-streaming/internal/domain/errors"
+	"github.com/Borislavv/video-streaming/internal/domain/errtype"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	repositoryinterface "github.com/Borislavv/video-streaming/internal/domain/repository/interface"
 	diinterface "github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -59,7 +59,7 @@ func NewUserValidator(serviceContainer diinterface.ContainerManager) (*UserValid
 
 func (v *UserValidator) ValidateGetRequestDTO(req dtointerface.GetUserRequest) error {
 	if req.GetID().Value.IsZero() && req.GetEmail() == "" {
-		return errors.NewAtLeastOneFieldMustBeDefinedError(idField, emailField)
+		return errtype.NewAtLeastOneFieldMustBeDefinedError(idField, emailField)
 	}
 	return nil
 }
@@ -90,7 +90,7 @@ func (v *UserValidator) ValidateCreateRequestDTO(req dtointerface.CreateUserRequ
 
 func (v *UserValidator) ValidateUpdateRequestDTO(req dtointerface.UpdateUserRequest) (err error) {
 	if req.GetID().Value.IsZero() {
-		return errors.NewFieldCannotBeEmptyError(idField)
+		return errtype.NewFieldCannotBeEmptyError(idField)
 	}
 
 	if err = v.isValidUsername(req.GetUsername()); err != nil {
@@ -111,22 +111,22 @@ func (v *UserValidator) ValidateUpdateRequestDTO(req dtointerface.UpdateUserRequ
 func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 	// the username cannot be empty or omitted
 	if agg.Username == "" {
-		return errors.NewInternalValidationError("user agg was built with empty username")
+		return errtype.NewInternalValidationError("user agg was built with empty username")
 	}
 
 	// the user password cannot be empty or omitted
 	if agg.GetPassword() == "" {
-		return errors.NewInternalValidationError("user agg was built with empty password")
+		return errtype.NewInternalValidationError("user agg was built with empty password")
 	}
 
 	// the user email cannot be empty or omitted
 	if agg.Email == "" {
-		return errors.NewInternalValidationError("user agg was built with empty email")
+		return errtype.NewInternalValidationError("user agg was built with empty email")
 	}
 
 	// the user birthday cannot be empty or omitted
 	if agg.Birthday.IsZero() {
-		return errors.NewInternalValidationError("user agg was built with empty birthday")
+		return errtype.NewInternalValidationError("user agg was built with empty birthday")
 	}
 
 	return nil
@@ -134,19 +134,19 @@ func (v *UserValidator) ValidateAggregate(agg *agg.User) error {
 
 func (v *UserValidator) ValidateDeleteRequestDTO(req dtointerface.DeleteUserRequest) error {
 	if req.GetID().Value.IsZero() {
-		return errors.NewFieldCannotBeEmptyError(idField)
+		return errtype.NewFieldCannotBeEmptyError(idField)
 	}
 	return nil
 }
 
 func (v *UserValidator) isValidBirthday(birthday string) error {
 	if birthday == "" {
-		return errors.NewFieldCannotBeEmptyError(birthdayField)
+		return errtype.NewFieldCannotBeEmptyError(birthdayField)
 	}
 
 	_, err := time.Parse(enum.BirthdayDatePattern, birthday)
 	if err != nil {
-		return errors.NewBirthdayIsInvalidError(birthday)
+		return errtype.NewBirthdayIsInvalidError(birthday)
 	}
 
 	return nil
@@ -154,13 +154,13 @@ func (v *UserValidator) isValidBirthday(birthday string) error {
 
 func (v *UserValidator) isValidEmail(email string) error {
 	if email == "" {
-		return errors.NewFieldCannotBeEmptyError(emailField)
+		return errtype.NewFieldCannotBeEmptyError(emailField)
 	}
 
 	// logging an email errors for have possibility debug it later
 	// when/if a user will report about wrong regex behavior
 	if !helper.IsValidEmail(email) {
-		return errors.NewEmailIsInvalidError(email, v.adminContactEmail)
+		return errtype.NewEmailIsInvalidError(email, v.adminContactEmail)
 	}
 
 	return nil
@@ -168,12 +168,12 @@ func (v *UserValidator) isValidEmail(email string) error {
 
 func (v *UserValidator) isValidPassword(password string) error {
 	if password == "" {
-		return errors.NewFieldCannotBeEmptyError(passwordField)
+		return errtype.NewFieldCannotBeEmptyError(passwordField)
 	}
 
 	// the user password must be longer than 8 chars and contains only latin letters/digits
 	if len(password) < 8 || !helper.IsLatinOrDigitOnly(password) {
-		return errors.NewPasswordIsInvalidError(password)
+		return errtype.NewPasswordIsInvalidError(password)
 	}
 
 	return nil
@@ -181,12 +181,12 @@ func (v *UserValidator) isValidPassword(password string) error {
 
 func (v *UserValidator) isValidUsername(username string) error {
 	if username == "" {
-		return errors.NewFieldCannotBeEmptyError(nameField)
+		return errtype.NewFieldCannotBeEmptyError(nameField)
 	}
 
 	// the username must be longer than 3 chars and contains only latin letters
 	if len(username) < 3 || !helper.IsLatinOnly(username) {
-		return errors.NewUsernameIsInvalidError(username)
+		return errtype.NewUsernameIsInvalidError(username)
 	}
 
 	return nil
@@ -196,12 +196,12 @@ func (v *UserValidator) isValidUsername(username string) error {
 func (v *UserValidator) isUniqueUser(email string) error {
 	// UserGetRequestDTO must be created with specifying the email only otherwise a user will be found by id in any case
 	user, err := v.userRepository.FindOneByEmail(v.ctx, dto.NewUserGetRequestDTO(vo.ID{}, email))
-	if err != nil && !errors.IsEntityNotFoundError(err) {
+	if err != nil && !errtype.IsEntityNotFoundError(err) {
 		return v.logger.LogPropagate(err)
 	}
 
 	if user != nil {
-		return errors.NewUserWithSuchEmailAlreadyExistsError(email)
+		return errtype.NewUserWithSuchEmailAlreadyExistsError(email)
 	}
 
 	return nil
