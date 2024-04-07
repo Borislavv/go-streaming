@@ -6,12 +6,12 @@ import (
 	"reflect"
 )
 
-type ServiceContainer struct {
+type Container struct {
 	container map[reflect.Type]reflect.Value
 }
 
-func NewServiceContainer(services ...any) *ServiceContainer {
-	s := &ServiceContainer{
+func NewServiceContainer(services ...any) *Container {
+	s := &Container{
 		container: make(map[reflect.Type]reflect.Value),
 	}
 
@@ -24,7 +24,7 @@ func NewServiceContainer(services ...any) *ServiceContainer {
 	return s
 }
 
-func (s *ServiceContainer) Set(service any, alias reflect.Type) (self diinterface.Container) {
+func (s *Container) Set(service any, alias reflect.Type) (self diinterface.Container) {
 	if alias == nil || alias == reflect.TypeOf(nil) {
 		alias = reflect.TypeOf(service)
 	}
@@ -32,12 +32,12 @@ func (s *ServiceContainer) Set(service any, alias reflect.Type) (self diinterfac
 	return s
 }
 
-func (s *ServiceContainer) Has(key reflect.Type) (has bool) {
+func (s *Container) Has(key reflect.Type) (has bool) {
 	_, has = s.container[key]
 	return has
 }
 
-func (s *ServiceContainer) Get(key reflect.Type) (service reflect.Value, notFoundErr error) {
+func (s *Container) Get(key reflect.Type) (service reflect.Value, notFoundErr error) {
 	service, found := s.container[key]
 	if !found {
 		return reflect.Value{}, fmt.Errorf("service not found by key '%s'", key)
