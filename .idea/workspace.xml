@@ -4,50 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="41f323cf-5088-4482-b3ca-5b7676168de3" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/docker-compose.local.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.local.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/builder/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/builder/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/builder/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/builder/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/builder/video.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/builder/video.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/access.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/app.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/auth.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/base.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/cache.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/di.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/interface/error.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/repository.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/upload.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/validation.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/service/accessor/accessor.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/accessor/accessor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/service/authenticator/authenticator.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/authenticator/authenticator.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/service/di/container.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/di/container.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/service/user/crud.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/service/user/crud.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/validator/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/validator/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/validator/resource.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/validator/resource.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/validator/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/validator/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/validator/video.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/domain/validator/video.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/api/v1/controller/rest/user/get.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/api/v1/controller/rest/user/get.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/api/v1/request/request.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/api/v1/request/request.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/api/v1/response/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/api/v1/response/response.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/helper/time.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/helper/time.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/cache/resource.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/cache/resource.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/cache/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/cache/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/cache/video.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/cache/video.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/blocked_token.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/blocked_token.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/resource.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/resource.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/video.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/repository/storage/mongodb/video.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/service/security/password_hasher.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/service/security/password_hasher.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/service/streamer/action/handler/strategy/streaming_by_id_strategy.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/service/streamer/action/handler/strategy/streaming_by_id_strategy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/service/streamer/action/handler/strategy/streaming_by_id_with_offset_strategy.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/service/streamer/action/handler/strategy/streaming_by_id_with_offset_strategy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/service/tokenizer/jwt.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/service/tokenizer/jwt.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/service/uploader/multipart_form.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/service/uploader/multipart_form.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/infrastructure/service/uploader/multipart_part.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/infrastructure/service/uploader/multipart_part.go" afterDir="false" />
-    </list>
+    <list default="true" id="41f323cf-5088-4482-b3ca-5b7676168de3" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -81,28 +38,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultGoTemplateProperty": "Go Application",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "configurable..is.expanded": "true",
-    "git-widget-placeholder": "ui-files-uploading-and-refactoring",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/admin/projects/go/go-streaming",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go Application&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;configurable..is.expanded&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/admin/projects/go/go-streaming&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
