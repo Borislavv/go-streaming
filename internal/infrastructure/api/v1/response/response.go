@@ -3,7 +3,7 @@ package response
 import (
 	"encoding/json"
 	"github.com/Borislavv/video-streaming/internal/domain/errtype"
-	error_interface "github.com/Borislavv/video-streaming/internal/domain/errtype/interface"
+	errtypeinterface "github.com/Borislavv/video-streaming/internal/domain/errtype/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
 	"io"
@@ -32,7 +32,7 @@ type Response struct {
 	logger loggerinterface.Logger
 }
 
-func NewResponseService(serviceContainer diinterface.ContainerManager) (*Response, error) {
+func NewResponseService(serviceContainer diinterface.ServiceContainer) (*Response, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (r *Response) Respond(w io.Writer, dataOrErr any) {
 	err, isErr := dataOrErr.(error)
 	if isErr {
 		r.logger.Log(err)
-		publicErr, isPublicErr := err.(error_interface.PublicError)
+		publicErr, isPublicErr := err.(errtypeinterface.PublicError)
 		if isPublicErr {
 			// handle the case when write is http.ResponseWriter
 			if httpWriter, ok := w.(http.ResponseWriter); ok {
