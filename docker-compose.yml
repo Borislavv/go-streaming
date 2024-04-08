@@ -45,7 +45,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "/data/storage/mongodb:/data/db"
+      - "./data/storage/mongodb:/data/db"
 
   mongodb-client:
     build:
@@ -53,5 +53,6 @@ services:
       dockerfile: .ops/docker/mongoclient/Dockerfile
     depends_on:
       - mongodb
+
 volumes:
   mongodb_data:
