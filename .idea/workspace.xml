@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="41f323cf-5088-4482-b3ca-5b7676168de3" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/go-streaming.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/domain/errors/access.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/errors/app.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/errors/auth.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/domain/errors/base.go" beforeDir="false" />
