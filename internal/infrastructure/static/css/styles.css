@@ -184,17 +184,22 @@ video {
     cursor: pointer;
 }
 
+.center-container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: center; /* Центрирование по горизонтали */
+    padding-top: 60px; /* Отступ сверху не менее высоты header */
+    padding-bottom: 60px; /* Отступ снизу, чтобы оставить место для footer */
+}
+
 .login-form {
-    max-width: 400px;
-    margin: 0 auto;
+    width: 400px;
     padding: 20px;
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 10px;
-    position: relative;
-    margin-top: 20px;
-    display: block;
-    top: 10%;
-    flex-direction: column;
+    /* Удалите position и transform, если они были заданы */
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
 }
 
 .login-form h2 {
