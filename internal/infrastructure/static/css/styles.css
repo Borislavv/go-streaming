@@ -192,7 +192,8 @@ video {
     border-radius: 10px;
     position: relative;
     margin-top: 20px;
-    display: flex;
+    display: block;
+    top: 10%;
     flex-direction: column;
 }
 
