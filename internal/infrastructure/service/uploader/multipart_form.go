@@ -35,7 +35,7 @@ func NewNativeUploader(serviceContainer diinterface.ContainerManager) (*Multipar
 		return nil, loggerService.LogPropagate(err)
 	}
 
-	filenameService, err := serviceContainer.GetFileNameComputerService()
+	fileNameComputer, err := serviceContainer.GetFileNameComputerService()
 	if err != nil {
 		return nil, loggerService.LogPropagate(err)
 	}
@@ -48,7 +48,7 @@ func NewNativeUploader(serviceContainer diinterface.ContainerManager) (*Multipar
 	return &MultipartFormUploader{
 		logger:                    loggerService,
 		fileStorage:               storageService,
-		fileNameComputer:          filenameService,
+		fileNameComputer:          fileNameComputer,
 		formFilename:              config.ResourceFormFilename,
 		inMemoryFileSizeThreshold: config.ResourceInMemoryFileSizeThreshold,
 	}, nil
