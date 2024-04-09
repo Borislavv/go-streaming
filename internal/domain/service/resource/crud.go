@@ -70,7 +70,7 @@ func NewResourceService(serviceContainer diinterface.ContainerManager) (*CRUDSer
 	}, nil
 }
 
-// Upload - will be prepared and  will be saved a file from the request. Important: the input request's DTO will
+// Upload - will be prepared and will be saved a file from the request. Important: the input request's DTO will
 // mutate per uploading. Also, of course will be created a new instance of agg.Resource as the contract says and
 // will be saved into the database.
 func (s *CRUDService) Upload(req dtointerface.UploadResourceRequest) (resource *agg.Resource, err error) {
