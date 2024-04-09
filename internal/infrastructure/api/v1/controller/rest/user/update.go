@@ -19,7 +19,7 @@ type UpdateController struct {
 	responder responseinterface.Responder
 }
 
-func NewUpdateUserController(serviceContainer diinterface.ContainerManager) (*UpdateController, error) {
+func NewUpdateUserController(serviceContainer diinterface.ServiceContainer) (*UpdateController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
