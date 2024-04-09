@@ -54,7 +54,7 @@ func NewNativeUploader(serviceContainer diinterface.ContainerManager) (*Multipar
 	}, nil
 }
 
-// Upload method will be store a file on a disk and calculate a new hashed name. Request DTO mutation!
+// Upload method will be store a file on the disk and calculate a new hashed name. Request DTO mutation!
 func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest) (err error) {
 	// request will be parsed and stored in the memory if it is under the RAM threshold,
 	// otherwise last parts of parsed file will be stored in the tmp files on the disk space
