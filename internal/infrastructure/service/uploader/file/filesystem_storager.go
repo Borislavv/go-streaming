@@ -2,16 +2,13 @@ package file
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/helper"
 	"io"
-	"mime/multipart"
 	"os"
-	"path/filepath"
 )
 
 type FilesystemStorageService struct {
@@ -37,83 +34,107 @@ func NewFilesystemStorageService(serviceContainer diinterface.ContainerManager) 
 }
 
 // Has is checking whether the file already exists.
-func (s *FilesystemStorageService) Has(filename string) (has bool, e error) {
+func (s *FilesystemStorageService) Has(userID vo.ID, filename string) (has bool, e error) {
 	// resources dir.
 	resourcesDir, err := helper.ResourcesDir()
 	if err != nil {
 		return true, s.logger.LogPropagate(err)
 	}
 
-	// resources files dir.
-	dir, err := os.Open(resourcesDir)
+	// dir. with other dirs. which separates by userIDs
+	usersDirs, err := os.Open(resourcesDir)
 	if err != nil {
 		return true, s.logger.LogPropagate(err)
 	}
-	defer func() { _ = dir.Close() }()
+	defer func() { _ = usersDirs.Close() }()
 
-	// slice of string which is filenames
-	filenames, err := dir.Readdirnames(-1)
+	// dirs. by userIDs (name of each dir is userID)
+	userDirs, err := usersDirs.Readdirnames(-1)
 	if err != nil {
 		return true, s.logger.LogPropagate(err)
 	}
 
 	// attempt of finding a match
-	for _, foundFilename := range filenames {
-		if foundFilename == filename {
-			return true, nil
+	for _, userIDHex := range userDirs {
+		if userIDHex == userID.Hex() {
+			userDir, err := os.Open(resourcesDir + userIDHex)
+			if err != nil {
+				return true, s.logger.LogPropagate(err)
+			}
+
+			userFiles, err := userDir.Readdirnames(-1)
+			if err != nil {
+				return true, s.logger.LogPropagate(err)
+			}
+
+			for _, userFilename := range userFiles {
+				if userFilename == filename {
+					return true, nil
+				}
+			}
 		}
 	}
+
 	return false, nil
 }
 
 // Store is saving file and calculating new hashed name.
 func (s *FilesystemStorageService) Store(
-	name string,
+	userID vo.ID,
+	filename string,
 	reader io.Reader,
 ) (
 	length int64,
-	filename string,
-	filepath string,
+	path string,
 	err error,
 ) {
-	// resource file name
-	filename = name
-
 	// resources files directory
 	dir, err := helper.ResourcesDir()
 	if err != nil {
-		return 0, "", "", s.logger.LogPropagate(err)
+		return 0, "", s.logger.LogPropagate(err)
+	}
+
+	// user files directory path
+	dir = fmt.Sprintf("%v%v", dir, userID.Hex())
+
+	// create a user directory if not exists
+	if _, err = os.Stat(dir); os.IsNotExist(err) {
+		if err = os.Mkdir(dir, 0644); err != nil {
+			return 0, "", s.logger.LogPropagate(err)
+		}
 	}
 
 	// full qualified file path
-	filepath = fmt.Sprintf("%v%v", dir, name)
+	path = fmt.Sprintf("%v/%v", dir, filename)
 
 	// resource creating which will represented as a simple file at now
-	createdFile, err := os.Create(filepath)
+	createdFile, err := os.Create(path)
 	if err != nil {
-		return 0, "", "", s.logger.LogPropagate(err)
+		return 0, "", s.logger.LogPropagate(err)
 	}
 	defer func() { _ = createdFile.Close() }()
 
 	// moving the data in to the created file from tmp
 	length, err = io.Copy(createdFile, reader)
 	if err != nil {
-		return 0, "", "", s.logger.LogPropagate(err)
+		return 0, "", s.logger.LogPropagate(err)
 	}
 
 	// returning id of the created file, e.g. resourceId
-	return length, filename, filepath, nil
+	return length, path, nil
 }
 
-func (s *FilesystemStorageService) Remove(name string) error {
-	// resources files directory
-	dir, err := helper.ResourcesDir()
+func (s *FilesystemStorageService) Remove(userID vo.ID, name string) error {
+	// full qualified filepath
+	path, err := s.filepath(userID, name)
 	if err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
-	// full qualified file path
-	path := fmt.Sprintf("%v%v", dir, name)
+	// file already is not exists
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		return nil
+	}
 
 	// removing the target file
 	if err = os.Remove(path); err != nil {
@@ -123,25 +144,22 @@ func (s *FilesystemStorageService) Remove(name string) error {
 	return nil
 }
 
-// getFilename - will return calculated filename with extension
-func (s *FilesystemStorageService) getFilename(header *multipart.FileHeader) (filename string, err error) {
-	hash := sha256.New()
-	if _, err = hash.Write(
-		[]byte(
-			fmt.Sprintf(
-				"%v%d%+v",
-				header.Filename,
-				header.Size,
-				header.Header,
-			),
-		),
-	); err != nil {
+func (s *FilesystemStorageService) filepath(userID vo.ID, filename string) (path string, err error) {
+	// resources dir path
+	dir, err := helper.ResourcesDir()
+	if err != nil {
 		return "", s.logger.LogPropagate(err)
 	}
 
-	return fmt.Sprintf(
-		"%v%v",
-		hex.EncodeToString(hash.Sum(nil)),
-		filepath.Ext(header.Filename),
-	), nil
+	// user files dir path
+	dir = fmt.Sprintf("%v%v", dir, userID.Hex())
+
+	// create a user directory if not exists
+	if _, err = os.Stat(dir); os.IsNotExist(err) {
+		if err = os.Mkdir(dir, 0644); err != nil {
+			return "", s.logger.LogPropagate(err)
+		}
+	}
+
+	return fmt.Sprintf("%v/%v", dir, filename), nil
 }

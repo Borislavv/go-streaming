@@ -174,6 +174,7 @@ document.getElementById('video-upload-form').addEventListener('submit', function
     xhr.onload = function () {
         if (xhr.status === 200) {
             console.log('Video uploaded successfully');
+            console.log('Response from the server:', JSON.parse(xhr.responseText));
         } else {
             console.error('An error occurred during the upload');
         }

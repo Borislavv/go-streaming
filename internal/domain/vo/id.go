@@ -29,3 +29,7 @@ func (id *ID) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
+
+func (id *ID) Hex() string {
+	return id.Value.Hex()
+}

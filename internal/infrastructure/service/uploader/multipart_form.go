@@ -72,6 +72,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 
 	// TODO must be added filesize for check uniqueness
 	computedFilename, err := u.fileNameComputer.Get(
+		reqDTO.GetUserID(),
 		header.Filename,
 		header.Header.Get("Content-Type"),
 		header.Header.Get("Content-Disposition"),

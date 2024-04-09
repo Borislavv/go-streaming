@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/Borislavv/video-streaming/internal/domain/vo"
 	"path/filepath"
 )
 
@@ -16,6 +17,7 @@ func NewNameComputerService() *NameComputerService {
 
 // Get - will return computed filename with extension.
 func (s *NameComputerService) Get(
+	userID vo.ID,
 	remoteFilename string,
 	contentType string,
 	contentDisposition string,
@@ -24,7 +26,8 @@ func (s *NameComputerService) Get(
 	if _, err = hash.Write(
 		[]byte(
 			fmt.Sprintf(
-				"%v%v%+v",
+				"%v%v%v%+v",
+				userID.Value.Hex(),
 				remoteFilename,
 				contentType,
 				contentDisposition,
