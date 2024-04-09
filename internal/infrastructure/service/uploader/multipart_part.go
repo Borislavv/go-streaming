@@ -61,7 +61,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	)
 
 	// checking whether the being uploaded resource already exists
-	has, err := u.storage.Has(computedFilename)
+	has, err := u.storage.Has(reqDTO.GetUserID(), computedFilename)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -70,7 +70,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(computedFilename, part)
+	length, filename, filepath, err := u.storage.Store(reqDTO.GetUserID(), computedFilename, part)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
