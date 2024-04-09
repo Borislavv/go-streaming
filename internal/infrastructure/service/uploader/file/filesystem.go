@@ -34,7 +34,7 @@ func NewFilesystemStorageService(serviceContainer diinterface.ContainerManager) 
 }
 
 // Has is checking whether the file already exists.
-func (s *FilesystemStorageService) Has(userID vo.ID, filename string) (has bool, e error) {
+func (s *FilesystemStorageService) Has(userID vo.ID, filename string) (has bool, err error) {
 	// resources dir.
 	resourcesDir, err := helper.ResourcesDir()
 	if err != nil {
