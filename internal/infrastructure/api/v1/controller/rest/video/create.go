@@ -21,7 +21,7 @@ type CreateController struct {
 	responder   responseinterface.Responder
 }
 
-func NewCreateController(serviceContainer diinterface.ContainerManager) (*CreateController, error) {
+func NewCreateController(serviceContainer diinterface.ServiceContainer) (*CreateController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
