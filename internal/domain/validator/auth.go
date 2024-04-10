@@ -14,7 +14,7 @@ type AuthValidator struct {
 	adminContactEmailAddress string
 }
 
-func NewAuthValidator(serviceContainer diinterface.ContainerManager) (*AuthValidator, error) {
+func NewAuthValidator(serviceContainer diinterface.ServiceContainer) (*AuthValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
