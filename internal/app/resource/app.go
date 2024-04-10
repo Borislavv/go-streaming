@@ -62,10 +62,10 @@ import (
 
 type ResourcesApp struct {
 	cfg *app.Config
-	di  diinterface.ContainerManager
+	di  diinterface.ServiceContainer
 }
 
-func NewResourcesApp(di diinterface.ContainerManager) *ResourcesApp {
+func NewResourcesApp(di diinterface.ServiceContainer) *ResourcesApp {
 	return &ResourcesApp{cfg: &app.Config{}, di: di}
 }
 
