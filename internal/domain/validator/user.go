@@ -28,7 +28,7 @@ type UserValidator struct {
 	adminContactEmail string
 }
 
-func NewUserValidator(serviceContainer diinterface.ContainerManager) (*UserValidator, error) {
+func NewUserValidator(serviceContainer diinterface.ServiceContainer) (*UserValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
