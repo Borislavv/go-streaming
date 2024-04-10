@@ -17,7 +17,7 @@ type ResourceValidator struct {
 	maxFilesize int64
 }
 
-func NewResourceValidator(serviceContainer diinterface.ContainerManager) (*ResourceValidator, error) {
+func NewResourceValidator(serviceContainer diinterface.ServiceContainer) (*ResourceValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
