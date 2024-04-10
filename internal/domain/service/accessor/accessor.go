@@ -28,7 +28,7 @@ type AccessService struct {
 	isAppropriateHandlerFuncs map[AggregateAccessType]AggregateAccessIsAppropriateHandler
 }
 
-func NewAccessService(serviceContainer diinterface.ContainerManager) (*AccessService, error) {
+func NewAccessService(serviceContainer diinterface.ServiceContainer) (*AccessService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
