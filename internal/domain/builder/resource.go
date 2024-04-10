@@ -19,7 +19,7 @@ type ResourceBuilder struct {
 	inMemoryFileSizeThreshold int64
 }
 
-func NewResourceBuilder(serviceContainer diinterface.ContainerManager) (*ResourceBuilder, error) {
+func NewResourceBuilder(serviceContainer diinterface.ServiceContainer) (*ResourceBuilder, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
