@@ -15,7 +15,7 @@ type AuthBuilder struct {
 	logger loggerinterface.Logger
 }
 
-func NewAuthBuilder(serviceContainer diinterface.ContainerManager) (*AuthBuilder, error) {
+func NewAuthBuilder(serviceContainer diinterface.ServiceContainer) (*AuthBuilder, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
