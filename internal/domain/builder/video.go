@@ -43,7 +43,7 @@ type VideoBuilder struct {
 }
 
 // NewVideoBuilder is a constructor of VideoBuilder
-func NewVideoBuilder(serviceContainer diinterface.ContainerManager) (*VideoBuilder, error) {
+func NewVideoBuilder(serviceContainer diinterface.ServiceContainer) (*VideoBuilder, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
