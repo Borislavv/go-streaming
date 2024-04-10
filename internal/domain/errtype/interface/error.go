@@ -1,4 +1,4 @@
-package error_interface
+package errtypeinterface
 
 // PublicError is the interface tells the responder that you want to show an error.
 // All errors which implements it will show them messages and types.
