@@ -20,7 +20,7 @@ type IndexController struct {
 	responder responseinterface.Responder
 }
 
-func NewIndexController(serviceContainer diinterface.ContainerManager) (*IndexController, error) {
+func NewIndexController(serviceContainer diinterface.ServiceContainer) (*IndexController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
