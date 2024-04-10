@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/Borislavv/video-streaming/internal/app/resource"
 	"github.com/Borislavv/video-streaming/internal/app/stream"
-	"github.com/Borislavv/video-streaming/internal/domain/service/di"
+	"github.com/Borislavv/video-streaming/internal/infrastructure/di"
 	"sync"
 )
 
