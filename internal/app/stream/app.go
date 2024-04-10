@@ -43,10 +43,10 @@ import (
 
 type StreamingApp struct {
 	cfg *app.Config
-	di  diinterface.ContainerManager
+	di  diinterface.ServiceContainer
 }
 
-func NewStreamingApp(di diinterface.ContainerManager) *StreamingApp {
+func NewStreamingApp(di diinterface.ServiceContainer) *StreamingApp {
 	return &StreamingApp{cfg: &app.Config{}, di: di}
 }
 
