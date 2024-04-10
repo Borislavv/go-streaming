@@ -30,7 +30,7 @@ type VideoValidator struct {
 	resourceRepository repositoryinterface.Resource
 }
 
-func NewVideoValidator(serviceContainer diinterface.ContainerManager) (*VideoValidator, error) {
+func NewVideoValidator(serviceContainer diinterface.ServiceContainer) (*VideoValidator, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
