@@ -19,7 +19,7 @@ type AuthorizationController struct {
 	responder     responseinterface.Responder
 }
 
-func NewAuthorizationController(serviceContainer diinterface.ContainerManager) (*AuthorizationController, error) {
+func NewAuthorizationController(serviceContainer diinterface.ServiceContainer) (*AuthorizationController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
