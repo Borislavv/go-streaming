@@ -19,7 +19,7 @@ type RegistrationController struct {
 	responder responseinterface.Responder
 }
 
-func NewRegistrationController(serviceContainer diinterface.ContainerManager) (*RegistrationController, error) {
+func NewRegistrationController(serviceContainer diinterface.ServiceContainer) (*RegistrationController, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
