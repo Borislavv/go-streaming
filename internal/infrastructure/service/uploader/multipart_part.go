@@ -53,7 +53,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	}
 
 	// TODO must be added filesize for check uniqueness
-	computedFilename, err := u.filename.Get(
+	filename, err := u.filename.Get(
 		reqDTO.GetUserID(),
 		part.FileName(),
 		part.Header.Get("Content-Type"),
@@ -61,7 +61,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	)
 
 	// checking whether the being uploaded resource already exists
-	has, err := u.storage.Has(reqDTO.GetUserID(), computedFilename)
+	has, err := u.storage.Has(reqDTO.GetUserID(), filename)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -70,7 +70,7 @@ func (u *MultipartPartUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.storage.Store(reqDTO.GetUserID(), computedFilename, part)
+	length, filepath, err := u.storage.Store(reqDTO.GetUserID(), filename, part)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
