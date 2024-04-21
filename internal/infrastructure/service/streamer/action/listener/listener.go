@@ -22,7 +22,7 @@ type WebSocketActionsListener struct {
 	communicator protointerface.Communicator
 }
 
-func NewWebSocketActionsListener(serviceContainer diinterface.ContainerManager) (*WebSocketActionsListener, error) {
+func NewWebSocketActionsListener(serviceContainer diinterface.ServiceContainer) (*WebSocketActionsListener, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
