@@ -1,0 +1,388 @@
+/* Scroll removed */
+body::-webkit-scrollbar {
+    width: 0;
+}
+/* Scroll are invisible */
+body::-webkit-scrollbar-thumb {
+    background-color: transparent;
+}
+
+body, html {
+    height: 100%; /* Обеспечиваем, чтобы body и html занимали всю высоту страницы */
+    margin: 0; /* Сбрасываем отступы */
+}
+
+body {
+    color: #c7c7c7;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #757575;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* Тень текста */
+    display: flex; /* Используем Flexbox */
+    flex-direction: column; /* Ориентируем элементы вертикально */
+    justify-content: space-between; /* Распределяем пространство между элементами */
+}
+
+header {
+    background-color: #333;
+    color: #c7c7c7;
+    text-align: center;
+    margin-bottom: 45px;
+    box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+footer {
+    background-color: #333;
+    color: #c7c7c7;
+    text-align: center;
+    padding: 5px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin-top: 100px;
+    box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    position: relative;
+}
+
+video {
+    width: 100%; /* Чтобы видеоплеер растягивался на всю ширину контейнера */
+    height: auto; /* Для поддержания соотношения сторон */
+    max-height: calc(100vh - 200px); /* Ограничение по высоте, исходя из высоты viewport и отступов */
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+.button {
+    background-color: #444;
+    color: #c7c7c7;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3); /* Тень */
+}
+
+.button:hover {
+    background-color: #666;
+}
+
+.dropdown-content {
+    position: relative;
+    overflow-wrap: break-word;
+    background-color: rgba(0, 0, 0, 0.78);
+    border-radius: 10px;
+    overflow-y: auto;
+    z-index: 1;
+    display: none;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: bottom 0.5s ease;
+    margin-top: 0;
+    margin-bottom: calc(100% - 95%);
+    height: auto; /* Для поддержания соотношения сторон */
+    max-height: calc(100vh - 200px);
+    top: 100%;
+    width: auto;
+    max-width: calc(100% - 0px);
+    min-width: calc(100% - 0px);
+}
+
+.dropdown-content.active {
+    bottom: calc(100% + 15px); /* Увеличиваем отступ снизу до 15px */
+    display: block;
+}
+
+/* Скрываем полосу прокрутки */
+.dropdown-content::-webkit-scrollbar {
+    width: 0;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+    background-color: #666;
+}
+
+.dropdown-content ul {
+    list-style: none;
+    padding: 1px;
+    margin: 15px;
+}
+
+.dropdown-content li {
+    padding: 5px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dropdown-content li:hover {
+    background-color: #555;
+    border-radius: 5px;
+}
+
+.container, .dropdown-content {
+    box-shadow: 0 0 7px rgba(0, 0, 0, 0.7);
+}
+
+.pagination-info {
+    color: #7e7e7e;
+    padding-left: 25px;
+    padding-bottom: 15px;
+}
+.pagination-control {
+    color: #7e7e7e;
+    padding-left: 25px;
+    padding-bottom: 15px;
+}
+
+/* Стили для алерта */
+.custom-alert {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.alert-content {
+    background-color: #333; /* Цвет фона, подходящий к остальному приложению */
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    width: 250px; /* Увеличение ширины алерта до 250px */
+    color: #c7c7c7; /* Цвет текста, подходящий к остальному приложению */
+}
+
+#close-alert {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #8a8a8a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.close-error {
+    float: right; /* Расположение справа */
+    font-size: 20px; /* Размер шрифта */
+    font-weight: bold;
+    cursor: pointer; /* Курсор в виде руки при наведении */
+}
+
+.close-error:hover {
+    color: #fff; /* Цвет при наведении */
+}
+
+/* Убедитесь, что элемент error-message имеет отступы, чтобы текст не налезал на кнопку закрытия */
+.error-message {
+    padding: 10px;
+    position: relative; /* Для абсолютного позиционирования close-error */
+    /* ... */
+}
+
+.center-container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: center; /* Центрирование по горизонтали */
+    padding-top: 60px; /* Отступ сверху не менее высоты header */
+    padding-bottom: 60px; /* Отступ снизу, чтобы оставить место для footer */
+}
+
+.login-form {
+    width: 400px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    /* Удалите position и transform, если они были заданы */
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+.login-form h2 {
+    color: #c7c7c7;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #666;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.login-form .button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.login-form button {
+    width: 48%;
+    background-color: #444;
+    color: #c7c7c7;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Добавлен отступ справа для кнопки Registration */
+.login-form button:last-child {
+    margin-left: auto;
+}
+
+.login-form button:hover {
+    background-color: #666;
+}
+
+.main-content {
+    flex: 1; /* Элемент растягивается, чтобы занять доступное пространство */
+    overflow: auto; /* Добавляем прокрутку, если контент превышает высоту экрана */
+    /* Подстройте отступы в соответствии с вашим дизайном */
+    padding: 20px;
+}
+
+.sidebar {
+    position: fixed;
+    top: 70px; /* Или высота вашего header */
+    bottom: 25px; /* Или высота вашего footer */
+    left: 0;
+    width: 200px; /* Подходящая ширина */
+    background-color: #333; /* Четкий фоновый цвет */
+    z-index: 10; /* Достаточно высокий */
+    overflow-y: auto; /* Для прокрутки, если содержимое длиннее, чем экран */
+    opacity: 0.9;
+}
+
+header, footer {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Убедитесь, что z-index достаточно высок */
+}
+
+header {
+    top: 0;
+    height: 60px; /* Или ваша фактическая высота */
+    opacity: 0.8;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 15px; /* Или другая высота, соответствующая вашему дизайну */
+    background-color: #333;
+    color: #c7c7c7;
+    text-align: center;
+    padding: 5px;
+    box-shadow: 0 0 7px rgba(0, 0, 0, 1.7);
+    z-index: 10; /* Достаточно высокий, чтобы быть поверх контента */
+    opacity: 0.7;
+}
+
+.container {
+    margin-top: 100px; /* Регулируйте в соответствии с размером header */
+    margin-bottom: 70px; /* Увеличьте для предотвращения перекрытия footer */
+    margin-left: 220px; /* Регулируйте в соответствии с шириной sidebar */
+    margin-right: 30px;
+    padding: 20px;
+    box-sizing: border-box;
+    max-width: calc(100% - 250px); /* Адаптируйте в соответствии с шириной sidebar и отступами */
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    position: relative; /* Поддержка относительного позиционирования */
+}
+
+.menu {
+    list-style: none;
+    padding: 0;
+}
+
+.menu li {
+    padding: 10px;
+    background-color: #444;
+    margin-bottom: 10px;
+    color: #c7c7c7;
+    cursor: pointer;
+}
+
+.menu li:hover {
+    background-color: #666;
+}
+
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed; /* Остается на месте при прокрутке */
+    z-index: 1000; /* Слой над другими элементами */
+    left: 0;
+    top: 0;
+    width: 100%; /* Полная ширина */
+    height: 100%; /* Полная высота */
+    overflow: auto; /* В случае превышения контента */
+    background-color: rgb(0,0,0); /* Цвет фона */
+    background-color: rgba(0,0,0,0.4); /* Черный с непрозрачностью */
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% сверху и центрировано по горизонтали */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Ширина контента */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); /* Тень */
+    animation-name: animatetop;
+    animation-duration: 0.4s; /* Анимация для плавного появления */
+}
+
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
