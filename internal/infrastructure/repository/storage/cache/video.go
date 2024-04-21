@@ -21,7 +21,7 @@ type VideoRepository struct {
 	cache  cacherinterface.Cacher
 }
 
-func NewVideoRepository(serviceContainer diinterface.ContainerManager) (*VideoRepository, error) {
+func NewVideoRepository(serviceContainer diinterface.ServiceContainer) (*VideoRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
