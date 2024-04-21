@@ -33,7 +33,7 @@ type StreamByIDActionStrategy struct {
 	tokenizer       tokenizerinterface.Tokenizer
 }
 
-func NewStreamByIDActionStrategy(serviceContainer diinterface.ContainerManager) (*StreamByIDActionStrategy, error) {
+func NewStreamByIDActionStrategy(serviceContainer diinterface.ServiceContainer) (*StreamByIDActionStrategy, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
