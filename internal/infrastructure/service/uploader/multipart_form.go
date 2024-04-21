@@ -24,7 +24,7 @@ type MultipartFormUploader struct {
 	inMemoryFileSizeThreshold int64
 }
 
-func NewNativeUploader(serviceContainer diinterface.ContainerManager) (*MultipartFormUploader, error) {
+func NewNativeUploader(serviceContainer diinterface.ServiceContainer) (*MultipartFormUploader, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
