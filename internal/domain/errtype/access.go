@@ -1,7 +1,6 @@
 package errtype
 
 import (
-	"fmt"
 	"github.com/Borislavv/video-streaming/internal/infrastructure/service/logger"
 	"net/http"
 )
@@ -17,7 +16,7 @@ type AccessDeniedError struct{ publicError }
 func NewAccessDeniedError(msg string) *AccessDeniedError {
 	baseMsg := "access denied"
 	if msg != "" {
-		msg = fmt.Sprintf("%v: %v", baseMsg, msg)
+		msg = baseMsg + ": " + msg
 	} else {
 		msg = baseMsg
 	}
