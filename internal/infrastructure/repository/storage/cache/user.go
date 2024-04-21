@@ -21,7 +21,7 @@ type UserRepository struct {
 	cache  cacherinterface.Cacher
 }
 
-func NewUserRepository(serviceContainer diinterface.ContainerManager) (*UserRepository, error) {
+func NewUserRepository(serviceContainer diinterface.ServiceContainer) (*UserRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
