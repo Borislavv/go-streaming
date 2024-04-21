@@ -113,13 +113,13 @@ func (s *CRUDService) Upload(req dtointerface.UploadResourceRequest) (resource *
 func (s *CRUDService) onUploadingFailed(req dtointerface.UploadResourceRequest) error {
 	// handle the case when the file was uploaded, but error occurred while saving an aggregate
 	if req.GetUploadedFilename() != "" { // in this case, we need remove the uploaded file
-		has, err := s.storage.Has(req.GetUploadedFilename())
+		has, err := s.storage.Has(req.GetUserID(), req.GetUploadedFilename())
 		if err != nil {
 			s.logger.Log(err)
 			return s.logger.LogPropagate(err)
 		}
 		if has { // check that file exists, if so, then remove it
-			if err = s.storage.Remove(req.GetUploadedFilename()); err != nil {
+			if err = s.storage.Remove(req.GetUserID(), req.GetUploadedFilename()); err != nil {
 				return s.logger.LogPropagate(err)
 			}
 		}
@@ -142,7 +142,7 @@ func (s *CRUDService) Delete(req dtointerface.DeleteResourceRequest) (err error)
 	}
 
 	// removing the file first
-	if err = s.storage.Remove(resourceAgg.Filename); err != nil {
+	if err = s.storage.Remove(req.GetUserID(), resourceAgg.Filename); err != nil {
 		return s.logger.LogPropagate(err)
 	}
 
