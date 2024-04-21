@@ -22,7 +22,7 @@ type FileReaderService struct {
 	chunkSize int
 }
 
-func NewFileReaderService(serviceContainer diinterface.ContainerManager) (*FileReaderService, error) {
+func NewFileReaderService(serviceContainer diinterface.ServiceContainer) (*FileReaderService, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
