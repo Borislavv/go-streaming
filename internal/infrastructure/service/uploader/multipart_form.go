@@ -71,7 +71,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	defer func() { _ = formFile.Close() }()
 
 	// TODO must be added filesize for check uniqueness
-	computedFilename, err := u.fileNameComputer.Get(
+	filename, err := u.fileNameComputer.Get(
 		reqDTO.GetUserID(),
 		header.Filename,
 		header.Header.Get("Content-Type"),
@@ -79,7 +79,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	)
 
 	// checking whether the being uploaded resource already exists
-	has, err := u.fileStorage.Has(reqDTO.GetUserID(), computedFilename)
+	has, err := u.fileStorage.Has(reqDTO.GetUserID(), filename)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
@@ -88,7 +88,7 @@ func (u *MultipartFormUploader) Upload(reqDTO dtointerface.UploadResourceRequest
 	}
 
 	// saving a file on disk and calculating new hashed name with full qualified path
-	length, filename, filepath, err := u.fileStorage.Store(reqDTO.GetUserID(), computedFilename, formFile)
+	length, filepath, err := u.fileStorage.Store(reqDTO.GetUserID(), filename, formFile)
 	if err != nil {
 		return u.logger.LogPropagate(err)
 	}
