@@ -15,7 +15,7 @@ type WebSocketActionsHandler struct {
 	actionStrategies []strategyinterface.ActionStrategy
 }
 
-func NewWebSocketActionsHandler(serviceContainer diinterface.ContainerManager) (*WebSocketActionsHandler, error) {
+func NewWebSocketActionsHandler(serviceContainer diinterface.ServiceContainer) (*WebSocketActionsHandler, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
