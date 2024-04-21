@@ -31,7 +31,7 @@ type ResourceRepository struct {
 	timeout time.Duration
 }
 
-func NewResourceRepository(serviceContainer diinterface.ContainerManager) (*ResourceRepository, error) {
+func NewResourceRepository(serviceContainer diinterface.ServiceContainer) (*ResourceRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
