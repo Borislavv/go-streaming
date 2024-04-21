@@ -24,7 +24,7 @@ type BlockedTokenRepository struct {
 	timeout time.Duration
 }
 
-func NewBlockedTokenRepository(serviceContainer diinterface.ContainerManager) (*BlockedTokenRepository, error) {
+func NewBlockedTokenRepository(serviceContainer diinterface.ServiceContainer) (*BlockedTokenRepository, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
