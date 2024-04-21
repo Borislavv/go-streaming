@@ -22,7 +22,7 @@ type Server struct {
 	logger   loggerinterface.Logger
 }
 
-func NewWebSocketServer(serviceContainer diinterface.ContainerManager) (*Server, error) {
+func NewWebSocketServer(serviceContainer diinterface.ServiceContainer) (*Server, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
