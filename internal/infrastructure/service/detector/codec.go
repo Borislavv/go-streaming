@@ -14,7 +14,7 @@ type ResourceCodecs struct {
 	logger loggerinterface.Logger
 }
 
-func NewResourceCodecs(serviceContainer diinterface.ContainerManager) (*ResourceCodecs, error) {
+func NewResourceCodecs(serviceContainer diinterface.ServiceContainer) (*ResourceCodecs, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
