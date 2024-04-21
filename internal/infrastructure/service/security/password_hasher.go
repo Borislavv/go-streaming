@@ -14,7 +14,7 @@ type PasswordHasher struct {
 	cost   int
 }
 
-func NewPasswordHasher(serviceContainer diinterface.ContainerManager, cost int) (*PasswordHasher, error) {
+func NewPasswordHasher(serviceContainer diinterface.ServiceContainer, cost int) (*PasswordHasher, error) {
 	loggerService, err := serviceContainer.GetLoggerService()
 	if err != nil {
 		return nil, err
