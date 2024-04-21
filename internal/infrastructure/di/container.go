@@ -1,10 +1,12 @@
 package di
 
 import (
-	"fmt"
+	"errors"
 	diinterface "github.com/Borislavv/video-streaming/internal/infrastructure/di/interface"
 	"reflect"
 )
+
+var notFoundError = errors.New("service not found in the DI container")
 
 type Container struct {
 	container map[reflect.Type]reflect.Value
@@ -40,7 +42,7 @@ func (s *Container) Has(key reflect.Type) (has bool) {
 func (s *Container) Get(key reflect.Type) (service reflect.Value, notFoundErr error) {
 	service, found := s.container[key]
 	if !found {
-		return reflect.Value{}, fmt.Errorf("service not found by key '%s'", key)
+		return reflect.Value{}, notFoundError
 	}
 	return service, nil
 }
