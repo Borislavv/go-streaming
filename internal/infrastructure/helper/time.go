@@ -1,8 +1,12 @@
 package helper
 
 import (
-	"github.com/Borislavv/video-streaming/internal/domain/errtype"
+	"errors"
 	"time"
+)
+
+var (
+	InvalidDateFormat = errors.New("invalid date format")
 )
 
 var dateLayouts = []string{
@@ -23,5 +27,5 @@ func ParseTime(date string) (time.Time, error) {
 		}
 		return parsed, nil
 	}
-	return time.Time{}, errtype.NewTimeParsingValidationError(date)
+	return time.Time{}, InvalidDateFormat
 }
