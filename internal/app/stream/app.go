@@ -56,7 +56,6 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 
 	cancel := app.InitAppCtx()
 
-	// logger
 	loggerService, loggerCancelFunc, err := app.InitLoggerService()
 	if err != nil {
 		panic(err)
@@ -173,7 +172,7 @@ func (app *StreamingApp) InitLoggerService() (
 		return nil, nil, err
 	}
 
-	loggerService, cls := logger.NewStdOut(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
+	loggerService, cls := logger.NewStdErr(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
 
 	app.di.
 		Set(loggerService, reflect.TypeOf((*loggerservice.Logger)(nil))).
