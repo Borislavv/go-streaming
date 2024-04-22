@@ -5,11 +5,11 @@ import (
 	"os"
 )
 
-type StdOut struct {
+type StdErr struct {
 	*abstract
 }
 
-func NewStdOut(ctx context.Context, errBuff int, reqBuff int) (logger *StdOut, closeFunc func()) {
+func NewStdErr(ctx context.Context, errBuff int, reqBuff int) (logger *StdErr, closeFunc func()) {
 	abstractLogger, closeFunc := newAbstractLogger(ctx, os.Stderr, errBuff, reqBuff)
-	return &StdOut{abstract: abstractLogger}, closeFunc
+	return &StdErr{abstract: abstractLogger}, closeFunc
 }
