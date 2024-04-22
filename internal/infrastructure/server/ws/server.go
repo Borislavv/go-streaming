@@ -2,6 +2,7 @@ package ws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	"github.com/Borislavv/video-streaming/internal/domain/service/di/interface"
@@ -64,9 +65,11 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		defer s.logger.Info("stopped")
-		if lsErr := server.ListenAndServe(); lsErr != nil && lsErr != http.ErrServerClosed {
+		defer func() {
+			wg.Done()
+			s.logger.Info("stopped")
+		}()
+		if lsErr := server.ListenAndServe(); lsErr != nil && !errors.Is(lsErr, http.ErrServerClosed) {
 			s.logger.Error(lsErr)
 			return
 		}
@@ -75,11 +78,12 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	s.logger.Info("running...")
 	<-ctx.Done()
 	s.logger.Info("shutting down...")
+	time.Sleep(time.Second)
 
 	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	if sdErr := server.Shutdown(serverCtx); sdErr != nil && sdErr != context.Canceled {
+	if sdErr := server.Shutdown(serverCtx); sdErr != nil && !errors.Is(sdErr, context.Canceled) {
 		s.logger.Error(sdErr)
 		return
 	}

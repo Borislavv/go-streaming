@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"github.com/Borislavv/video-streaming/internal/domain/enum"
 	"github.com/Borislavv/video-streaming/internal/domain/logger/interface"
 	authenticatorinterface "github.com/Borislavv/video-streaming/internal/domain/service/authenticator/interface"
@@ -102,6 +103,7 @@ func NewHttpServer(
 
 func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
+
 	addr, err := net.ResolveTCPAddr(s.transportProto, net.JoinHostPort(s.host, s.port))
 	if err != nil {
 		s.logger.Error(err)
@@ -115,10 +117,12 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		defer s.logger.Info("stopped")
-		if err = server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.logger.Error(err)
+		defer func() {
+			wg.Done()
+			s.logger.Info("stopped")
+		}()
+		if lsErr := server.ListenAndServe(); lsErr != nil && !errors.Is(lsErr, http.ErrServerClosed) {
+			s.logger.Error(lsErr)
 			return
 		}
 	}()
@@ -126,11 +130,12 @@ func (s *Server) Listen(ctx context.Context, wg *sync.WaitGroup) {
 	s.logger.Info("running...")
 	<-ctx.Done()
 	s.logger.Info("shutting down...")
+	time.Sleep(time.Second)
 
 	serverCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	if shErr := server.Shutdown(serverCtx); shErr != nil && shErr != context.Canceled {
+	if shErr := server.Shutdown(serverCtx); shErr != nil && !errors.Is(shErr, context.Canceled) {
 		s.logger.Critical(err)
 		return
 	}

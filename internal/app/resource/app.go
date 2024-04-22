@@ -72,10 +72,9 @@ func NewResourcesApp(di diinterface.ServiceContainer) *ResourcesApp {
 // Run is method which running the REST API part of app
 func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	defer mWg.Done()
-	// ctx, cancelFunc
+
 	cancel := app.InitAppCtx()
 
-	// logger
 	loggerService, loggerCancelFunc, err := app.InitLoggerService()
 	if err != nil {
 		panic(err)
@@ -86,6 +85,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 	defer func() {
 		cancel()
 		wg.Wait()
+		time.Sleep(time.Second)
 	}()
 
 	// config
@@ -173,7 +173,7 @@ func (app *ResourcesApp) Run(mWg *sync.WaitGroup) {
 
 func (app *ResourcesApp) shutdown() chan os.Signal {
 	stopCh := make(chan os.Signal, 1)
-	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM)
 	return stopCh
 }
 

@@ -54,7 +54,6 @@ func NewStreamingApp(di diinterface.ServiceContainer) *StreamingApp {
 func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	defer mWg.Done()
 
-	// ctx, cancelFunc
 	cancel := app.InitAppCtx()
 
 	// logger
@@ -68,6 +67,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 	defer func() {
 		cancel()
 		wg.Wait()
+		time.Sleep(time.Second)
 	}()
 
 	// config
@@ -149,7 +149,7 @@ func (app *StreamingApp) Run(mWg *sync.WaitGroup) {
 
 func (app *StreamingApp) shutdown() chan os.Signal {
 	stopCh := make(chan os.Signal, 1)
-	signal.Notify(stopCh, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGSTOP)
 	return stopCh
 }
 
