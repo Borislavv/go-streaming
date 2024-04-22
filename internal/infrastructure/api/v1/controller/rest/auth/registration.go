@@ -50,14 +50,12 @@ func NewRegistrationController(serviceContainer diinterface.ServiceContainer) (*
 
 // Registration - is an endpoint for create a new user.
 func (c *RegistrationController) Registration(w http.ResponseWriter, r *http.Request) {
-	// building a create user request DTO
 	userReqDTO, err := c.builder.BuildCreateRequestDTOFromRequest(r)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
 		return
 	}
 
-	// creating user by appropriate service
 	userAgg, err := c.service.Create(userReqDTO)
 	if err != nil {
 		c.responder.Respond(w, c.logger.LogPropagate(err))
