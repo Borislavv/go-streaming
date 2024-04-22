@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <title>Login - Streaming Video service</title>
+</head>
+<body>
+<header>
+    <h1>Authentication in the Streaming video service</h1>
+</header>
+
+<div class="center-container">
+    <div class="login-form" id="loginForm">
+        <button type="button" class="button" onclick="switchToLogin()">Login</button>
+        <button type="button" class="button" onclick="switchToRegistration()">Registration</button>
+        <h2 id="form-title">Login</h2>
+        <div id="error-message" class="error-message" style="display: none;">
+            <span id="close-error" class="close-error" style="display: none;">&times;</span>
+            <p id="error-text" class="error-text" style="display: none;"></p>
+        </div>
+        <form id="main-form">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <div id="extra-fields"></div>
+
+            <button type="submit" class="auth-submit-button" style="margin-left: 25%">Submit</button>
+        </form>
+    </div>
+</div>
+
+<footer>
+    &copy; 2023 Streaming Video Player | github.com/Borislavv/streaming
+</footer>
+
+<script src="http://0.0.0.0:8000/static/js/auth.js"></script>
+</body>
+</html>
