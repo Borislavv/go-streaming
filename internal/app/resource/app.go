@@ -707,7 +707,7 @@ func (app *ResourcesApp) InitUnauthedNativeRenderingControllers() ([]controller.
 		return nil, err
 	}
 
-	loginController, err := render.NewLoginController(app.di)
+	loginController, err := render.NewAuthController(app.di)
 	if err != nil {
 		return nil, loggerService.LogPropagate(err)
 	}
