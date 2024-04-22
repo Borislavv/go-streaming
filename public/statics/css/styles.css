@@ -189,17 +189,21 @@ video {
     font-size: 20px; /* Размер шрифта */
     font-weight: bold;
     cursor: pointer; /* Курсор в виде руки при наведении */
+    display: none;
 }
 
 .close-error:hover {
     color: #fff; /* Цвет при наведении */
 }
 
-/* Убедитесь, что элемент error-message имеет отступы, чтобы текст не налезал на кнопку закрытия */
+.error-text {
+    display: none;
+}
+
 .error-message {
     padding: 10px;
     position: relative; /* Для абсолютного позиционирования close-error */
-    /* ... */
+    display: none;
 }
 
 .center-container {
