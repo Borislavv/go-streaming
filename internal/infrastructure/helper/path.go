@@ -10,6 +10,7 @@ const (
 	StaticDirPath    = "/public/statics/"
 	TemplatesDirPath = "/html/"
 	ResourcesDirPath = "/public/resources/"
+	LogsDirPath      = "/var/log/"
 )
 
 func TemplatePath(template string, dirs ...string) (string, error) {
@@ -30,6 +31,10 @@ func StaticFilesDir() (string, error) {
 
 func ResourcesDir() (string, error) {
 	return path(ResourcesDirPath)
+}
+
+func LogsDir() (string, error) {
+	return path(LogsDirPath)
 }
 
 // path is a function which builts any path from root dir.
