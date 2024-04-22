@@ -197,7 +197,7 @@ func (app *ResourcesApp) InitLoggerService() (
 		return nil, nil, err
 	}
 
-	loggerService, cls := logger.NewStdOut(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
+	loggerService, cls := logger.NewStdErr(ctx, app.cfg.LoggerErrorsBufferCap, app.cfg.LoggerRequestsBufferCap)
 
 	app.di.
 		Set(loggerService, reflect.TypeOf((*loggerservice.Logger)(nil))).
