@@ -223,7 +223,7 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 
 		parsedCreatedAt, err := helper.ParseTime(createdAt)
 		if err != nil {
-			return nil, b.logger.LogPropagate(err)
+			return nil, b.logger.LogPropagate(errtype.NewTimeParsingValidationError(createdAt))
 		} else {
 			videoDTO.CreatedAt = parsedCreatedAt
 		}
@@ -233,7 +233,7 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 
 		parsedFrom, err := helper.ParseTime(from)
 		if err != nil {
-			return nil, b.logger.LogPropagate(err)
+			return nil, b.logger.LogPropagate(errtype.NewTimeParsingValidationError(from))
 		} else {
 			videoDTO.From = parsedFrom
 		}
@@ -243,7 +243,7 @@ func (b *VideoBuilder) BuildListRequestDTOFromRequest(r *http.Request) (*dto.Vid
 
 		parsedTo, err := helper.ParseTime(to)
 		if err != nil {
-			return nil, b.logger.LogPropagate(err)
+			return nil, b.logger.LogPropagate(errtype.NewTimeParsingValidationError(to))
 		} else {
 			videoDTO.To = parsedTo
 		}
